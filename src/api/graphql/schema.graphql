@@ -1,0 +1,8 @@
+type Query {
+  systemInfo: SystemInfoModel!
+}
+
+type SystemInfoModel {
+  name: String!
+  status: String!
+}

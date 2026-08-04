@@ -8,13 +8,15 @@
 
 </div>
 
-> Initial architecture stage. The target API is not implemented.
+> Initial architecture stage. Only the transport and CQRS foundation is implemented.
 
-## Responsibilities
+## Current foundation
 
-- Provide application CQRS shared by REST/OpenAPI, GraphQL, and MCP adapters.
-- Persist application data in PostgreSQL through Prisma.
-- Compose `revo-run`, `revo-agent-runtime`, and `revo-scripts`.
+- NestJS application lifecycle.
+- Application CQRS shared by GraphQL and REST.
+- GraphQL Yoga at `/graphql`.
+- REST and Swagger at `/api`.
+- Committed GraphQL and OpenAPI contracts.
 
 ## Boundaries
 
@@ -22,22 +24,43 @@
 - Does not own terminal UX.
 - Does not own standalone installation or service lifecycle.
 
-## Target API
+No run execution, persistence, MCP, or `revo-*` package integration exists yet.
 
-Planned REST request:
+## Current API
 
-```http
-POST /api/runs
-Content-Type: application/json
-
-{
-  "input": {}
+```graphql
+query {
+  systemInfo {
+    name
+    status
+  }
 }
 ```
 
-The future OpenAPI specification will be the authority for the HTTP contract.
+```http
+GET /api/system
+```
 
-## Dependencies
+Both return:
+
+```json
+{
+  "name": "revo-core",
+  "status": "ok"
+}
+```
+
+## Development
+
+```bash
+pnpm install
+pnpm verify
+pnpm start:dev
+```
+
+Run `pnpm generate:api-contracts` only when intentionally changing a public API.
+
+## Future composition
 
 - `revo-run`
 - `revo-agent-runtime`

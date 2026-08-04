@@ -1,0 +1,55 @@
+{
+  "name": "@revisium/revo-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "generate:api-contracts": "pnpm build && node scripts/update-api-contracts.mjs && oxfmt --write src/api/graphql/schema.graphql src/api/rest/openapi.json",
+    "lint": "oxlint --type-aware --type-check --deny-warnings --report-unused-disable-directives .",
+    "start": "node dist/main.js",
+    "start:dev": "pnpm build && node dist/main.js",
+    "test": "vitest run",
+    "test:cov": "vitest run --coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "verify": "pnpm format:check && pnpm typecheck && pnpm lint && pnpm build && pnpm test:cov",
+    "sonar:local": "bash scripts/sonar-local.sh",
+    "sonar:issues:local": "bash scripts/sonar-issues-local.sh",
+    "ci:local:sonar": "bash scripts/ci-local-sonar.sh"
+  },
+  "dependencies": {
+    "@graphql-yoga/nestjs": "3.22.2",
+    "@nestjs/common": "11.1.28",
+    "@nestjs/config": "4.0.4",
+    "@nestjs/core": "11.1.28",
+    "@nestjs/cqrs": "11.0.3",
+    "@nestjs/graphql": "13.4.2",
+    "@nestjs/platform-express": "11.1.28",
+    "@nestjs/swagger": "11.4.6",
+    "class-transformer": "0.5.1",
+    "class-validator": "0.15.1",
+    "graphql": "16.14.2",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "11.1.28",
+    "@swc/core": "1.15.47",
+    "@types/node": "26.1.2",
+    "@types/supertest": "7.2.1",
+    "@vitest/coverage-v8": "4.1.10",
+    "oxfmt": "0.62.0",
+    "oxlint": "1.77.0",
+    "oxlint-tsgolint": "7.0.2001",
+    "supertest": "7.2.2",
+    "typescript": "7.0.2",
+    "unplugin-swc": "1.5.10",
+    "vitest": "4.1.10"
+  },
+  "engines": {
+    "node": ">=24.11.1 <25"
+  },
+  "packageManager": "pnpm@11.13.0"
+}

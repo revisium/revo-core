@@ -1,0 +1,16 @@
+packages: []
+
+allowBuilds:
+  '@nestjs/core': true
+  '@scarf/scarf': false
+  '@swc/core': true
+
+minimumReleaseAgeExclude:
+  - unplugin-swc@1.5.10
+
+strictDepBuilds: true
+
+trustPolicy: no-downgrade
+
+trustPolicyExclude:
+  - chokidar@4.0.3
