@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [swc.vite()],
   test: {
     coverage: {
+      exclude: ['src/main.ts'],
       include: ['src/**/*.ts'],
       provider: 'v8',
       reporter: ['text', 'lcov'],

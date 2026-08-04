@@ -55,7 +55,7 @@ fi
 docker run --rm \
   -e SONAR_TOKEN \
   -e SONAR_HOST_URL="${SONAR_HOST_URL}" \
-  -e SONAR_USER_HOME=/usr/src/.sonar \
+  -e SONAR_USER_HOME=/tmp/.sonar \
   -v "$ROOT_DIR:/usr/src" \
   "sonarsource/sonar-scanner-cli:${SONAR_SCANNER_VERSION}" \
   "${scanner_args[@]}" \

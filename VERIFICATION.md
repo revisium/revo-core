@@ -16,9 +16,18 @@ pnpm generate:api-contracts
 pnpm verify
 ```
 
-To reproduce the complete CI and Sonar flow locally, provide `SONAR_TOKEN` in
-`.env.sonar` and run:
+To reproduce the complete CI and Sonar flow locally, Docker must be running.
+Create the ignored `.env.sonar` file with the SonarCloud token:
+
+```bash
+SONAR_TOKEN=your-token
+```
+
+Then run:
 
 ```bash
 pnpm ci:local:sonar
 ```
+
+This scans the current pull request when one exists and fails on a mismatched
+analysis revision, a failed quality gate, or any open Sonar issue.

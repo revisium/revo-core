@@ -5,7 +5,14 @@
     "perf": "warn",
     "suspicious": "error"
   },
-  "ignorePatterns": [".codegraph/**", ".idea/**", "coverage/**", "dist/**", "node_modules/**"],
+  "ignorePatterns": [
+    ".codegraph/**",
+    ".idea/**",
+    ".sonar/**",
+    "coverage/**",
+    "dist/**",
+    "node_modules/**"
+  ],
   "options": {
     "typeAware": true,
     "typeCheck": true
