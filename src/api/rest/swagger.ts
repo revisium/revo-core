@@ -7,6 +7,7 @@ export const initSwagger = (app: INestApplication): void => {
   const config = new DocumentBuilder()
     .setTitle('Revo Core API')
     .setVersion(packageJson.version)
+    .addTag('Runs')
     .addTag('System')
     .build();
   const document = SwaggerModule.createDocument(app, config);

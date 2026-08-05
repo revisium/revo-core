@@ -5,8 +5,14 @@ export default defineConfig({
   oxc: false,
   plugins: [swc.vite()],
   test: {
+    fileParallelism: false,
     coverage: {
-      exclude: ['src/main.ts'],
+      exclude: [
+        'src/__generated__/**',
+        'src/**/*.module.ts',
+        'src/infrastructure/database/**',
+        'src/main.ts',
+      ],
       include: ['src/**/*.ts'],
       provider: 'v8',
       reporter: ['text', 'lcov'],

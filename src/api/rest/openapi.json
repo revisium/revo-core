@@ -1,6 +1,68 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/runs": {
+      "post": {
+        "operationId": "startRun",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartRunRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartRunResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Start a run",
+        "tags": ["Runs"]
+      }
+    },
+    "/api/runs/{runId}": {
+      "get": {
+        "operationId": "getRun",
+        "parameters": [
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found"
+          }
+        },
+        "summary": "Get a run",
+        "tags": ["Runs"]
+      }
+    },
     "/api/system": {
       "get": {
         "operationId": "getSystemInfo",
@@ -30,6 +92,10 @@
   },
   "tags": [
     {
+      "name": "Runs",
+      "description": ""
+    },
+    {
       "name": "System",
       "description": ""
     }
@@ -37,6 +103,143 @@
   "servers": [],
   "components": {
     "schemas": {
+      "StartRunRequest": {
+        "type": "object",
+        "properties": {
+          "pipeline": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "input": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["pipeline", "input"]
+      },
+      "StartRunResponse": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          }
+        },
+        "required": ["runId"]
+      },
+      "RunErrorResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "execution_failed",
+              "workflow_failed",
+              "recovery_exhausted",
+              "invalid_workflow_state"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["code", "message"]
+      },
+      "RunResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "running", "succeeded", "failed", "cancelled"]
+          },
+          "executionPlan": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "input": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "$ref": "#/components/schemas/RunErrorResponse"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["id", "status", "executionPlan", "input", "createdAt", "updatedAt"]
+      },
       "SystemInfoResponse": {
         "type": "object",
         "properties": {

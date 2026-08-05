@@ -8,7 +8,7 @@
 
 </div>
 
-> Initial architecture stage. Only the transport and CQRS foundation is implemented.
+> Initial architecture stage. The first DBOS-backed run slice is implemented.
 
 ## Current foundation
 
@@ -17,6 +17,9 @@
 - GraphQL Yoga at `/graphql`.
 - REST and Swagger at `/api`.
 - Committed GraphQL and OpenAPI contracts.
+- Durable pipeline execution through `@revisium/revo-run`.
+- Temporary MVP task execution without external effects.
+- PostgreSQL with Prisma-owned product data and DBOS-owned workflow state.
 
 ## Boundaries
 
@@ -24,7 +27,7 @@
 - Does not own terminal UX.
 - Does not own standalone installation or service lifecycle.
 
-No run execution, persistence, MCP, or `revo-*` package integration exists yet.
+Agent execution, method planning, MCP, installation packaging, and the product UI are not implemented yet.
 
 ## Current API
 
@@ -50,20 +53,32 @@ Both return:
 }
 ```
 
+Runs can be started with a public `PipelineDefinition`. Revo Core validates and compiles it before
+starting the durable workflow:
+
+```http
+POST /api/runs
+GET /api/runs/:runId
+```
+
+or the `startRun` mutation and `run` query in GraphQL.
+
 ## Development
 
 ```bash
 pnpm install
+pnpm db:test:up
+pnpm db:migrate:deploy
 pnpm verify
 pnpm start:dev
 ```
 
 Run `pnpm generate:api-contracts` only when intentionally changing a public API.
 
-## Future composition
+## Composition
 
 - `revo-run`
-- `revo-agent-runtime`
-- `revo-scripts`
-- `revo-pipeline` transitively through `revo-run`
+- `revo-pipeline`
 - PostgreSQL and Prisma
+
+`revo-agent-runtime` and `revo-scripts` are the next execution adapters planned for this composition.

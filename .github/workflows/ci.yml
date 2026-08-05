@@ -39,6 +39,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Start PostgreSQL
+        run: pnpm db:test:up
+
+      - name: Apply database migrations
+        run: pnpm db:migrate:deploy
+
       - name: Verify
         run: pnpm verify
 
@@ -84,3 +90,7 @@ jobs:
           SONAR_PR_KEY: ${{ github.event.pull_request.number }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: pnpm sonar:issues:local
+
+      - name: Stop PostgreSQL
+        if: ${{ always() }}
+        run: pnpm db:test:down

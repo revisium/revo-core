@@ -3,11 +3,14 @@
 Run before requesting review:
 
 ```bash
+pnpm db:test:up
+pnpm db:migrate:deploy
 pnpm verify
+pnpm db:test:down
 ```
 
 This checks formatting, TypeScript, Oxlint, build, GraphQL and OpenAPI contracts,
-transport smoke tests, and produces the LCOV report consumed by Sonar.
+real DBOS-backed transport smoke tests, and produces the LCOV report consumed by Sonar.
 
 When a public API changes intentionally:
 
