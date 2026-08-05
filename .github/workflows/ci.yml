@@ -18,6 +18,8 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      DATABASE_URL: postgresql://revo:revo@127.0.0.1:55433/revo
 
     steps:
       - name: Check out repository
