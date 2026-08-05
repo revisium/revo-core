@@ -4,13 +4,15 @@ Run before requesting review:
 
 ```bash
 pnpm db:test:up
-pnpm db:migrate:deploy
+pnpm db:test:migrate
 pnpm verify
 pnpm db:test:down
 ```
 
 This checks formatting, TypeScript, Oxlint, build, GraphQL and OpenAPI contracts,
 real DBOS-backed transport smoke tests, and produces the LCOV report consumed by Sonar.
+Disposable test configuration is committed in `.env.test`; local development continues to use
+`.env` or process environment variables.
 
 When a public API changes intentionally:
 
