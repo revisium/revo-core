@@ -8,6 +8,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import packageJson from '../package.json' with { type: 'json' };
 import { initSwagger } from '../src/api/rest/swagger.js';
 import { AppModule } from '../src/app.module.js';
+import { invalidPipeline, taskPipeline } from './fixtures/task-pipeline.js';
 
 describe('REST API', () => {
   let app: INestApplication;
@@ -25,6 +26,45 @@ describe('REST API', () => {
     const response = await request(app.getHttpServer()).get('/api/system').expect(200);
 
     expect(response.body).toEqual({ name: 'revo-core', status: 'ok' });
+  });
+
+  test('starts and reads a durable run', async () => {
+    const pipeline = taskPipeline();
+    const input = { transport: 'rest' };
+    const started = await request(app.getHttpServer())
+      .post('/api/runs')
+      .send({ pipeline, input })
+      .expect(201);
+
+    expect(started.body.runId).toEqual(expect.any(String));
+
+    const runId = started.body.runId as string;
+    let snapshot: Record<string, unknown> | undefined;
+
+    await expect
+      .poll(async () => {
+        const response = await request(app.getHttpServer()).get(`/api/runs/${runId}`).expect(200);
+        snapshot = response.body as Record<string, unknown>;
+        return snapshot.status;
+      })
+      .toBe('succeeded');
+
+    expect(snapshot).toMatchObject({ id: runId, input });
+  });
+
+  test('returns not found for an unknown run', async () => {
+    const response = await request(app.getHttpServer()).get('/api/runs/missing-run');
+
+    expect(response.status).toBe(404);
+  });
+
+  test('rejects an invalid pipeline', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/runs')
+      .send({ pipeline: invalidPipeline(), input: null })
+      .expect(400);
+
+    expect(response.body).toMatchObject({ message: 'Pipeline definition is invalid.' });
   });
 
   test('matches the committed OpenAPI document', async () => {

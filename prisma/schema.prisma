@@ -1,0 +1,60 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/__generated__/client"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["dbos", "public"]
+}
+
+model Project {
+  id           String       @id @default(nanoid())
+  name         String
+  createdAt    DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime     @updatedAt @db.Timestamptz(3)
+  repositories Repository[]
+
+  @@map("projects")
+  @@schema("public")
+}
+
+model Repository {
+  id        String  @id @default(nanoid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  name      String
+  remoteUrl String?
+  localPath String?
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([projectId, name])
+  @@index([projectId])
+  @@map("repositories")
+  @@schema("public")
+}
+
+// DBOS owns and migrates these tables. Revo only exposes the fields needed by
+// operational queries; Prisma Migrate ignores both models via prisma.config.ts.
+model DbosWorkflowStatus {
+  workflowUuid String @id @map("workflow_uuid")
+  status       String
+  name         String?
+  createdAt    BigInt @map("created_at")
+  updatedAt    BigInt @map("updated_at")
+
+  @@map("workflow_status")
+  @@schema("dbos")
+}
+
+model DbosOperationOutput {
+  workflowUuid String @map("workflow_uuid")
+  functionId   Int    @map("function_id")
+  functionName String? @map("function_name")
+
+  @@id([workflowUuid, functionId])
+  @@map("operation_outputs")
+  @@schema("dbos")
+}
