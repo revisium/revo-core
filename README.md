@@ -14,7 +14,7 @@
 
 - NestJS application lifecycle.
 - Application CQRS shared by GraphQL and REST.
-- GraphQL Yoga at `/graphql`.
+- GraphQL Yoga at `/graphql`, including subscriptions over GraphQL SSE.
 - REST and Swagger at `/api`.
 - Committed GraphQL and OpenAPI contracts.
 - Durable pipeline execution through `@revisium/revo-run`.
@@ -62,6 +62,20 @@ GET /api/runs/:runId
 ```
 
 or the `startRun` mutation and `run` query in GraphQL.
+
+## GraphQL subscriptions
+
+GraphQL Yoga serves subscriptions on the existing `/graphql` endpoint using GraphQL over
+Server-Sent Events in distinct-connections mode. A client opens one HTTP event stream per
+subscription with `Accept: text/event-stream`.
+
+Subscription resolvers consume feature-owned `AsyncIterable` sources. Revo Core does not add an
+in-memory PubSub layer; durable or distributed event delivery belongs to the feature that owns the
+events. Single-connection SSE and WebSocket transports are not enabled.
+
+Natural source completion sends the GraphQL SSE `complete` event. When a client unsubscribes by
+closing its HTTP stream, Yoga calls `return()` on the source iterator; feature-owned iterators must
+use that signal to release listeners, readers, and other per-subscription resources.
 
 ## Development
 
