@@ -432,10 +432,6 @@ export type FileBlobUncheckedUpdateManyWithoutRowsNestedInput = {
   deleteMany?: Prisma.FileBlobScalarWhereInput | Prisma.FileBlobScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type BigIntFieldUpdateOperationsInput = {
   set?: bigint | number
   increment?: bigint | number

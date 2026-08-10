@@ -399,6 +399,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Project: 'Project',
   Repository: 'Repository',
+  ReviewThread: 'ReviewThread',
+  ReviewMessage: 'ReviewMessage',
   Branch: 'Branch',
   Revision: 'Revision',
   Table: 'Table',
@@ -423,7 +425,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "project" | "repository" | "branch" | "revision" | "table" | "row" | "fileBlob" | "projectFileUsage" | "tableMigration" | "dbosWorkflowStatus" | "dbosOperationOutput"
+    modelProps: "project" | "repository" | "reviewThread" | "reviewMessage" | "branch" | "revision" | "table" | "row" | "fileBlob" | "projectFileUsage" | "tableMigration" | "dbosWorkflowStatus" | "dbosOperationOutput"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -572,6 +574,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.RepositoryCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.RepositoryCountAggregateOutputType> | number
+        }
+      }
+    }
+    ReviewThread: {
+      payload: Prisma.$ReviewThreadPayload<ExtArgs>
+      fields: Prisma.ReviewThreadFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ReviewThreadFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewThreadPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ReviewThreadFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewThreadPayload>
+        }
+        findFirst: {
+          args: Prisma.ReviewThreadFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewThreadPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ReviewThreadFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewThreadPayload>
+        }
+        findMany: {
+          args: Prisma.ReviewThreadFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewThreadPayload>[]
+        }
+        create: {
+          args: Prisma.ReviewThreadCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewThreadPayload>
+        }
+        createMany: {
+          args: Prisma.ReviewThreadCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ReviewThreadCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewThreadPayload>[]
+        }
+        delete: {
+          args: Prisma.ReviewThreadDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewThreadPayload>
+        }
+        update: {
+          args: Prisma.ReviewThreadUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewThreadPayload>
+        }
+        deleteMany: {
+          args: Prisma.ReviewThreadDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ReviewThreadUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ReviewThreadUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewThreadPayload>[]
+        }
+        upsert: {
+          args: Prisma.ReviewThreadUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewThreadPayload>
+        }
+        aggregate: {
+          args: Prisma.ReviewThreadAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReviewThread>
+        }
+        groupBy: {
+          args: Prisma.ReviewThreadGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReviewThreadGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ReviewThreadCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReviewThreadCountAggregateOutputType> | number
+        }
+      }
+    }
+    ReviewMessage: {
+      payload: Prisma.$ReviewMessagePayload<ExtArgs>
+      fields: Prisma.ReviewMessageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ReviewMessageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewMessagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ReviewMessageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewMessagePayload>
+        }
+        findFirst: {
+          args: Prisma.ReviewMessageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewMessagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ReviewMessageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewMessagePayload>
+        }
+        findMany: {
+          args: Prisma.ReviewMessageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewMessagePayload>[]
+        }
+        create: {
+          args: Prisma.ReviewMessageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewMessagePayload>
+        }
+        createMany: {
+          args: Prisma.ReviewMessageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ReviewMessageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewMessagePayload>[]
+        }
+        delete: {
+          args: Prisma.ReviewMessageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewMessagePayload>
+        }
+        update: {
+          args: Prisma.ReviewMessageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewMessagePayload>
+        }
+        deleteMany: {
+          args: Prisma.ReviewMessageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ReviewMessageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ReviewMessageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewMessagePayload>[]
+        }
+        upsert: {
+          args: Prisma.ReviewMessageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReviewMessagePayload>
+        }
+        aggregate: {
+          args: Prisma.ReviewMessageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReviewMessage>
+        }
+        groupBy: {
+          args: Prisma.ReviewMessageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReviewMessageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ReviewMessageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReviewMessageCountAggregateOutputType> | number
         }
       }
     }
@@ -1304,6 +1454,36 @@ export const RepositoryScalarFieldEnum = {
 export type RepositoryScalarFieldEnum = (typeof RepositoryScalarFieldEnum)[keyof typeof RepositoryScalarFieldEnum]
 
 
+export const ReviewThreadScalarFieldEnum = {
+  id: 'id',
+  scopeKey: 'scopeKey',
+  subjectKey: 'subjectKey',
+  contextKey: 'contextKey',
+  context: 'context',
+  version: 'version',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt',
+  resolvedBy: 'resolvedBy'
+} as const
+
+export type ReviewThreadScalarFieldEnum = (typeof ReviewThreadScalarFieldEnum)[keyof typeof ReviewThreadScalarFieldEnum]
+
+
+export const ReviewMessageScalarFieldEnum = {
+  id: 'id',
+  threadId: 'threadId',
+  authorId: 'authorId',
+  body: 'body',
+  version: 'version',
+  createdAt: 'createdAt',
+  editedAt: 'editedAt',
+  deletedAt: 'deletedAt',
+  deletedBy: 'deletedBy'
+} as const
+
+export type ReviewMessageScalarFieldEnum = (typeof ReviewMessageScalarFieldEnum)[keyof typeof ReviewMessageScalarFieldEnum]
+
+
 export const BranchScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
@@ -1524,9 +1704,16 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
- * Reference to a field of type 'Boolean'
+ * Reference to a field of type 'Json'
  */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -1545,16 +1732,9 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'Json'
+ * Reference to a field of type 'Boolean'
  */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -1738,6 +1918,8 @@ export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaC
 export type GlobalOmitConfig = {
   project?: Prisma.ProjectOmit
   repository?: Prisma.RepositoryOmit
+  reviewThread?: Prisma.ReviewThreadOmit
+  reviewMessage?: Prisma.ReviewMessageOmit
   branch?: Prisma.BranchOmit
   revision?: Prisma.RevisionOmit
   table?: Prisma.TableOmit

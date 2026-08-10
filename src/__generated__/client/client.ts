@@ -52,6 +52,16 @@ export type Project = Prisma.ProjectModel
  */
 export type Repository = Prisma.RepositoryModel
 /**
+ * Model ReviewThread
+ * 
+ */
+export type ReviewThread = Prisma.ReviewThreadModel
+/**
+ * Model ReviewMessage
+ * 
+ */
+export type ReviewMessage = Prisma.ReviewMessageModel
+/**
  * Model Branch
  * 
  */

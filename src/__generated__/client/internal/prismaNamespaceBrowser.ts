@@ -53,6 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Project: 'Project',
   Repository: 'Repository',
+  ReviewThread: 'ReviewThread',
+  ReviewMessage: 'ReviewMessage',
   Branch: 'Branch',
   Revision: 'Revision',
   Table: 'Table',
@@ -102,6 +104,36 @@ export const RepositoryScalarFieldEnum = {
 } as const
 
 export type RepositoryScalarFieldEnum = (typeof RepositoryScalarFieldEnum)[keyof typeof RepositoryScalarFieldEnum]
+
+
+export const ReviewThreadScalarFieldEnum = {
+  id: 'id',
+  scopeKey: 'scopeKey',
+  subjectKey: 'subjectKey',
+  contextKey: 'contextKey',
+  context: 'context',
+  version: 'version',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt',
+  resolvedBy: 'resolvedBy'
+} as const
+
+export type ReviewThreadScalarFieldEnum = (typeof ReviewThreadScalarFieldEnum)[keyof typeof ReviewThreadScalarFieldEnum]
+
+
+export const ReviewMessageScalarFieldEnum = {
+  id: 'id',
+  threadId: 'threadId',
+  authorId: 'authorId',
+  body: 'body',
+  version: 'version',
+  createdAt: 'createdAt',
+  editedAt: 'editedAt',
+  deletedAt: 'deletedAt',
+  deletedBy: 'deletedBy'
+} as const
+
+export type ReviewMessageScalarFieldEnum = (typeof ReviewMessageScalarFieldEnum)[keyof typeof ReviewMessageScalarFieldEnum]
 
 
 export const BranchScalarFieldEnum = {
