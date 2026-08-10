@@ -1,0 +1,83 @@
+[
+  {
+    "id": "2026-08-07T00:00:00.000Z",
+    "changeType": "init",
+    "tableId": "playbooks",
+    "hash": "cd06046cd7d9d59b713dcc7ff02e45debb35f9b5",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "default": "",
+          "pattern": "^[\\s\\S]{0,200}$"
+        },
+        "packageVersion": {
+          "type": "string",
+          "default": "0.0.0",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "default": "1",
+          "pattern": "^(0|[1-9][0-9]*)$"
+        },
+        "status": {
+          "type": "string",
+          "default": "active",
+          "enum": ["active", "deprecated"]
+        },
+        "contentRef": {
+          "type": "string",
+          "default": "",
+          "pattern": "^[\\s\\S]{0,2048}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["name", "packageVersion", "schemaVersion", "status", "contentRef"]
+    }
+  },
+  {
+    "id": "2026-08-07T00:00:00.010Z",
+    "changeType": "init",
+    "tableId": "profiles",
+    "hash": "11b6d21e6e9a62889f00c0134b81ce7f29eb154a",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "playbookId": {
+          "type": "string",
+          "default": "",
+          "foreignKey": "playbooks"
+        },
+        "name": {
+          "type": "string",
+          "default": "",
+          "pattern": "^[\\s\\S]{0,200}$"
+        },
+        "kind": {
+          "type": "string",
+          "default": "configuration",
+          "enum": ["configuration"]
+        },
+        "version": {
+          "type": "string",
+          "default": "1",
+          "pattern": "^(0|[1-9][0-9]*)$"
+        },
+        "configRef": {
+          "type": "string",
+          "default": "",
+          "pattern": "^[\\s\\S]{0,2048}$"
+        },
+        "status": {
+          "type": "string",
+          "default": "active",
+          "enum": ["active", "deprecated"]
+        }
+      },
+      "additionalProperties": false,
+      "required": ["playbookId", "name", "kind", "version", "configRef", "status"]
+    }
+  }
+]

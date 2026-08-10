@@ -9,7 +9,9 @@
 * 🟢 You can import this file directly.
 */
 
+export const ProjectKind = {
+  USER: 'USER',
+  SYSTEM: 'SYSTEM'
+} as const
 
-
-// This file is empty because there are no enums in the schema.
-export {}
+export type ProjectKind = (typeof ProjectKind)[keyof typeof ProjectKind]
