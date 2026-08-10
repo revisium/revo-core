@@ -45,6 +45,41 @@ model Repository {
   @@schema("public")
 }
 
+model ReviewThread {
+  id         String          @id
+  scopeKey   String
+  subjectKey String
+  contextKey String?
+  context    Json
+  version    Int             @default(1)
+  createdAt  DateTime        @default(now()) @db.Timestamptz(3)
+  resolvedAt DateTime?       @db.Timestamptz(3)
+  resolvedBy String?
+  messages   ReviewMessage[]
+
+  @@index([scopeKey, subjectKey, resolvedAt])
+  @@index([scopeKey, subjectKey, contextKey, resolvedAt])
+  @@map("review_threads")
+  @@schema("public")
+}
+
+model ReviewMessage {
+  id        String       @id
+  threadId  String
+  thread    ReviewThread @relation(fields: [threadId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  authorId  String
+  body      String?
+  version   Int          @default(1)
+  createdAt DateTime     @default(now()) @db.Timestamptz(3)
+  editedAt  DateTime?    @db.Timestamptz(3)
+  deletedAt DateTime?    @db.Timestamptz(3)
+  deletedBy String?
+
+  @@index([threadId, createdAt, id])
+  @@map("review_messages")
+  @@schema("public")
+}
+
 // BEGIN @revisium/engine 0.7.0 Prisma models
 model Branch {
   id        String     @id
