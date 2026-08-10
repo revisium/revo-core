@@ -10,6 +10,13 @@
  */
 export type * from './models/Project.js'
 export type * from './models/Repository.js'
+export type * from './models/Branch.js'
+export type * from './models/Revision.js'
+export type * from './models/Table.js'
+export type * from './models/Row.js'
+export type * from './models/FileBlob.js'
+export type * from './models/ProjectFileUsage.js'
+export type * from './models/TableMigration.js'
 export type * from './models/DbosWorkflowStatus.js'
 export type * from './models/DbosOperationOutput.js'
 export type * from './commonInputTypes.js'

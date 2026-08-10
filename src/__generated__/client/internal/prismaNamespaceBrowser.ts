@@ -53,6 +53,13 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Project: 'Project',
   Repository: 'Repository',
+  Branch: 'Branch',
+  Revision: 'Revision',
+  Table: 'Table',
+  Row: 'Row',
+  FileBlob: 'FileBlob',
+  ProjectFileUsage: 'ProjectFileUsage',
+  TableMigration: 'TableMigration',
   DbosWorkflowStatus: 'DbosWorkflowStatus',
   DbosOperationOutput: 'DbosOperationOutput'
 } as const
@@ -76,6 +83,7 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  kind: 'kind',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -94,6 +102,117 @@ export const RepositoryScalarFieldEnum = {
 } as const
 
 export type RepositoryScalarFieldEnum = (typeof RepositoryScalarFieldEnum)[keyof typeof RepositoryScalarFieldEnum]
+
+
+export const BranchScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  isRoot: 'isRoot',
+  name: 'name',
+  projectId: 'projectId'
+} as const
+
+export type BranchScalarFieldEnum = (typeof BranchScalarFieldEnum)[keyof typeof BranchScalarFieldEnum]
+
+
+export const RevisionScalarFieldEnum = {
+  id: 'id',
+  sequence: 'sequence',
+  createdAt: 'createdAt',
+  comment: 'comment',
+  isHead: 'isHead',
+  isDraft: 'isDraft',
+  isStart: 'isStart',
+  hasChanges: 'hasChanges',
+  branchId: 'branchId',
+  parentId: 'parentId'
+} as const
+
+export type RevisionScalarFieldEnum = (typeof RevisionScalarFieldEnum)[keyof typeof RevisionScalarFieldEnum]
+
+
+export const TableScalarFieldEnum = {
+  versionId: 'versionId',
+  createdId: 'createdId',
+  id: 'id',
+  readonly: 'readonly',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  system: 'system'
+} as const
+
+export type TableScalarFieldEnum = (typeof TableScalarFieldEnum)[keyof typeof TableScalarFieldEnum]
+
+
+export const RowScalarFieldEnum = {
+  versionId: 'versionId',
+  createdId: 'createdId',
+  id: 'id',
+  readonly: 'readonly',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  publishedAt: 'publishedAt',
+  data: 'data',
+  meta: 'meta',
+  hash: 'hash',
+  schemaHash: 'schemaHash'
+} as const
+
+export type RowScalarFieldEnum = (typeof RowScalarFieldEnum)[keyof typeof RowScalarFieldEnum]
+
+
+export const FileBlobScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  deletedAt: 'deletedAt',
+  projectId: 'projectId',
+  hash: 'hash',
+  size: 'size'
+} as const
+
+export type FileBlobScalarFieldEnum = (typeof FileBlobScalarFieldEnum)[keyof typeof FileBlobScalarFieldEnum]
+
+
+export const ProjectFileUsageScalarFieldEnum = {
+  projectId: 'projectId',
+  fileBytes: 'fileBytes',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectFileUsageScalarFieldEnum = (typeof ProjectFileUsageScalarFieldEnum)[keyof typeof ProjectFileUsageScalarFieldEnum]
+
+
+export const TableMigrationScalarFieldEnum = {
+  id: 'id',
+  revisionId: 'revisionId',
+  tableId: 'tableId',
+  sourceTableVersionId: 'sourceTableVersionId',
+  shadowTableVersionId: 'shadowTableVersionId',
+  status: 'status',
+  phase: 'phase',
+  patches: 'patches',
+  previousSchema: 'previousSchema',
+  previousSchemaHash: 'previousSchemaHash',
+  targetSchemaHash: 'targetSchemaHash',
+  totalRows: 'totalRows',
+  copiedRows: 'copiedRows',
+  lastCopiedRowId: 'lastCopiedRowId',
+  batchSize: 'batchSize',
+  currentBatch: 'currentBatch',
+  totalBatches: 'totalBatches',
+  createdAt: 'createdAt',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  lastProgressAt: 'lastProgressAt',
+  lockedBy: 'lockedBy',
+  lockedAt: 'lockedAt',
+  heartbeatAt: 'heartbeatAt',
+  errorMessage: 'errorMessage',
+  retryCount: 'retryCount',
+  maxRetries: 'maxRetries'
+} as const
+
+export type TableMigrationScalarFieldEnum = (typeof TableMigrationScalarFieldEnum)[keyof typeof TableMigrationScalarFieldEnum]
 
 
 export const DbosWorkflowStatusScalarFieldEnum = {
@@ -124,6 +243,13 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -138,4 +264,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

@@ -52,6 +52,41 @@ export type Project = Prisma.ProjectModel
  */
 export type Repository = Prisma.RepositoryModel
 /**
+ * Model Branch
+ * 
+ */
+export type Branch = Prisma.BranchModel
+/**
+ * Model Revision
+ * 
+ */
+export type Revision = Prisma.RevisionModel
+/**
+ * Model Table
+ * 
+ */
+export type Table = Prisma.TableModel
+/**
+ * Model Row
+ * 
+ */
+export type Row = Prisma.RowModel
+/**
+ * Model FileBlob
+ * 
+ */
+export type FileBlob = Prisma.FileBlobModel
+/**
+ * Model ProjectFileUsage
+ * 
+ */
+export type ProjectFileUsage = Prisma.ProjectFileUsageModel
+/**
+ * Model TableMigration
+ * 
+ */
+export type TableMigration = Prisma.TableMigrationModel
+/**
  * Model DbosWorkflowStatus
  * 
  */
