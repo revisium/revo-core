@@ -31,6 +31,7 @@ import { AdrRequest } from './dto/adr.request.js';
 import { AdrConnectionResponse } from './model/adr-connection.response.js';
 import { AdrResponse } from './model/adr.response.js';
 import { recordListQuery } from './record-list.query.js';
+import { adrCreateBody, adrUpdateBody } from './record-write.js';
 
 @ApiTags('Projects')
 @Controller('projects/:projectId/adrs')
@@ -43,7 +44,7 @@ export class AdrController {
   @ApiCreatedResponse({ type: AdrResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   createAdr(@Param('projectId') projectId: string, @Body() data: AdrRequest) {
-    return this.projects.createAdr(Object.assign({ projectId }, data));
+    return this.projects.createAdr(adrCreateBody(projectId, data));
   }
 
   @Get()
@@ -82,7 +83,7 @@ export class AdrController {
     @Param('adrId') adrId: string,
     @Body() data: AdrUpdateRequest,
   ) {
-    return this.projects.updateAdr(Object.assign({ projectId, id: adrId }, data));
+    return this.projects.updateAdr(adrUpdateBody(projectId, adrId, data));
   }
 
   @Delete(':adrId')

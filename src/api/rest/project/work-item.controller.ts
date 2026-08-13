@@ -31,6 +31,7 @@ import { WorkItemRequest } from './dto/work-item.request.js';
 import { WorkItemConnectionResponse } from './model/work-item-connection.response.js';
 import { WorkItemResponse } from './model/work-item.response.js';
 import { recordListQuery } from './record-list.query.js';
+import { workItemCreateBody, workItemUpdateBody } from './record-write.js';
 
 @ApiTags('Projects')
 @Controller('projects/:projectId/work-items')
@@ -43,7 +44,7 @@ export class WorkItemController {
   @ApiCreatedResponse({ type: WorkItemResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   createWorkItem(@Param('projectId') projectId: string, @Body() data: WorkItemRequest) {
-    return this.projects.createWorkItem(Object.assign({ projectId }, data));
+    return this.projects.createWorkItem(workItemCreateBody(projectId, data));
   }
 
   @Get()
@@ -85,7 +86,7 @@ export class WorkItemController {
     @Param('workItemId') workItemId: string,
     @Body() data: WorkItemUpdateRequest,
   ) {
-    return this.projects.updateWorkItem(Object.assign({ projectId, id: workItemId }, data));
+    return this.projects.updateWorkItem(workItemUpdateBody(projectId, workItemId, data));
   }
 
   @Delete(':workItemId')

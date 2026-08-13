@@ -31,6 +31,7 @@ import { RequirementRequest } from './dto/requirement.request.js';
 import { RequirementConnectionResponse } from './model/requirement-connection.response.js';
 import { RequirementResponse } from './model/requirement.response.js';
 import { recordListQuery } from './record-list.query.js';
+import { requirementCreateBody, requirementUpdateBody } from './record-write.js';
 
 @ApiTags('Projects')
 @Controller('projects/:projectId/requirements')
@@ -43,7 +44,7 @@ export class RequirementController {
   @ApiCreatedResponse({ type: RequirementResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   createRequirement(@Param('projectId') projectId: string, @Body() data: RequirementRequest) {
-    return this.projects.createRequirement(Object.assign({ projectId }, data));
+    return this.projects.createRequirement(requirementCreateBody(projectId, data));
   }
 
   @Get()
@@ -85,7 +86,7 @@ export class RequirementController {
     @Param('requirementId') requirementId: string,
     @Body() data: RequirementUpdateRequest,
   ) {
-    return this.projects.updateRequirement(Object.assign({ projectId, id: requirementId }, data));
+    return this.projects.updateRequirement(requirementUpdateBody(projectId, requirementId, data));
   }
 
   @Delete(':requirementId')

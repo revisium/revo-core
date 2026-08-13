@@ -31,6 +31,7 @@ import { WorkPlanRequest } from './dto/work-plan.request.js';
 import { WorkPlanConnectionResponse } from './model/work-plan-connection.response.js';
 import { WorkPlanResponse } from './model/work-plan.response.js';
 import { recordListQuery } from './record-list.query.js';
+import { workPlanCreateBody, workPlanUpdateBody } from './record-write.js';
 
 @ApiTags('Projects')
 @Controller('projects/:projectId/work-plans')
@@ -43,7 +44,7 @@ export class WorkPlanController {
   @ApiCreatedResponse({ type: WorkPlanResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   createWorkPlan(@Param('projectId') projectId: string, @Body() data: WorkPlanRequest) {
-    return this.projects.createWorkPlan(Object.assign({ projectId }, data));
+    return this.projects.createWorkPlan(workPlanCreateBody(projectId, data));
   }
 
   @Get()
@@ -85,7 +86,7 @@ export class WorkPlanController {
     @Param('workPlanId') workPlanId: string,
     @Body() data: WorkPlanUpdateRequest,
   ) {
-    return this.projects.updateWorkPlan(Object.assign({ projectId, id: workPlanId }, data));
+    return this.projects.updateWorkPlan(workPlanUpdateBody(projectId, workPlanId, data));
   }
 
   @Delete(':workPlanId')
