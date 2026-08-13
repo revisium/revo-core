@@ -3,6 +3,7 @@ import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
 import { ProjectError } from '../../constants/project.constants.js';
+import { ProjectTable } from '../../constants/project.constants.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import {
   UpdateWorkPlanCommand,
@@ -24,7 +25,7 @@ export class UpdateWorkPlanHandler implements ICommandHandler<
     const revisionId = await this.drafts.getDraftRevisionId(projectId);
     const updated = await this.engine.updateRow({
       revisionId,
-      tableId: 'WorkPlan',
+      tableId: ProjectTable.workPlan,
       rowId: id,
       data: row,
     });

@@ -1,6 +1,7 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
+import { ProjectTable } from '../../constants/project.constants.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import {
   ListRequirementsQuery,
@@ -19,15 +20,12 @@ export class ListRequirementsHandler implements IQueryHandler<
 
   async execute({ data }: ListRequirementsQuery): Promise<ListRequirementsQueryReturnType> {
     const revisionId = await this.drafts.getDraftRevisionId(data.projectId);
-    const rows =
-      data.after === undefined
-        ? await this.engine.getRows({ revisionId, tableId: 'Requirement', first: data.first })
-        : await this.engine.getRows({
-            revisionId,
-            tableId: 'Requirement',
-            first: data.first,
-            after: data.after,
-          });
+    const rows = await this.engine.getRows({
+      revisionId,
+      tableId: ProjectTable.requirement,
+      first: data.first,
+      ...(data.after === undefined ? {} : { after: data.after }),
+    });
 
     return {
       ...rows,

@@ -1,6 +1,7 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
+import { ProjectTable } from '../../constants/project.constants.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import {
   GetRequirementQuery,
@@ -21,7 +22,7 @@ export class GetRequirementHandler implements IQueryHandler<
     const revisionId = await this.drafts.getDraftRevisionId(data.projectId);
     const row = await this.engine.getRow({
       revisionId,
-      tableId: 'Requirement',
+      tableId: ProjectTable.requirement,
       rowId: data.id,
     });
     if (row === null) {

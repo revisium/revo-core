@@ -1,6 +1,7 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
+import { ProjectTable } from '../../constants/project.constants.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import { CreateAdrCommand, type CreateAdrCommandReturnType } from '../impl/create-adr.command.js';
 
@@ -19,7 +20,7 @@ export class CreateAdrHandler implements ICommandHandler<
     const revisionId = await this.drafts.getDraftRevisionId(projectId);
     const created = await this.engine.createRow({
       revisionId,
-      tableId: 'ADR',
+      tableId: ProjectTable.adr,
       rowId: id,
       data: row,
     });

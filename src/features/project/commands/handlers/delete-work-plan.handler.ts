@@ -1,6 +1,7 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
+import { ProjectTable } from '../../constants/project.constants.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import {
   DeleteWorkPlanCommand,
@@ -21,7 +22,7 @@ export class DeleteWorkPlanHandler implements ICommandHandler<
     const revisionId = await this.drafts.getDraftRevisionId(data.projectId);
     await this.engine.removeRow({
       revisionId,
-      tableId: 'WorkPlan',
+      tableId: ProjectTable.workPlan,
       rowId: data.id,
     });
     return true;

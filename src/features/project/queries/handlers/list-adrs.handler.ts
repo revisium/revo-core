@@ -1,6 +1,7 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
+import { ProjectTable } from '../../constants/project.constants.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import { ListAdrsQuery, type ListAdrsQueryReturnType } from '../impl/list-adrs.query.js';
 
@@ -13,15 +14,12 @@ export class ListAdrsHandler implements IQueryHandler<ListAdrsQuery, ListAdrsQue
 
   async execute({ data }: ListAdrsQuery): Promise<ListAdrsQueryReturnType> {
     const revisionId = await this.drafts.getDraftRevisionId(data.projectId);
-    const rows =
-      data.after === undefined
-        ? await this.engine.getRows({ revisionId, tableId: 'ADR', first: data.first })
-        : await this.engine.getRows({
-            revisionId,
-            tableId: 'ADR',
-            first: data.first,
-            after: data.after,
-          });
+    const rows = await this.engine.getRows({
+      revisionId,
+      tableId: ProjectTable.adr,
+      first: data.first,
+      ...(data.after === undefined ? {} : { after: data.after }),
+    });
 
     return {
       ...rows,

@@ -1,6 +1,7 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
+import { ProjectTable } from '../../constants/project.constants.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import {
   CreateWorkItemCommand,
@@ -22,7 +23,7 @@ export class CreateWorkItemHandler implements ICommandHandler<
     const revisionId = await this.drafts.getDraftRevisionId(projectId);
     const created = await this.engine.createRow({
       revisionId,
-      tableId: 'WorkItem',
+      tableId: ProjectTable.workItem,
       rowId: id,
       data: row,
     });

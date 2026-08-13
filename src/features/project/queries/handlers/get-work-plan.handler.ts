@@ -1,6 +1,7 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
+import { ProjectTable } from '../../constants/project.constants.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import { GetWorkPlanQuery, type GetWorkPlanQueryReturnType } from '../impl/get-work-plan.query.js';
 
@@ -18,7 +19,7 @@ export class GetWorkPlanHandler implements IQueryHandler<
     const revisionId = await this.drafts.getDraftRevisionId(data.projectId);
     const row = await this.engine.getRow({
       revisionId,
-      tableId: 'WorkPlan',
+      tableId: ProjectTable.workPlan,
       rowId: data.id,
     });
     if (row === null) {

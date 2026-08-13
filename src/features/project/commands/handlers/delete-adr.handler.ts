@@ -1,6 +1,7 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
+import { ProjectTable } from '../../constants/project.constants.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import { DeleteAdrCommand, type DeleteAdrCommandReturnType } from '../impl/delete-adr.command.js';
 
@@ -18,7 +19,7 @@ export class DeleteAdrHandler implements ICommandHandler<
     const revisionId = await this.drafts.getDraftRevisionId(data.projectId);
     await this.engine.removeRow({
       revisionId,
-      tableId: 'ADR',
+      tableId: ProjectTable.adr,
       rowId: data.id,
     });
     return true;

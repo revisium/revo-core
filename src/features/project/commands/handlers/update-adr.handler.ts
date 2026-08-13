@@ -3,6 +3,7 @@ import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
 import { ProjectError } from '../../constants/project.constants.js';
+import { ProjectTable } from '../../constants/project.constants.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import { UpdateAdrCommand, type UpdateAdrCommandReturnType } from '../impl/update-adr.command.js';
 
@@ -21,7 +22,7 @@ export class UpdateAdrHandler implements ICommandHandler<
     const revisionId = await this.drafts.getDraftRevisionId(projectId);
     const updated = await this.engine.updateRow({
       revisionId,
-      tableId: 'ADR',
+      tableId: ProjectTable.adr,
       rowId: id,
       data: row,
     });
