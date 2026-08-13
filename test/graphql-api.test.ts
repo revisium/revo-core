@@ -202,9 +202,80 @@ describe('GraphQL API', () => {
   });
 
   test('rejects an invalid project list page size', async () => {
-    const listed = await graphql(app, LIST_PROJECTS, { data: { first: 0 } });
+    const listed = await graphql(app, LIST_PROJECTS, { data: { first: -1 } });
     expect(listed.body.data).toBeNull();
-    expect(listed.body.errors[0].message).toBe('first must be between 1 and 100.');
+    expect(listed.body.errors[0].message).toBe(
+      'Invalid "first" parameter: must be a non-negative integer',
+    );
+
+    const after = await graphql(app, LIST_PROJECTS, { data: { first: 1, after: 'abc' } });
+    expect(after.body.data).toBeNull();
+    expect(after.body.errors[0].message).toBe(
+      'Invalid "after" cursor: must be a non-negative integer string',
+    );
+  });
+
+  test('paginates USER projects and ADRs through GraphQL', async () => {
+    const project = await createProject(app, createdProjectIds, 'Page A');
+    await createProject(app, createdProjectIds, 'Page B');
+    await graphql(app, CREATE_ADR, { data: adrInput(project.id, 'ADR-1', 'One') });
+    await graphql(app, CREATE_ADR, { data: adrInput(project.id, 'ADR-2', 'Two') });
+
+    const empty = await graphql(app, LIST_PROJECTS, { data: { first: 0 } });
+    expect(empty.body.errors).toBeUndefined();
+    expect(empty.body.data.projects.edges).toEqual([]);
+    expect(empty.body.data.projects.pageInfo).toMatchObject({
+      hasNextPage: false,
+      hasPreviousPage: false,
+    });
+
+    const firstProjects = await graphql(app, LIST_PROJECTS, { data: { first: 1 } });
+    expect(firstProjects.body.errors).toBeUndefined();
+    expect(firstProjects.body.data.projects.edges).toHaveLength(1);
+    expect(firstProjects.body.data.projects.totalCount).toBeGreaterThanOrEqual(2);
+    expect(firstProjects.body.data.projects.pageInfo.hasNextPage).toBe(true);
+    expect(firstProjects.body.data.projects.pageInfo.hasPreviousPage).toBe(false);
+    expect(firstProjects.body.data.projects.pageInfo.endCursor).toEqual(expect.any(String));
+
+    const nextProjects = await graphql(app, LIST_PROJECTS, {
+      data: { first: 1, after: firstProjects.body.data.projects.pageInfo.endCursor },
+    });
+    expect(nextProjects.body.errors).toBeUndefined();
+    expect(nextProjects.body.data.projects.edges).toHaveLength(1);
+    expect(nextProjects.body.data.projects.edges[0].node.id).not.toBe(
+      firstProjects.body.data.projects.edges[0].node.id,
+    );
+    expect(nextProjects.body.data.projects.pageInfo.hasPreviousPage).toBe(true);
+
+    const firstAdrs = await graphql(app, LIST_ADRS, {
+      projectId: project.id,
+      data: { first: 1 },
+    });
+    expect(firstAdrs.body.errors).toBeUndefined();
+    expect(firstAdrs.body.data.project.adrs).toMatchObject({
+      totalCount: 2,
+      pageInfo: { hasNextPage: true },
+    });
+    expect(firstAdrs.body.data.project.adrs.edges).toHaveLength(1);
+    expect(firstAdrs.body.data.project.adrs.pageInfo.endCursor).toEqual(expect.any(String));
+
+    const nextAdrs = await graphql(app, LIST_ADRS, {
+      projectId: project.id,
+      data: { first: 1, after: firstAdrs.body.data.project.adrs.pageInfo.endCursor },
+    });
+    expect(nextAdrs.body.errors).toBeUndefined();
+    expect(nextAdrs.body.data.project.adrs.edges).toHaveLength(1);
+    expect(nextAdrs.body.data.project.adrs.edges[0].node.id).not.toBe(
+      firstAdrs.body.data.project.adrs.edges[0].node.id,
+    );
+    expect(
+      [
+        firstAdrs.body.data.project.adrs.edges[0].node.id,
+        nextAdrs.body.data.project.adrs.edges[0].node.id,
+      ].toSorted((left: string, right: string) => left.localeCompare(right)),
+    ).toEqual(['ADR-1', 'ADR-2']);
+    expect(nextAdrs.body.data.project.adrs.pageInfo.hasPreviousPage).toBe(true);
+    expect(nextAdrs.body.data.project.adrs.pageInfo.hasNextPage).toBe(false);
   });
 
   test('creates and gets Requirement, WorkPlan, and WorkItem', async () => {
@@ -331,7 +402,8 @@ const LIST_PROJECTS = `
   query Projects($data: ProjectListInput!) {
     projects(data: $data) {
       totalCount
-      edges { node { id name } }
+      edges { cursor node { id name } }
+      pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
     }
   }
 `;
@@ -388,7 +460,11 @@ const GET_ADR = `
 const LIST_ADRS = `
   query Adrs($projectId: ID!, $data: RecordListInput!) {
     project(id: $projectId) {
-      adrs(data: $data) { totalCount edges { node { id } } }
+      adrs(data: $data) {
+        totalCount
+        edges { cursor node { id } }
+        pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
+      }
     }
   }
 `;

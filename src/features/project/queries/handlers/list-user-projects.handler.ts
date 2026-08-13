@@ -17,7 +17,7 @@ export class ListUserProjectsHandler implements IQueryHandler<
 
   execute({ data }: ListUserProjectsQuery): Promise<ListUserProjectsQueryReturnType> {
     return getOffsetPagination({
-      pageData: data.after === undefined ? { first: data.first } : data,
+      pageData: data,
       findMany: ({ take, skip }) =>
         this.prisma.project.findMany({
           where: { kind: ProjectKind.USER },

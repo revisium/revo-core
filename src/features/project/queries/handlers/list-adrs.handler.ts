@@ -1,7 +1,6 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { pageSize } from '../../commands/utils/getOffsetPagination.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import { ListAdrsQuery, type ListAdrsQueryReturnType } from '../impl/list-adrs.query.js';
 
@@ -13,12 +12,16 @@ export class ListAdrsHandler implements IQueryHandler<ListAdrsQuery, ListAdrsQue
   ) {}
 
   async execute({ data }: ListAdrsQuery): Promise<ListAdrsQueryReturnType> {
-    const first = pageSize(data.first);
     const revisionId = await this.drafts.getDraftRevisionId(data.projectId);
     const rows =
       data.after === undefined
-        ? await this.engine.getRows({ revisionId, tableId: 'ADR', first })
-        : await this.engine.getRows({ revisionId, tableId: 'ADR', first, after: data.after });
+        ? await this.engine.getRows({ revisionId, tableId: 'ADR', first: data.first })
+        : await this.engine.getRows({
+            revisionId,
+            tableId: 'ADR',
+            first: data.first,
+            after: data.after,
+          });
 
     return {
       ...rows,

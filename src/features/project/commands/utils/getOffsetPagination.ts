@@ -1,17 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
 import { type IPaginatedType } from '@revisium/engine';
 
-import { ProjectError } from '../../constants/project.constants.js';
+export type PageDataType = { readonly first: number; after?: string };
 
-const MIN_PAGE_SIZE = 1;
-const MAX_PAGE_SIZE = 100;
-
-type PageDataType = { readonly first: number; after?: string };
-
-export type RecordListData = {
-  readonly first: number;
-  after?: string;
-};
+export type RecordListData = PageDataType;
 
 export type OffsetPaginationFindManyArgs = {
   take: number;
@@ -28,20 +20,24 @@ type GetPaginationArgsType<T> = {
   count: CountType;
 };
 
-export function pageSize(first: number): number {
-  if (!Number.isInteger(first) || first < MIN_PAGE_SIZE || first > MAX_PAGE_SIZE) {
-    throw new BadRequestException(ProjectError.invalidPageSize);
-  }
-
-  return first;
-}
-
 export async function getOffsetPagination<T>({
   pageData,
   findMany,
   count,
 }: GetPaginationArgsType<T>): Promise<IPaginatedType<T>> {
-  const take = pageSize(pageData.first);
+  if (!Number.isInteger(pageData.first) || pageData.first < 0) {
+    throw new BadRequestException('Invalid "first" parameter: must be a non-negative integer');
+  }
+
+  if (pageData.after != null) {
+    if (!/^\d+$/.test(pageData.after) || !Number.isSafeInteger(Number(pageData.after))) {
+      throw new BadRequestException(
+        'Invalid "after" cursor: must be a non-negative integer string',
+      );
+    }
+  }
+
+  const take = pageData.first;
   const skip = pageData.after ? Number(pageData.after) : 0;
 
   const items = await findMany({

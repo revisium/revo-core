@@ -133,11 +133,17 @@ describe('REST API', () => {
   });
 
   test('rejects an invalid project list page size', async () => {
-    const zero = await request(app.getHttpServer()).get('/api/projects?first=0').expect(400);
-    expect(zero.body).toMatchObject({ message: 'first must be between 1 and 100.' });
+    const negative = await request(app.getHttpServer()).get('/api/projects?first=-1').expect(400);
+    expect(negative.body).toMatchObject({
+      message: 'Invalid "first" parameter: must be a non-negative integer',
+    });
 
-    const tooLarge = await request(app.getHttpServer()).get('/api/projects?first=101').expect(400);
-    expect(tooLarge.body).toMatchObject({ message: 'first must be between 1 and 100.' });
+    const after = await request(app.getHttpServer())
+      .get('/api/projects?first=1&after=abc')
+      .expect(400);
+    expect(after.body).toMatchObject({
+      message: 'Invalid "after" cursor: must be a non-negative integer string',
+    });
   });
 
   test('hides the SYSTEM project from get and delete', async () => {
