@@ -1,6 +1,954 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/projects": {
+      "post": {
+        "operationId": "createProject",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a project",
+        "tags": ["Projects"]
+      },
+      "get": {
+        "operationId": "listProjects",
+        "parameters": [
+          {
+            "name": "first",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List projects",
+        "tags": ["Projects"]
+      }
+    },
+    "/api/projects/{id}": {
+      "get": {
+        "operationId": "getProject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project was not found."
+          }
+        },
+        "summary": "Get a project",
+        "tags": ["Projects"]
+      },
+      "delete": {
+        "operationId": "deleteProject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "Project was not found."
+          }
+        },
+        "summary": "Delete a project",
+        "tags": ["Projects"]
+      }
+    },
+    "/api/projects/{projectId}/adrs": {
+      "post": {
+        "operationId": "createAdr",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdrRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdrResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project was not found."
+          }
+        },
+        "summary": "Create an ADR",
+        "tags": ["Projects"]
+      },
+      "get": {
+        "operationId": "listAdrs",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "first",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdrConnectionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project was not found."
+          }
+        },
+        "summary": "List ADRs",
+        "tags": ["Projects"]
+      }
+    },
+    "/api/projects/{projectId}/adrs/{adrId}": {
+      "get": {
+        "operationId": "getAdr",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "adrId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdrResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Record was not found."
+          }
+        },
+        "summary": "Get an ADR",
+        "tags": ["Projects"]
+      },
+      "put": {
+        "operationId": "updateAdr",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "adrId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdrUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdrResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Record was not found."
+          }
+        },
+        "summary": "Replace an ADR",
+        "tags": ["Projects"]
+      },
+      "delete": {
+        "operationId": "deleteAdr",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "adrId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "Record was not found."
+          }
+        },
+        "summary": "Delete an ADR",
+        "tags": ["Projects"]
+      }
+    },
+    "/api/projects/{projectId}/requirements": {
+      "post": {
+        "operationId": "createRequirement",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequirementResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project was not found."
+          }
+        },
+        "summary": "Create a requirement",
+        "tags": ["Projects"]
+      },
+      "get": {
+        "operationId": "listRequirements",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "first",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequirementConnectionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project was not found."
+          }
+        },
+        "summary": "List requirements",
+        "tags": ["Projects"]
+      }
+    },
+    "/api/projects/{projectId}/requirements/{requirementId}": {
+      "get": {
+        "operationId": "getRequirement",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "requirementId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequirementResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Record was not found."
+          }
+        },
+        "summary": "Get a requirement",
+        "tags": ["Projects"]
+      },
+      "put": {
+        "operationId": "updateRequirement",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "requirementId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequirementResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Record was not found."
+          }
+        },
+        "summary": "Replace a requirement",
+        "tags": ["Projects"]
+      },
+      "delete": {
+        "operationId": "deleteRequirement",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "requirementId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "Record was not found."
+          }
+        },
+        "summary": "Delete a requirement",
+        "tags": ["Projects"]
+      }
+    },
+    "/api/projects/{projectId}/work-plans": {
+      "post": {
+        "operationId": "createWorkPlan",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkPlanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkPlanResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project was not found."
+          }
+        },
+        "summary": "Create a work plan",
+        "tags": ["Projects"]
+      },
+      "get": {
+        "operationId": "listWorkPlans",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "first",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkPlanConnectionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project was not found."
+          }
+        },
+        "summary": "List work plans",
+        "tags": ["Projects"]
+      }
+    },
+    "/api/projects/{projectId}/work-plans/{workPlanId}": {
+      "get": {
+        "operationId": "getWorkPlan",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workPlanId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkPlanResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Record was not found."
+          }
+        },
+        "summary": "Get a work plan",
+        "tags": ["Projects"]
+      },
+      "put": {
+        "operationId": "updateWorkPlan",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workPlanId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkPlanUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkPlanResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Record was not found."
+          }
+        },
+        "summary": "Replace a work plan",
+        "tags": ["Projects"]
+      },
+      "delete": {
+        "operationId": "deleteWorkPlan",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workPlanId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "Record was not found."
+          }
+        },
+        "summary": "Delete a work plan",
+        "tags": ["Projects"]
+      }
+    },
+    "/api/projects/{projectId}/work-items": {
+      "post": {
+        "operationId": "createWorkItem",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkItemResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project was not found."
+          }
+        },
+        "summary": "Create a work item",
+        "tags": ["Projects"]
+      },
+      "get": {
+        "operationId": "listWorkItems",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "first",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkItemConnectionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project was not found."
+          }
+        },
+        "summary": "List work items",
+        "tags": ["Projects"]
+      }
+    },
+    "/api/projects/{projectId}/work-items/{workItemId}": {
+      "get": {
+        "operationId": "getWorkItem",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workItemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkItemResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Record was not found."
+          }
+        },
+        "summary": "Get a work item",
+        "tags": ["Projects"]
+      },
+      "put": {
+        "operationId": "updateWorkItem",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workItemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkItemUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkItemResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Record was not found."
+          }
+        },
+        "summary": "Replace a work item",
+        "tags": ["Projects"]
+      },
+      "delete": {
+        "operationId": "deleteWorkItem",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workItemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "Record was not found."
+          }
+        },
+        "summary": "Delete a work item",
+        "tags": ["Projects"]
+      }
+    },
     "/api/runs": {
       "post": {
         "operationId": "startRun",
@@ -92,6 +1040,10 @@
   },
   "tags": [
     {
+      "name": "Projects",
+      "description": ""
+    },
+    {
       "name": "Runs",
       "description": ""
     },
@@ -103,6 +1055,678 @@
   "servers": [],
   "components": {
     "schemas": {
+      "ProjectCreateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": ["name"]
+      },
+      "ProjectResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name"]
+      },
+      "ProjectEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/ProjectResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "PageInfoResponse": {
+        "type": "object",
+        "properties": {
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "startCursor": {
+            "type": "string"
+          },
+          "endCursor": {
+            "type": "string"
+          }
+        },
+        "required": ["hasNextPage", "hasPreviousPage"]
+      },
+      "ProjectConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectEdgeResponse"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfoResponse"
+          },
+          "totalCount": {
+            "type": "number"
+          }
+        },
+        "required": ["edges", "pageInfo", "totalCount"]
+      },
+      "AdrAlternativeResponse": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          }
+        },
+        "required": ["title", "summary"]
+      },
+      "AdrRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["proposed", "accepted", "deprecated", "superseded", "rejected"]
+          },
+          "supersededBy": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          },
+          "decision": {
+            "type": "string"
+          },
+          "alternatives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdrAlternativeResponse"
+            }
+          },
+          "consequences": {
+            "type": "string"
+          },
+          "relatedRequirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["id", "title", "status", "context", "decision"]
+      },
+      "AdrResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["proposed", "accepted", "deprecated", "superseded", "rejected"]
+          },
+          "supersededBy": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          },
+          "decision": {
+            "type": "string"
+          },
+          "alternatives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdrAlternativeResponse"
+            }
+          },
+          "consequences": {
+            "type": "string"
+          },
+          "relatedRequirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "status",
+          "supersededBy",
+          "context",
+          "decision",
+          "alternatives",
+          "consequences",
+          "relatedRequirements"
+        ]
+      },
+      "AdrEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/AdrResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "AdrConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdrEdgeResponse"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfoResponse"
+          },
+          "totalCount": {
+            "type": "number"
+          }
+        },
+        "required": ["edges", "pageInfo", "totalCount"]
+      },
+      "AdrUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["proposed", "accepted", "deprecated", "superseded", "rejected"]
+          },
+          "supersededBy": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          },
+          "decision": {
+            "type": "string"
+          },
+          "alternatives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdrAlternativeResponse"
+            }
+          },
+          "consequences": {
+            "type": "string"
+          },
+          "relatedRequirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["title", "status", "context", "decision"]
+      },
+      "RequirementRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["proposed", "accepted", "deferred", "rejected"]
+          },
+          "statement": {
+            "type": "string"
+          },
+          "acceptance": {
+            "type": "string"
+          },
+          "relatedAdr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["id", "title", "status", "statement", "acceptance"]
+      },
+      "RequirementResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["proposed", "accepted", "deferred", "rejected"]
+          },
+          "statement": {
+            "type": "string"
+          },
+          "acceptance": {
+            "type": "string"
+          },
+          "relatedAdr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["id", "title", "status", "statement", "acceptance", "relatedAdr"]
+      },
+      "RequirementEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/RequirementResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "RequirementConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequirementEdgeResponse"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfoResponse"
+          },
+          "totalCount": {
+            "type": "number"
+          }
+        },
+        "required": ["edges", "pageInfo", "totalCount"]
+      },
+      "RequirementUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["proposed", "accepted", "deferred", "rejected"]
+          },
+          "statement": {
+            "type": "string"
+          },
+          "acceptance": {
+            "type": "string"
+          },
+          "relatedAdr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["title", "status", "statement", "acceptance"]
+      },
+      "WorkPlanRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "ready", "closed"]
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "bounds": {
+            "type": "string"
+          },
+          "baselineId": {
+            "type": "string"
+          },
+          "acceptance": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "title", "status", "outcome", "bounds", "acceptance"]
+      },
+      "WorkPlanResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "ready", "closed"]
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "bounds": {
+            "type": "string"
+          },
+          "baselineId": {
+            "type": "string"
+          },
+          "acceptance": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "title", "status", "outcome", "bounds", "baselineId", "acceptance"]
+      },
+      "WorkPlanEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/WorkPlanResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "WorkPlanConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkPlanEdgeResponse"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfoResponse"
+          },
+          "totalCount": {
+            "type": "number"
+          }
+        },
+        "required": ["edges", "pageInfo", "totalCount"]
+      },
+      "WorkPlanUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "ready", "closed"]
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "bounds": {
+            "type": "string"
+          },
+          "baselineId": {
+            "type": "string"
+          },
+          "acceptance": {
+            "type": "string"
+          }
+        },
+        "required": ["title", "status", "outcome", "bounds", "acceptance"]
+      },
+      "WorkItemRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "cancelled": {
+            "type": "boolean"
+          },
+          "goal": {
+            "type": "string"
+          },
+          "inputs": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "constraints": {
+            "type": "string"
+          },
+          "acceptance": {
+            "type": "string"
+          },
+          "plan": {
+            "type": "string"
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relatedRequirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relatedAdr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "cancelled",
+          "goal",
+          "inputs",
+          "owner",
+          "constraints",
+          "acceptance",
+          "plan"
+        ]
+      },
+      "WorkItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "cancelled": {
+            "type": "boolean"
+          },
+          "goal": {
+            "type": "string"
+          },
+          "inputs": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "constraints": {
+            "type": "string"
+          },
+          "acceptance": {
+            "type": "string"
+          },
+          "plan": {
+            "type": "string"
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relatedRequirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relatedAdr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "cancelled",
+          "goal",
+          "inputs",
+          "owner",
+          "constraints",
+          "acceptance",
+          "plan",
+          "dependsOn",
+          "relatedRequirements",
+          "relatedAdr"
+        ]
+      },
+      "WorkItemEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/WorkItemResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "WorkItemConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkItemEdgeResponse"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfoResponse"
+          },
+          "totalCount": {
+            "type": "number"
+          }
+        },
+        "required": ["edges", "pageInfo", "totalCount"]
+      },
+      "WorkItemUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "cancelled": {
+            "type": "boolean"
+          },
+          "goal": {
+            "type": "string"
+          },
+          "inputs": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "constraints": {
+            "type": "string"
+          },
+          "acceptance": {
+            "type": "string"
+          },
+          "plan": {
+            "type": "string"
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relatedRequirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relatedAdr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "cancelled",
+          "goal",
+          "inputs",
+          "owner",
+          "constraints",
+          "acceptance",
+          "plan"
+        ]
+      },
       "StartRunRequest": {
         "type": "object",
         "properties": {

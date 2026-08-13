@@ -1,3 +1,57 @@
+type Adr {
+  alternatives: [AdrAlternative!]!
+  consequences: String!
+  context: String!
+  decision: String!
+  id: ID!
+  relatedRequirements: [String!]!
+  status: AdrStatus!
+  supersededBy: String!
+  title: String!
+}
+
+type AdrAlternative {
+  summary: String!
+  title: String!
+}
+
+input AdrAlternativeInput {
+  summary: String!
+  title: String!
+}
+
+type AdrConnection {
+  edges: [AdrEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type AdrEdge {
+  cursor: String!
+  node: Adr!
+}
+
+input AdrInput {
+  alternatives: [AdrAlternativeInput!]
+  consequences: String
+  context: String!
+  decision: String!
+  id: ID!
+  projectId: ID!
+  relatedRequirements: [String!]
+  status: AdrStatus!
+  supersededBy: String
+  title: String!
+}
+
+enum AdrStatus {
+  accepted
+  deprecated
+  proposed
+  rejected
+  superseded
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -9,12 +63,115 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 scalar JSON
 
 type Mutation {
+  createAdr(data: AdrInput!): Adr!
+  createProject(data: ProjectCreateInput!): Project!
+  createRequirement(data: RequirementInput!): Requirement!
+  createWorkItem(data: WorkItemInput!): WorkItem!
+  createWorkPlan(data: WorkPlanInput!): WorkPlan!
+  deleteAdr(data: RecordDeleteInput!): Boolean!
+  deleteProject(id: ID!): Boolean!
+  deleteRequirement(data: RecordDeleteInput!): Boolean!
+  deleteWorkItem(data: RecordDeleteInput!): Boolean!
+  deleteWorkPlan(data: RecordDeleteInput!): Boolean!
   startRun(data: StartRunInput!): StartRunResultModel!
+  updateAdr(data: AdrInput!): Adr!
+  updateRequirement(data: RequirementInput!): Requirement!
+  updateWorkItem(data: WorkItemInput!): WorkItem!
+  updateWorkPlan(data: WorkPlanInput!): WorkPlan!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Project {
+  adr(id: ID!): Adr
+  adrs(data: RecordListInput!): AdrConnection!
+  id: ID!
+  name: String!
+  requirement(id: ID!): Requirement
+  requirements(data: RecordListInput!): RequirementConnection!
+  workItem(id: ID!): WorkItem
+  workItems(data: RecordListInput!): WorkItemConnection!
+  workPlan(id: ID!): WorkPlan
+  workPlans(data: RecordListInput!): WorkPlanConnection!
+}
+
+type ProjectConnection {
+  edges: [ProjectEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input ProjectCreateInput {
+  name: String!
+}
+
+type ProjectEdge {
+  cursor: String!
+  node: Project!
+}
+
+input ProjectListInput {
+  after: String
+  first: Int!
 }
 
 type Query {
+  project(id: ID!): Project
+  projects(data: ProjectListInput!): ProjectConnection!
   run(id: ID!): RunModel
   systemInfo: SystemInfoModel!
+}
+
+input RecordDeleteInput {
+  id: ID!
+  projectId: ID!
+}
+
+input RecordListInput {
+  after: String
+  first: Int!
+}
+
+type Requirement {
+  acceptance: String!
+  id: ID!
+  relatedAdr: [String!]!
+  statement: String!
+  status: RequirementStatus!
+  title: String!
+}
+
+type RequirementConnection {
+  edges: [RequirementEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type RequirementEdge {
+  cursor: String!
+  node: Requirement!
+}
+
+input RequirementInput {
+  acceptance: String!
+  id: ID!
+  projectId: ID!
+  relatedAdr: [String!]
+  statement: String!
+  status: RequirementStatus!
+  title: String!
+}
+
+enum RequirementStatus {
+  accepted
+  deferred
+  proposed
+  rejected
 }
 
 type RunErrorModel {
@@ -45,4 +202,84 @@ type StartRunResultModel {
 type SystemInfoModel {
   name: String!
   status: String!
+}
+
+type WorkItem {
+  acceptance: String!
+  cancelled: Boolean!
+  constraints: String!
+  dependsOn: [String!]!
+  goal: String!
+  id: ID!
+  inputs: String!
+  owner: String!
+  plan: String!
+  relatedAdr: [String!]!
+  relatedRequirements: [String!]!
+  title: String!
+}
+
+type WorkItemConnection {
+  edges: [WorkItemEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type WorkItemEdge {
+  cursor: String!
+  node: WorkItem!
+}
+
+input WorkItemInput {
+  acceptance: String!
+  cancelled: Boolean!
+  constraints: String!
+  dependsOn: [String!]
+  goal: String!
+  id: ID!
+  inputs: String!
+  owner: String!
+  plan: String!
+  projectId: ID!
+  relatedAdr: [String!]
+  relatedRequirements: [String!]
+  title: String!
+}
+
+type WorkPlan {
+  acceptance: String!
+  baselineId: String!
+  bounds: String!
+  id: ID!
+  outcome: String!
+  status: WorkPlanStatus!
+  title: String!
+}
+
+type WorkPlanConnection {
+  edges: [WorkPlanEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type WorkPlanEdge {
+  cursor: String!
+  node: WorkPlan!
+}
+
+input WorkPlanInput {
+  acceptance: String!
+  baselineId: String
+  bounds: String!
+  id: ID!
+  outcome: String!
+  projectId: ID!
+  status: WorkPlanStatus!
+  title: String!
+}
+
+enum WorkPlanStatus {
+  closed
+  draft
+  ready
 }

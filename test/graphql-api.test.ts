@@ -9,18 +9,26 @@ import {
   type IntrospectionQuery,
 } from 'graphql';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 
 import { AppModule } from '../src/app.module.js';
+import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
 import { taskPipeline } from './fixtures/task-pipeline.js';
 
 describe('GraphQL API', () => {
   let app: INestApplication;
+  const createdProjectIds: string[] = [];
 
   beforeAll(async () => {
-    const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    app = module.createNestApplication();
-    await app.init();
+    app = await startApp();
+  });
+
+  afterEach(async () => {
+    const ids = createdProjectIds.splice(0);
+    for (const id of ids) {
+      // oxlint-disable-next-line no-await-in-loop -- Delete one project at a time; cleanup is global.
+      await graphql(app, DELETE_PROJECT, { id });
+    }
   });
 
   afterAll(async () => app.close());
@@ -85,6 +93,285 @@ describe('GraphQL API', () => {
     expect(response.body).toEqual({ data: { run: null } });
   });
 
+  test('creates, lists, gets, and deletes a USER project', async () => {
+    const created = await graphql(app, CREATE_PROJECT, { data: { name: '  Alpha  ' } });
+    expect(created.body.errors).toBeUndefined();
+    const project = created.body.data.createProject as { id: string; name: string };
+    createdProjectIds.push(project.id);
+    expect(project.name).toBe('Alpha');
+
+    const listed = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
+    expect(listed.body.errors).toBeUndefined();
+    const ids = listed.body.data.projects.edges.map(
+      (edge: { node: { id: string } }) => edge.node.id,
+    );
+    expect(ids).toContain(project.id);
+    expect(ids).not.toContain(SYSTEM_PLAYBOOKS_PROJECT.id);
+
+    const fetched = await graphql(app, GET_PROJECT, { id: project.id });
+    expect(fetched.body).toMatchObject({
+      data: { project: { id: project.id, name: 'Alpha' } },
+    });
+
+    const deleted = await graphql(app, DELETE_PROJECT, { id: project.id });
+    expect(deleted.body).toEqual({ data: { deleteProject: true } });
+    createdProjectIds.pop();
+
+    const missing = await graphql(app, GET_PROJECT, { id: project.id });
+    expect(missing.body).toEqual({ data: { project: null } });
+  });
+
+  test('rejects an empty project name and does not create a project', async () => {
+    const before = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
+    const beforeCount = before.body.data.projects.totalCount as number;
+
+    const empty = await graphql(app, CREATE_PROJECT, { data: { name: '   ' } });
+    expect(empty.body.data).toBeNull();
+    expect(empty.body.errors[0].message).toBe('Name is required.');
+
+    const after = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
+    expect(after.body.data.projects.totalCount).toBe(beforeCount);
+  });
+
+  test('hides the SYSTEM project from get, list, and delete', async () => {
+    const fetched = await graphql(app, GET_PROJECT, { id: SYSTEM_PLAYBOOKS_PROJECT.id });
+    expect(fetched.body).toEqual({ data: { project: null } });
+
+    const deleted = await graphql(app, DELETE_PROJECT, { id: SYSTEM_PLAYBOOKS_PROJECT.id });
+    expect(deleted.body.data).toBeNull();
+    expect(deleted.body.errors[0].message).toBe('Project was not found.');
+  });
+
+  test('returns empty record connections after create', async () => {
+    const project = await createProject(app, createdProjectIds, 'Empty records');
+    const fetched = await graphql(app, GET_PROJECT_RECORDS, { id: project.id });
+
+    expect(fetched.body.errors).toBeUndefined();
+    expect(fetched.body.data.project).toMatchObject({
+      adrs: { totalCount: 0, edges: [] },
+      requirements: { totalCount: 0, edges: [] },
+      workPlans: { totalCount: 0, edges: [] },
+      workItems: { totalCount: 0, edges: [] },
+    });
+  });
+
+  test('creates, gets, lists, updates, and deletes an ADR', async () => {
+    const project = await createProject(app, createdProjectIds, 'ADR path');
+    const created = await graphql(app, CREATE_ADR, {
+      data: adrInput(project.id, 'ADR-1', 'First decision'),
+    });
+    expect(created.body.errors).toBeUndefined();
+    expect(created.body.data.createAdr).toMatchObject({
+      id: 'ADR-1',
+      title: 'First decision',
+      status: 'proposed',
+    });
+
+    const fetched = await graphql(app, GET_ADR, { projectId: project.id, id: 'ADR-1' });
+    expect(fetched.body.data.project.adr).toMatchObject({
+      id: 'ADR-1',
+      title: 'First decision',
+    });
+
+    const listed = await graphql(app, LIST_ADRS, { projectId: project.id, data: { first: 10 } });
+    expect(listed.body.data.project.adrs).toMatchObject({
+      totalCount: 1,
+      edges: [{ node: { id: 'ADR-1' } }],
+    });
+
+    const updated = await graphql(app, UPDATE_ADR, {
+      data: {
+        ...adrInput(project.id, 'ADR-1', 'Updated decision'),
+        status: 'accepted',
+        context: 'New context',
+      },
+    });
+    expect(updated.body.data.updateAdr).toMatchObject({
+      title: 'Updated decision',
+      status: 'accepted',
+      context: 'New context',
+    });
+
+    const deleted = await graphql(app, DELETE_ADR, {
+      data: { projectId: project.id, id: 'ADR-1' },
+    });
+    expect(deleted.body).toEqual({ data: { deleteAdr: true } });
+
+    const missing = await graphql(app, GET_ADR, { projectId: project.id, id: 'ADR-1' });
+    expect(missing.body.data.project.adr).toBeNull();
+  });
+
+  test('rejects deleting an ADR that is still referenced', async () => {
+    const project = await createProject(app, createdProjectIds, 'Incoming ref');
+    await graphql(app, CREATE_ADR, { data: adrInput(project.id, 'ADR-1', 'Keep') });
+    const requirement = await graphql(app, CREATE_REQUIREMENT, {
+      data: {
+        projectId: project.id,
+        id: 'REQ-1',
+        title: 'Needs ADR',
+        status: 'proposed',
+        statement: 'Must exist',
+        acceptance: 'Pass',
+        relatedAdr: ['ADR-1'],
+      },
+    });
+    expect(requirement.body.errors).toBeUndefined();
+
+    const deleted = await graphql(app, DELETE_ADR, {
+      data: { projectId: project.id, id: 'ADR-1' },
+    });
+    expect(deleted.body.data).toBeNull();
+    expect(deleted.body.errors[0].message).toBe(
+      'Cannot delete this record because other records still reference it.',
+    );
+
+    const stillThere = await graphql(app, GET_ADR, { projectId: project.id, id: 'ADR-1' });
+    expect(stillThere.body.data.project.adr.id).toBe('ADR-1');
+  });
+
+  test('does not treat same-id links to other tables as incoming ADR references', async () => {
+    const project = await createProject(app, createdProjectIds, 'Typed refs');
+    await graphql(app, CREATE_ADR, { data: adrInput(project.id, 'X', 'Decision') });
+    const workPlan = await graphql(app, CREATE_WORK_PLAN, {
+      data: {
+        projectId: project.id,
+        id: 'X',
+        title: 'Plan',
+        status: 'draft',
+        outcome: 'Done',
+        bounds: 'This slice',
+        acceptance: 'Accepted',
+      },
+    });
+    expect(workPlan.body.errors).toBeUndefined();
+
+    const deleted = await graphql(app, DELETE_ADR, {
+      data: { projectId: project.id, id: 'X' },
+    });
+    expect(deleted.body).toEqual({ data: { deleteAdr: true } });
+
+    await graphql(app, CREATE_ADR, { data: adrInput(project.id, 'X', 'Decision') });
+    await graphql(app, CREATE_REQUIREMENT, {
+      data: {
+        projectId: project.id,
+        id: 'REQ-X',
+        title: 'Needs ADR',
+        status: 'proposed',
+        statement: 'Must exist',
+        acceptance: 'Pass',
+        relatedAdr: ['X'],
+      },
+    });
+    const blocked = await graphql(app, DELETE_ADR, {
+      data: { projectId: project.id, id: 'X' },
+    });
+    expect(blocked.body.data).toBeNull();
+    expect(blocked.body.errors[0].message).toBe(
+      'Cannot delete this record because other records still reference it.',
+    );
+  });
+
+  test('rejects an invalid project list page size', async () => {
+    const listed = await graphql(app, LIST_PROJECTS, { data: { first: 0 } });
+    expect(listed.body.data).toBeNull();
+    expect(listed.body.errors[0].message).toBe('first must be between 1 and 100.');
+  });
+
+  test('creates and gets Requirement, WorkPlan, and WorkItem', async () => {
+    const project = await createProject(app, createdProjectIds, 'Record smoke');
+
+    const requirement = await graphql(app, CREATE_REQUIREMENT, {
+      data: {
+        projectId: project.id,
+        id: 'REQ-9',
+        title: 'Need auth',
+        status: 'accepted',
+        statement: 'Users sign in',
+        acceptance: 'Login works',
+      },
+    });
+    expect(requirement.body.data.createRequirement).toMatchObject({
+      id: 'REQ-9',
+      title: 'Need auth',
+    });
+
+    const workPlan = await graphql(app, CREATE_WORK_PLAN, {
+      data: {
+        projectId: project.id,
+        id: 'WP-1',
+        title: 'Plan',
+        status: 'draft',
+        outcome: 'Done',
+        bounds: 'This slice',
+        acceptance: 'Accepted',
+      },
+    });
+    expect(workPlan.body.data.createWorkPlan).toMatchObject({ id: 'WP-1', title: 'Plan' });
+
+    const workItem = await graphql(app, CREATE_WORK_ITEM, {
+      data: {
+        projectId: project.id,
+        id: 'WI-1',
+        title: 'Item',
+        cancelled: false,
+        goal: 'Ship',
+        inputs: 'Spec',
+        owner: 'owner-1',
+        constraints: 'Time',
+        acceptance: 'Done',
+        plan: 'WP-1',
+      },
+    });
+    expect(workItem.body.data.createWorkItem).toMatchObject({
+      id: 'WI-1',
+      plan: 'WP-1',
+    });
+
+    const fetched = await graphql(app, GET_RECORD_SMOKE, {
+      projectId: project.id,
+      requirementId: 'REQ-9',
+      workPlanId: 'WP-1',
+      workItemId: 'WI-1',
+    });
+    expect(fetched.body.data.project).toMatchObject({
+      requirement: { id: 'REQ-9' },
+      workPlan: { id: 'WP-1' },
+      workItem: { id: 'WI-1' },
+    });
+  });
+
+  test('isolates records from system_playbooks and another USER project', async () => {
+    const first = await createProject(app, createdProjectIds, 'First');
+    const second = await createProject(app, createdProjectIds, 'Second');
+    await graphql(app, CREATE_ADR, { data: adrInput(first.id, 'ADR-A', 'A') });
+    await graphql(app, CREATE_ADR, { data: adrInput(second.id, 'ADR-B', 'B') });
+
+    const firstHasB = await graphql(app, GET_ADR, { projectId: first.id, id: 'ADR-B' });
+    expect(firstHasB.body.data.project.adr).toBeNull();
+
+    const secondHasA = await graphql(app, GET_ADR, { projectId: second.id, id: 'ADR-A' });
+    expect(secondHasA.body.data.project.adr).toBeNull();
+
+    const systemProject = await graphql(app, GET_PROJECT, { id: SYSTEM_PLAYBOOKS_PROJECT.id });
+    expect(systemProject.body.data.project).toBeNull();
+  });
+
+  test('applies content-model migrations again after restart', async () => {
+    const project = await createProject(app, createdProjectIds, 'Restart');
+    await app.close();
+    app = await startApp();
+
+    const fetched = await graphql(app, GET_PROJECT_RECORDS, { id: project.id });
+    expect(fetched.body.errors).toBeUndefined();
+    expect(fetched.body.data.project.adrs.totalCount).toBe(0);
+
+    const created = await graphql(app, CREATE_ADR, {
+      data: adrInput(project.id, 'ADR-R', 'After restart'),
+    });
+    expect(created.body.errors).toBeUndefined();
+    expect(created.body.data.createAdr.id).toBe('ADR-R');
+  });
+
   test('matches the committed schema', async () => {
     const response = await request(app.getHttpServer())
       .post('/graphql')
@@ -98,3 +385,142 @@ describe('GraphQL API', () => {
     expect(actual).toBe(expected);
   });
 });
+
+const CREATE_PROJECT = `
+  mutation CreateProject($data: ProjectCreateInput!) {
+    createProject(data: $data) { id name }
+  }
+`;
+
+const LIST_PROJECTS = `
+  query Projects($data: ProjectListInput!) {
+    projects(data: $data) {
+      totalCount
+      edges { node { id name } }
+    }
+  }
+`;
+
+const GET_PROJECT = `
+  query Project($id: ID!) {
+    project(id: $id) { id name }
+  }
+`;
+
+const DELETE_PROJECT = `
+  mutation DeleteProject($id: ID!) {
+    deleteProject(id: $id)
+  }
+`;
+
+const GET_PROJECT_RECORDS = `
+  query ProjectRecords($id: ID!) {
+    project(id: $id) {
+      adrs(data: { first: 10 }) { totalCount edges { node { id } } }
+      requirements(data: { first: 10 }) { totalCount edges { node { id } } }
+      workPlans(data: { first: 10 }) { totalCount edges { node { id } } }
+      workItems(data: { first: 10 }) { totalCount edges { node { id } } }
+    }
+  }
+`;
+
+const CREATE_ADR = `
+  mutation CreateAdr($data: AdrInput!) {
+    createAdr(data: $data) { id title status context decision }
+  }
+`;
+
+const UPDATE_ADR = `
+  mutation UpdateAdr($data: AdrInput!) {
+    updateAdr(data: $data) { id title status context }
+  }
+`;
+
+const DELETE_ADR = `
+  mutation DeleteAdr($data: RecordDeleteInput!) {
+    deleteAdr(data: $data)
+  }
+`;
+
+const GET_ADR = `
+  query Adr($projectId: ID!, $id: ID!) {
+    project(id: $projectId) {
+      adr(id: $id) { id title }
+    }
+  }
+`;
+
+const LIST_ADRS = `
+  query Adrs($projectId: ID!, $data: RecordListInput!) {
+    project(id: $projectId) {
+      adrs(data: $data) { totalCount edges { node { id } } }
+    }
+  }
+`;
+
+const CREATE_REQUIREMENT = `
+  mutation CreateRequirement($data: RequirementInput!) {
+    createRequirement(data: $data) { id title status }
+  }
+`;
+
+const CREATE_WORK_PLAN = `
+  mutation CreateWorkPlan($data: WorkPlanInput!) {
+    createWorkPlan(data: $data) { id title status }
+  }
+`;
+
+const CREATE_WORK_ITEM = `
+  mutation CreateWorkItem($data: WorkItemInput!) {
+    createWorkItem(data: $data) { id title plan }
+  }
+`;
+
+const GET_RECORD_SMOKE = `
+  query RecordSmoke(
+    $projectId: ID!
+    $requirementId: ID!
+    $workPlanId: ID!
+    $workItemId: ID!
+  ) {
+    project(id: $projectId) {
+      requirement(id: $requirementId) { id }
+      workPlan(id: $workPlanId) { id }
+      workItem(id: $workItemId) { id }
+    }
+  }
+`;
+
+async function startApp(): Promise<INestApplication> {
+  const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const app = module.createNestApplication();
+  await app.init();
+  return app;
+}
+
+async function graphql(app: INestApplication, query: string, variables?: Record<string, unknown>) {
+  return request(app.getHttpServer()).post('/graphql').send({ query, variables }).expect(200);
+}
+
+async function createProject(
+  app: INestApplication,
+  createdProjectIds: string[],
+  name: string,
+): Promise<{ id: string; name: string }> {
+  const response = await graphql(app, CREATE_PROJECT, { data: { name } });
+  expect(response.body.errors).toBeUndefined();
+  const project = response.body.data.createProject as { id: string; name: string };
+  createdProjectIds.push(project.id);
+  return project;
+}
+
+function adrInput(projectId: string, id: string, title: string) {
+  return {
+    projectId,
+    id,
+    title,
+    status: 'proposed',
+    context: 'Context',
+    decision: 'Decision',
+  };
+}

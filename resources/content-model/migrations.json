@@ -1,0 +1,227 @@
+[
+  {
+    "id": "2026-08-13T00:00:00.000Z",
+    "changeType": "init",
+    "tableId": "ADR",
+    "hash": "7f25d9e8f22ff327dbd5bbff5fcb2936b599a88f",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alternatives",
+        "consequences",
+        "context",
+        "decision",
+        "relatedRequirements",
+        "status",
+        "supersededBy",
+        "title"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "default": ""
+        },
+        "status": {
+          "type": "string",
+          "default": "proposed",
+          "enum": ["proposed", "accepted", "deprecated", "superseded", "rejected"]
+        },
+        "supersededBy": {
+          "type": "string",
+          "default": ""
+        },
+        "context": {
+          "type": "string",
+          "default": ""
+        },
+        "decision": {
+          "type": "string",
+          "default": ""
+        },
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["summary", "title"],
+            "properties": {
+              "title": {
+                "type": "string",
+                "default": ""
+              },
+              "summary": {
+                "type": "string",
+                "default": ""
+              }
+            }
+          }
+        },
+        "consequences": {
+          "type": "string",
+          "default": ""
+        },
+        "relatedRequirements": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "2026-08-13T00:00:00.010Z",
+    "changeType": "init",
+    "tableId": "Requirement",
+    "hash": "b425de4da9303fd9df58b3102a596336fa0f79a7",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["acceptance", "relatedAdr", "statement", "status", "title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "default": ""
+        },
+        "status": {
+          "type": "string",
+          "default": "proposed",
+          "enum": ["proposed", "accepted", "deferred", "rejected"]
+        },
+        "statement": {
+          "type": "string",
+          "default": ""
+        },
+        "acceptance": {
+          "type": "string",
+          "default": ""
+        },
+        "relatedAdr": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "2026-08-13T00:00:00.020Z",
+    "changeType": "init",
+    "tableId": "WorkPlan",
+    "hash": "6b134ee59a2d8d1cad6d5d5b14e1b9c630089e90",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["acceptance", "baselineId", "bounds", "outcome", "status", "title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "default": ""
+        },
+        "status": {
+          "type": "string",
+          "default": "draft",
+          "enum": ["draft", "ready", "closed"]
+        },
+        "outcome": {
+          "type": "string",
+          "default": ""
+        },
+        "bounds": {
+          "type": "string",
+          "default": ""
+        },
+        "baselineId": {
+          "type": "string",
+          "default": ""
+        },
+        "acceptance": {
+          "type": "string",
+          "default": ""
+        }
+      }
+    }
+  },
+  {
+    "id": "2026-08-13T00:00:00.030Z",
+    "changeType": "init",
+    "tableId": "WorkItem",
+    "hash": "a15c4f79fa949d710589d8ddaa1e919704ca6b88",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptance",
+        "cancelled",
+        "constraints",
+        "dependsOn",
+        "goal",
+        "inputs",
+        "owner",
+        "plan",
+        "relatedAdr",
+        "relatedRequirements",
+        "title"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "default": ""
+        },
+        "cancelled": {
+          "type": "boolean",
+          "default": false
+        },
+        "goal": {
+          "type": "string",
+          "default": ""
+        },
+        "inputs": {
+          "type": "string",
+          "default": ""
+        },
+        "owner": {
+          "type": "string",
+          "default": ""
+        },
+        "constraints": {
+          "type": "string",
+          "default": ""
+        },
+        "acceptance": {
+          "type": "string",
+          "default": ""
+        },
+        "plan": {
+          "type": "string",
+          "default": ""
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        "relatedRequirements": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        "relatedAdr": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
+          }
+        }
+      }
+    }
+  }
+]
