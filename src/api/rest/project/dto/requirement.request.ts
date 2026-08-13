@@ -1,8 +1,8 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsIn, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsIn, IsString } from 'class-validator';
 
 import { ProjectError } from '../../../../features/project/project-errors.js';
-import type { RequirementStatus } from '../../../../features/project/project-records.js';
+import type { RequirementStatus } from '../../../../features/project/requirement.js';
 
 export class RequirementRequest {
   @ApiProperty()
@@ -25,9 +25,8 @@ export class RequirementRequest {
   @IsString()
   acceptance: string;
 
-  @ApiPropertyOptional({ type: [String] })
-  @IsOptional()
+  @ApiProperty({ type: [String] })
   @IsArray()
   @IsString({ each: true })
-  relatedAdr?: string[];
+  relatedAdr: string[];
 }

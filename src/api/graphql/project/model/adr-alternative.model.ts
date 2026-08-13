@@ -1,6 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
-@ObjectType('AdrAlternative')
+@ObjectType()
 export class AdrAlternativeModel {
   @Field()
   title: string;

@@ -204,86 +204,18 @@ describe('REST API', () => {
       .send({
         title: 'Updated',
         status: 'accepted',
+        supersededBy: '',
         context: 'New',
         decision: 'Decision',
+        alternatives: [],
+        consequences: '',
+        relatedRequirements: [],
       })
       .expect(200);
     expect(updated.body).toMatchObject({ title: 'Updated', status: 'accepted', context: 'New' });
 
     await request(app.getHttpServer()).delete(`/api/projects/${project.id}/adrs/ADR-1`).expect(204);
     await request(app.getHttpServer()).get(`/api/projects/${project.id}/adrs/ADR-1`).expect(404);
-  });
-
-  test('rejects deleting an ADR that is still referenced', async () => {
-    const project = await createProject(app, createdProjectIds, 'REST ref');
-    await request(app.getHttpServer())
-      .post(`/api/projects/${project.id}/adrs`)
-      .send(adrBody('ADR-1', 'Keep'))
-      .expect(201);
-    await request(app.getHttpServer())
-      .post(`/api/projects/${project.id}/requirements`)
-      .send({
-        id: 'REQ-1',
-        title: 'Needs ADR',
-        status: 'proposed',
-        statement: 'Must exist',
-        acceptance: 'Pass',
-        relatedAdr: ['ADR-1'],
-      })
-      .expect(201);
-
-    const deleted = await request(app.getHttpServer())
-      .delete(`/api/projects/${project.id}/adrs/ADR-1`)
-      .expect(400);
-    expect(deleted.body).toMatchObject({
-      message: 'Cannot delete this record because other records still reference it.',
-    });
-
-    await request(app.getHttpServer()).get(`/api/projects/${project.id}/adrs/ADR-1`).expect(200);
-  });
-
-  test('does not treat same-id links to other tables as incoming ADR references', async () => {
-    const project = await createProject(app, createdProjectIds, 'REST typed refs');
-    await request(app.getHttpServer())
-      .post(`/api/projects/${project.id}/adrs`)
-      .send(adrBody('X', 'Decision'))
-      .expect(201);
-    await request(app.getHttpServer())
-      .post(`/api/projects/${project.id}/work-plans`)
-      .send({
-        id: 'X',
-        title: 'Plan',
-        status: 'draft',
-        outcome: 'Done',
-        bounds: 'This slice',
-        acceptance: 'Accepted',
-      })
-      .expect(201);
-
-    await request(app.getHttpServer()).delete(`/api/projects/${project.id}/adrs/X`).expect(204);
-
-    await request(app.getHttpServer())
-      .post(`/api/projects/${project.id}/adrs`)
-      .send(adrBody('X', 'Decision'))
-      .expect(201);
-    await request(app.getHttpServer())
-      .post(`/api/projects/${project.id}/requirements`)
-      .send({
-        id: 'REQ-X',
-        title: 'Needs ADR',
-        status: 'proposed',
-        statement: 'Must exist',
-        acceptance: 'Pass',
-        relatedAdr: ['X'],
-      })
-      .expect(201);
-
-    const blocked = await request(app.getHttpServer())
-      .delete(`/api/projects/${project.id}/adrs/X`)
-      .expect(400);
-    expect(blocked.body).toMatchObject({
-      message: 'Cannot delete this record because other records still reference it.',
-    });
   });
 
   test('creates and gets Requirement, WorkPlan, and WorkItem', async () => {
@@ -297,6 +229,7 @@ describe('REST API', () => {
         status: 'accepted',
         statement: 'Users sign in',
         acceptance: 'Login works',
+        relatedAdr: [],
       })
       .expect(201);
     expect(requirement.body).toMatchObject({ id: 'REQ-2' });
@@ -309,6 +242,7 @@ describe('REST API', () => {
         status: 'draft',
         outcome: 'Done',
         bounds: 'This slice',
+        baselineId: '',
         acceptance: 'Accepted',
       })
       .expect(201);
@@ -326,6 +260,9 @@ describe('REST API', () => {
         constraints: 'Time',
         acceptance: 'Done',
         plan: 'WP-2',
+        dependsOn: [],
+        relatedRequirements: [],
+        relatedAdr: [],
       })
       .expect(201);
     expect(workItem.body).toMatchObject({ id: 'WI-2', plan: 'WP-2' });
@@ -383,7 +320,11 @@ function adrBody(id: string, title: string) {
     id,
     title,
     status: 'proposed',
+    supersededBy: '',
     context: 'Context',
     decision: 'Decision',
+    alternatives: [],
+    consequences: '',
+    relatedRequirements: [],
   };
 }

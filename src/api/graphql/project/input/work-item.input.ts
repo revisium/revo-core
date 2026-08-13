@@ -32,12 +32,12 @@ export class WorkItemInput {
   @Field()
   plan: string;
 
-  @Field(() => [String], { nullable: true })
-  dependsOn?: string[];
+  @Field(() => [String])
+  dependsOn: string[];
 
-  @Field(() => [String], { nullable: true })
-  relatedRequirements?: string[];
+  @Field(() => [String])
+  relatedRequirements: string[];
 
-  @Field(() => [String], { nullable: true })
-  relatedAdr?: string[];
+  @Field(() => [String])
+  relatedAdr: string[];
 }

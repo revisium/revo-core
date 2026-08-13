@@ -2,7 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 
 import { ProjectModel } from './project.model.js';
 
-@ObjectType('ProjectEdge')
+@ObjectType()
 export class ProjectEdgeModel {
   @Field()
   cursor: string;

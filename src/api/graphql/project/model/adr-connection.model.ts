@@ -3,7 +3,7 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { AdrEdgeModel } from './adr-edge.model.js';
 import { PageInfoModel } from './page-info.model.js';
 
-@ObjectType('AdrConnection')
+@ObjectType()
 export class AdrConnectionModel {
   @Field(() => [AdrEdgeModel])
   edges: AdrEdgeModel[];

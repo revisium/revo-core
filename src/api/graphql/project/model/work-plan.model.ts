@@ -2,7 +2,7 @@ import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 import { WorkPlanStatus } from './work-plan-status.enum.js';
 
-@ObjectType('WorkPlan')
+@ObjectType()
 export class WorkPlanModel {
   @Field(() => ID)
   id: string;

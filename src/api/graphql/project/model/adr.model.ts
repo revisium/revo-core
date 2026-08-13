@@ -3,7 +3,7 @@ import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { AdrAlternativeModel } from './adr-alternative.model.js';
 import { AdrStatus } from './adr-status.enum.js';
 
-@ObjectType('Adr')
+@ObjectType()
 export class AdrModel {
   @Field(() => ID)
   id: string;

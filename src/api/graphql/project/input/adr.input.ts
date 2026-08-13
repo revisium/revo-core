@@ -17,8 +17,8 @@ export class AdrInput {
   @Field(() => AdrStatus)
   status: AdrStatus;
 
-  @Field(() => String, { nullable: true })
-  supersededBy?: string;
+  @Field()
+  supersededBy: string;
 
   @Field()
   context: string;
@@ -26,12 +26,12 @@ export class AdrInput {
   @Field()
   decision: string;
 
-  @Field(() => [AdrAlternativeInput], { nullable: true })
-  alternatives?: AdrAlternativeInput[];
+  @Field(() => [AdrAlternativeInput])
+  alternatives: AdrAlternativeInput[];
 
-  @Field(() => String, { nullable: true })
-  consequences?: string;
+  @Field()
+  consequences: string;
 
-  @Field(() => [String], { nullable: true })
-  relatedRequirements?: string[];
+  @Field(() => [String])
+  relatedRequirements: string[];
 }

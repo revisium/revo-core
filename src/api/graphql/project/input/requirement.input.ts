@@ -22,6 +22,6 @@ export class RequirementInput {
   @Field()
   acceptance: string;
 
-  @Field(() => [String], { nullable: true })
-  relatedAdr?: string[];
+  @Field(() => [String])
+  relatedAdr: string[];
 }

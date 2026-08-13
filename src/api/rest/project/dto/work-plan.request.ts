@@ -1,8 +1,8 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsIn, IsString } from 'class-validator';
 
 import { ProjectError } from '../../../../features/project/project-errors.js';
-import type { WorkPlanStatus } from '../../../../features/project/project-records.js';
+import type { WorkPlanStatus } from '../../../../features/project/work-plan.js';
 
 export class WorkPlanRequest {
   @ApiProperty()
@@ -25,10 +25,9 @@ export class WorkPlanRequest {
   @IsString()
   bounds: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  baselineId?: string;
+  baselineId: string;
 
   @ApiProperty()
   @IsString()

@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 
-@ObjectType('WorkItem')
+@ObjectType()
 export class WorkItemModel {
   @Field(() => ID)
   id: string;

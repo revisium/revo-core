@@ -1,9 +1,9 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsIn, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsIn, IsString, ValidateNested } from 'class-validator';
 
+import type { AdrStatus } from '../../../../features/project/adr.js';
 import { ProjectError } from '../../../../features/project/project-errors.js';
-import type { AdrStatus } from '../../../../features/project/project-records.js';
 import { AdrAlternativeResponse } from '../model/adr-alternative.response.js';
 
 export class AdrRequest {
@@ -19,10 +19,9 @@ export class AdrRequest {
   @IsIn(['proposed', 'accepted', 'deprecated', 'superseded', 'rejected'])
   status: AdrStatus;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  supersededBy?: string;
+  supersededBy: string;
 
   @ApiProperty()
   @IsString()
@@ -32,21 +31,18 @@ export class AdrRequest {
   @IsString()
   decision: string;
 
-  @ApiPropertyOptional({ type: [AdrAlternativeResponse] })
-  @IsOptional()
+  @ApiProperty({ type: [AdrAlternativeResponse] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => AdrAlternativeResponse)
-  alternatives?: AdrAlternativeResponse[];
+  alternatives: AdrAlternativeResponse[];
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  consequences?: string;
+  consequences: string;
 
-  @ApiPropertyOptional({ type: [String] })
-  @IsOptional()
+  @ApiProperty({ type: [String] })
   @IsArray()
   @IsString({ each: true })
-  relatedRequirements?: string[];
+  relatedRequirements: string[];
 }

@@ -10,7 +10,6 @@ import {
   ParseIntPipe,
   Post,
   Query,
-  UsePipes,
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
@@ -24,7 +23,6 @@ import {
 
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { ProjectError } from '../../../features/project/project-errors.js';
-import { restValidationPipe } from '../rest-validation.pipe.js';
 import { ProjectCreateRequest } from './dto/project-create.request.js';
 import { ProjectConnectionResponse } from './model/project-connection.response.js';
 import { ProjectResponse } from './model/project.response.js';
@@ -32,7 +30,6 @@ import { recordListQuery } from './record-list.query.js';
 
 @ApiTags('Projects')
 @Controller('projects')
-@UsePipes(restValidationPipe)
 export class ProjectController {
   constructor(private readonly projects: ProjectApiService) {}
 

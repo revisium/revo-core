@@ -2,7 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 
 import { AdrModel } from './adr.model.js';
 
-@ObjectType('AdrEdge')
+@ObjectType()
 export class AdrEdgeModel {
   @Field()
   cursor: string;

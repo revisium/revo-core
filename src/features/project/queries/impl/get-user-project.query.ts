@@ -1,4 +1,4 @@
-import type { UserProject } from '../../project-records.js';
+import type { UserProject } from '../../user-project.js';
 
 export type GetUserProjectQueryData = {
   readonly id: string;

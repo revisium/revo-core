@@ -11,7 +11,6 @@ import {
   Post,
   Put,
   Query,
-  UsePipes,
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
@@ -25,7 +24,6 @@ import {
 
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { ProjectError } from '../../../features/project/project-errors.js';
-import { restValidationPipe } from '../rest-validation.pipe.js';
 import { WorkPlanUpdateRequest } from './dto/work-plan-update.request.js';
 import { WorkPlanRequest } from './dto/work-plan.request.js';
 import { WorkPlanConnectionResponse } from './model/work-plan-connection.response.js';
@@ -34,7 +32,6 @@ import { recordListQuery } from './record-list.query.js';
 
 @ApiTags('Projects')
 @Controller('projects/:projectId/work-plans')
-@UsePipes(restValidationPipe)
 export class WorkPlanController {
   constructor(private readonly projects: ProjectApiService) {}
 
@@ -43,16 +40,7 @@ export class WorkPlanController {
   @ApiCreatedResponse({ type: WorkPlanResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   createWorkPlan(@Param('projectId') projectId: string, @Body() data: WorkPlanRequest) {
-    return this.projects.createWorkPlan({
-      projectId,
-      id: data.id,
-      title: data.title,
-      status: data.status,
-      outcome: data.outcome,
-      bounds: data.bounds,
-      baselineId: data.baselineId,
-      acceptance: data.acceptance,
-    });
+    return this.projects.createWorkPlan({ projectId, ...data });
   }
 
   @Get()
@@ -94,16 +82,7 @@ export class WorkPlanController {
     @Param('workPlanId') workPlanId: string,
     @Body() data: WorkPlanUpdateRequest,
   ) {
-    return this.projects.updateWorkPlan({
-      projectId,
-      id: workPlanId,
-      title: data.title,
-      status: data.status,
-      outcome: data.outcome,
-      bounds: data.bounds,
-      baselineId: data.baselineId,
-      acceptance: data.acceptance,
-    });
+    return this.projects.updateWorkPlan({ projectId, id: workPlanId, ...data });
   }
 
   @Delete(':workPlanId')

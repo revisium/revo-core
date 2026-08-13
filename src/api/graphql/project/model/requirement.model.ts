@@ -2,7 +2,7 @@ import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 import { RequirementStatus } from './requirement-status.enum.js';
 
-@ObjectType('Requirement')
+@ObjectType()
 export class RequirementModel {
   @Field(() => ID)
   id: string;

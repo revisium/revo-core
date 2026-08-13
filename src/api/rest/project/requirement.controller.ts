@@ -11,7 +11,6 @@ import {
   Post,
   Put,
   Query,
-  UsePipes,
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
@@ -25,7 +24,6 @@ import {
 
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { ProjectError } from '../../../features/project/project-errors.js';
-import { restValidationPipe } from '../rest-validation.pipe.js';
 import { RequirementUpdateRequest } from './dto/requirement-update.request.js';
 import { RequirementRequest } from './dto/requirement.request.js';
 import { RequirementConnectionResponse } from './model/requirement-connection.response.js';
@@ -34,7 +32,6 @@ import { recordListQuery } from './record-list.query.js';
 
 @ApiTags('Projects')
 @Controller('projects/:projectId/requirements')
-@UsePipes(restValidationPipe)
 export class RequirementController {
   constructor(private readonly projects: ProjectApiService) {}
 
@@ -43,15 +40,7 @@ export class RequirementController {
   @ApiCreatedResponse({ type: RequirementResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   createRequirement(@Param('projectId') projectId: string, @Body() data: RequirementRequest) {
-    return this.projects.createRequirement({
-      projectId,
-      id: data.id,
-      title: data.title,
-      status: data.status,
-      statement: data.statement,
-      acceptance: data.acceptance,
-      relatedAdr: data.relatedAdr,
-    });
+    return this.projects.createRequirement({ projectId, ...data });
   }
 
   @Get()
@@ -93,15 +82,7 @@ export class RequirementController {
     @Param('requirementId') requirementId: string,
     @Body() data: RequirementUpdateRequest,
   ) {
-    return this.projects.updateRequirement({
-      projectId,
-      id: requirementId,
-      title: data.title,
-      status: data.status,
-      statement: data.statement,
-      acceptance: data.acceptance,
-      relatedAdr: data.relatedAdr,
-    });
+    return this.projects.updateRequirement({ projectId, id: requirementId, ...data });
   }
 
   @Delete(':requirementId')

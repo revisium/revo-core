@@ -22,8 +22,8 @@ export class WorkPlanInput {
   @Field()
   bounds: string;
 
-  @Field(() => String, { nullable: true })
-  baselineId?: string;
+  @Field()
+  baselineId: string;
 
   @Field()
   acceptance: string;

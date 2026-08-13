@@ -11,7 +11,6 @@ import {
   Post,
   Put,
   Query,
-  UsePipes,
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
@@ -25,7 +24,6 @@ import {
 
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { ProjectError } from '../../../features/project/project-errors.js';
-import { restValidationPipe } from '../rest-validation.pipe.js';
 import { AdrUpdateRequest } from './dto/adr-update.request.js';
 import { AdrRequest } from './dto/adr.request.js';
 import { AdrConnectionResponse } from './model/adr-connection.response.js';
@@ -34,7 +32,6 @@ import { recordListQuery } from './record-list.query.js';
 
 @ApiTags('Projects')
 @Controller('projects/:projectId/adrs')
-@UsePipes(restValidationPipe)
 export class AdrController {
   constructor(private readonly projects: ProjectApiService) {}
 
@@ -43,18 +40,7 @@ export class AdrController {
   @ApiCreatedResponse({ type: AdrResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   createAdr(@Param('projectId') projectId: string, @Body() data: AdrRequest) {
-    return this.projects.createAdr({
-      projectId,
-      id: data.id,
-      title: data.title,
-      status: data.status,
-      supersededBy: data.supersededBy,
-      context: data.context,
-      decision: data.decision,
-      alternatives: data.alternatives,
-      consequences: data.consequences,
-      relatedRequirements: data.relatedRequirements,
-    });
+    return this.projects.createAdr({ projectId, ...data });
   }
 
   @Get()
@@ -93,18 +79,7 @@ export class AdrController {
     @Param('adrId') adrId: string,
     @Body() data: AdrUpdateRequest,
   ) {
-    return this.projects.updateAdr({
-      projectId,
-      id: adrId,
-      title: data.title,
-      status: data.status,
-      supersededBy: data.supersededBy,
-      context: data.context,
-      decision: data.decision,
-      alternatives: data.alternatives,
-      consequences: data.consequences,
-      relatedRequirements: data.relatedRequirements,
-    });
+    return this.projects.updateAdr({ projectId, id: adrId, ...data });
   }
 
   @Delete(':adrId')

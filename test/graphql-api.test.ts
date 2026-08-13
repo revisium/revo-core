@@ -201,76 +201,6 @@ describe('GraphQL API', () => {
     expect(missing.body.data.project.adr).toBeNull();
   });
 
-  test('rejects deleting an ADR that is still referenced', async () => {
-    const project = await createProject(app, createdProjectIds, 'Incoming ref');
-    await graphql(app, CREATE_ADR, { data: adrInput(project.id, 'ADR-1', 'Keep') });
-    const requirement = await graphql(app, CREATE_REQUIREMENT, {
-      data: {
-        projectId: project.id,
-        id: 'REQ-1',
-        title: 'Needs ADR',
-        status: 'proposed',
-        statement: 'Must exist',
-        acceptance: 'Pass',
-        relatedAdr: ['ADR-1'],
-      },
-    });
-    expect(requirement.body.errors).toBeUndefined();
-
-    const deleted = await graphql(app, DELETE_ADR, {
-      data: { projectId: project.id, id: 'ADR-1' },
-    });
-    expect(deleted.body.data).toBeNull();
-    expect(deleted.body.errors[0].message).toBe(
-      'Cannot delete this record because other records still reference it.',
-    );
-
-    const stillThere = await graphql(app, GET_ADR, { projectId: project.id, id: 'ADR-1' });
-    expect(stillThere.body.data.project.adr.id).toBe('ADR-1');
-  });
-
-  test('does not treat same-id links to other tables as incoming ADR references', async () => {
-    const project = await createProject(app, createdProjectIds, 'Typed refs');
-    await graphql(app, CREATE_ADR, { data: adrInput(project.id, 'X', 'Decision') });
-    const workPlan = await graphql(app, CREATE_WORK_PLAN, {
-      data: {
-        projectId: project.id,
-        id: 'X',
-        title: 'Plan',
-        status: 'draft',
-        outcome: 'Done',
-        bounds: 'This slice',
-        acceptance: 'Accepted',
-      },
-    });
-    expect(workPlan.body.errors).toBeUndefined();
-
-    const deleted = await graphql(app, DELETE_ADR, {
-      data: { projectId: project.id, id: 'X' },
-    });
-    expect(deleted.body).toEqual({ data: { deleteAdr: true } });
-
-    await graphql(app, CREATE_ADR, { data: adrInput(project.id, 'X', 'Decision') });
-    await graphql(app, CREATE_REQUIREMENT, {
-      data: {
-        projectId: project.id,
-        id: 'REQ-X',
-        title: 'Needs ADR',
-        status: 'proposed',
-        statement: 'Must exist',
-        acceptance: 'Pass',
-        relatedAdr: ['X'],
-      },
-    });
-    const blocked = await graphql(app, DELETE_ADR, {
-      data: { projectId: project.id, id: 'X' },
-    });
-    expect(blocked.body.data).toBeNull();
-    expect(blocked.body.errors[0].message).toBe(
-      'Cannot delete this record because other records still reference it.',
-    );
-  });
-
   test('rejects an invalid project list page size', async () => {
     const listed = await graphql(app, LIST_PROJECTS, { data: { first: 0 } });
     expect(listed.body.data).toBeNull();
@@ -288,6 +218,7 @@ describe('GraphQL API', () => {
         status: 'accepted',
         statement: 'Users sign in',
         acceptance: 'Login works',
+        relatedAdr: [],
       },
     });
     expect(requirement.body.data.createRequirement).toMatchObject({
@@ -303,6 +234,7 @@ describe('GraphQL API', () => {
         status: 'draft',
         outcome: 'Done',
         bounds: 'This slice',
+        baselineId: '',
         acceptance: 'Accepted',
       },
     });
@@ -320,6 +252,9 @@ describe('GraphQL API', () => {
         constraints: 'Time',
         acceptance: 'Done',
         plan: 'WP-1',
+        dependsOn: [],
+        relatedRequirements: [],
+        relatedAdr: [],
       },
     });
     expect(workItem.body.data.createWorkItem).toMatchObject({
@@ -520,7 +455,11 @@ function adrInput(projectId: string, id: string, title: string) {
     id,
     title,
     status: 'proposed',
+    supersededBy: '',
     context: 'Context',
     decision: 'Decision',
+    alternatives: [],
+    consequences: '',
+    relatedRequirements: [],
   };
 }

@@ -2,7 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 
 import { WorkPlanModel } from './work-plan.model.js';
 
-@ObjectType('WorkPlanEdge')
+@ObjectType()
 export class WorkPlanEdgeModel {
   @Field()
   cursor: string;

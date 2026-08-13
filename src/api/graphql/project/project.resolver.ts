@@ -1,10 +1,10 @@
 import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
-import type { RecordListData } from '../../../features/project/project-records.js';
 import { ProjectCreateInput } from './input/project-create.input.js';
 import { ProjectListInput } from './input/project-list.input.js';
 import { RecordListInput } from './input/record-list.input.js';
+import { listData } from './list-data.js';
 import { AdrConnectionModel } from './model/adr-connection.model.js';
 import { AdrModel } from './model/adr.model.js';
 import { ProjectConnectionModel } from './model/project-connection.model.js';
@@ -91,12 +91,4 @@ export class ProjectResolver {
   ) {
     return this.projectApi.listWorkItems(project.id, listData(data));
   }
-}
-
-function listData(data: { first: number; after?: string }): RecordListData {
-  if (data.after === undefined) {
-    return { first: data.first };
-  }
-
-  return { first: data.first, after: data.after };
 }

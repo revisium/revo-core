@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsBoolean, IsString } from 'class-validator';
 
 import { ProjectError } from '../../../../features/project/project-errors.js';
 
@@ -40,21 +40,18 @@ export class WorkItemRequest {
   @IsString()
   plan: string;
 
-  @ApiPropertyOptional({ type: [String] })
-  @IsOptional()
+  @ApiProperty({ type: [String] })
   @IsArray()
   @IsString({ each: true })
-  dependsOn?: string[];
+  dependsOn: string[];
 
-  @ApiPropertyOptional({ type: [String] })
-  @IsOptional()
+  @ApiProperty({ type: [String] })
   @IsArray()
   @IsString({ each: true })
-  relatedRequirements?: string[];
+  relatedRequirements: string[];
 
-  @ApiPropertyOptional({ type: [String] })
-  @IsOptional()
+  @ApiProperty({ type: [String] })
   @IsArray()
   @IsString({ each: true })
-  relatedAdr?: string[];
+  relatedAdr: string[];
 }

@@ -2,7 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 
 import { RequirementModel } from './requirement.model.js';
 
-@ObjectType('RequirementEdge')
+@ObjectType()
 export class RequirementEdgeModel {
   @Field()
   cursor: string;

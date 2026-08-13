@@ -1174,7 +1174,17 @@
             }
           }
         },
-        "required": ["id", "title", "status", "context", "decision"]
+        "required": [
+          "id",
+          "title",
+          "status",
+          "supersededBy",
+          "context",
+          "decision",
+          "alternatives",
+          "consequences",
+          "relatedRequirements"
+        ]
       },
       "AdrResponse": {
         "type": "object",
@@ -1291,7 +1301,16 @@
             }
           }
         },
-        "required": ["title", "status", "context", "decision"]
+        "required": [
+          "title",
+          "status",
+          "supersededBy",
+          "context",
+          "decision",
+          "alternatives",
+          "consequences",
+          "relatedRequirements"
+        ]
       },
       "RequirementRequest": {
         "type": "object",
@@ -1319,7 +1338,7 @@
             }
           }
         },
-        "required": ["id", "title", "status", "statement", "acceptance"]
+        "required": ["id", "title", "status", "statement", "acceptance", "relatedAdr"]
       },
       "RequirementResponse": {
         "type": "object",
@@ -1402,7 +1421,7 @@
             }
           }
         },
-        "required": ["title", "status", "statement", "acceptance"]
+        "required": ["title", "status", "statement", "acceptance", "relatedAdr"]
       },
       "WorkPlanRequest": {
         "type": "object",
@@ -1430,7 +1449,7 @@
             "type": "string"
           }
         },
-        "required": ["id", "title", "status", "outcome", "bounds", "acceptance"]
+        "required": ["id", "title", "status", "outcome", "bounds", "baselineId", "acceptance"]
       },
       "WorkPlanResponse": {
         "type": "object",
@@ -1513,7 +1532,7 @@
             "type": "string"
           }
         },
-        "required": ["title", "status", "outcome", "bounds", "acceptance"]
+        "required": ["title", "status", "outcome", "bounds", "baselineId", "acceptance"]
       },
       "WorkItemRequest": {
         "type": "object",
@@ -1573,7 +1592,10 @@
           "owner",
           "constraints",
           "acceptance",
-          "plan"
+          "plan",
+          "dependsOn",
+          "relatedRequirements",
+          "relatedAdr"
         ]
       },
       "WorkItemResponse": {
@@ -1724,7 +1746,10 @@
           "owner",
           "constraints",
           "acceptance",
-          "plan"
+          "plan",
+          "dependsOn",
+          "relatedRequirements",
+          "relatedAdr"
         ]
       },
       "StartRunRequest": {

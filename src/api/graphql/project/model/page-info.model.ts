@@ -1,6 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
-@ObjectType('PageInfo')
+@ObjectType()
 export class PageInfoModel {
   @Field()
   hasNextPage: boolean;

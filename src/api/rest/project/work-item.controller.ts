@@ -11,7 +11,6 @@ import {
   Post,
   Put,
   Query,
-  UsePipes,
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
@@ -25,7 +24,6 @@ import {
 
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { ProjectError } from '../../../features/project/project-errors.js';
-import { restValidationPipe } from '../rest-validation.pipe.js';
 import { WorkItemUpdateRequest } from './dto/work-item-update.request.js';
 import { WorkItemRequest } from './dto/work-item.request.js';
 import { WorkItemConnectionResponse } from './model/work-item-connection.response.js';
@@ -34,7 +32,6 @@ import { recordListQuery } from './record-list.query.js';
 
 @ApiTags('Projects')
 @Controller('projects/:projectId/work-items')
-@UsePipes(restValidationPipe)
 export class WorkItemController {
   constructor(private readonly projects: ProjectApiService) {}
 
@@ -43,21 +40,7 @@ export class WorkItemController {
   @ApiCreatedResponse({ type: WorkItemResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   createWorkItem(@Param('projectId') projectId: string, @Body() data: WorkItemRequest) {
-    return this.projects.createWorkItem({
-      projectId,
-      id: data.id,
-      title: data.title,
-      cancelled: data.cancelled,
-      goal: data.goal,
-      inputs: data.inputs,
-      owner: data.owner,
-      constraints: data.constraints,
-      acceptance: data.acceptance,
-      plan: data.plan,
-      dependsOn: data.dependsOn,
-      relatedRequirements: data.relatedRequirements,
-      relatedAdr: data.relatedAdr,
-    });
+    return this.projects.createWorkItem({ projectId, ...data });
   }
 
   @Get()
@@ -99,21 +82,7 @@ export class WorkItemController {
     @Param('workItemId') workItemId: string,
     @Body() data: WorkItemUpdateRequest,
   ) {
-    return this.projects.updateWorkItem({
-      projectId,
-      id: workItemId,
-      title: data.title,
-      cancelled: data.cancelled,
-      goal: data.goal,
-      inputs: data.inputs,
-      owner: data.owner,
-      constraints: data.constraints,
-      acceptance: data.acceptance,
-      plan: data.plan,
-      dependsOn: data.dependsOn,
-      relatedRequirements: data.relatedRequirements,
-      relatedAdr: data.relatedAdr,
-    });
+    return this.projects.updateWorkItem({ projectId, id: workItemId, ...data });
   }
 
   @Delete(':workItemId')
