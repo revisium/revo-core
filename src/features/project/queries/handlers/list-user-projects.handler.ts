@@ -30,7 +30,7 @@ export class ListUserProjectsHandler implements IQueryHandler<
     const nodes = hasNextPage ? rows.slice(0, data.first) : rows;
     const edges = nodes.map((node) => ({ cursor: node.id, node }));
     const startCursor = edges[0]?.cursor;
-    const endCursor = edges[edges.length - 1]?.cursor;
+    const endCursor = edges.at(-1)?.cursor;
 
     return {
       edges,

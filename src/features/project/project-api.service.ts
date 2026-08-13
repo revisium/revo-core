@@ -142,7 +142,7 @@ export class ProjectApiService {
 
   listUserProjectIds(): Promise<ListUserProjectIdsQueryReturnType> {
     return this.queries.execute<ListUserProjectIdsQuery, ListUserProjectIdsQueryReturnType>(
-      new ListUserProjectIdsQuery(),
+      new ListUserProjectIdsQuery({}),
     );
   }
 

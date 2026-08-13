@@ -23,7 +23,10 @@ export type {
   ListProjectRecordsQueryReturnType,
 } from './impl/list-project-records.query.js';
 export { ListUserProjectIdsQuery } from './impl/list-user-project-ids.query.js';
-export type { ListUserProjectIdsQueryReturnType } from './impl/list-user-project-ids.query.js';
+export type {
+  ListUserProjectIdsQueryData,
+  ListUserProjectIdsQueryReturnType,
+} from './impl/list-user-project-ids.query.js';
 export { ListUserProjectsQuery } from './impl/list-user-projects.query.js';
 export type {
   ListUserProjectsQueryData,
