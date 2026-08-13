@@ -1,9 +1,9 @@
 import type { IPaginatedType } from '@revisium/engine';
 
 import type { CreateWorkPlanCommandReturnType } from '../../commands/impl/create-work-plan.command.js';
-import type { RecordListData } from '../../commands/utils/getOffsetPagination.js';
+import type { PageDataType } from '../../commands/utils/getOffsetPagination.js';
 
-export type ListWorkPlansQueryData = RecordListData & {
+export type ListWorkPlansQueryData = PageDataType & {
   readonly projectId: string;
 };
 

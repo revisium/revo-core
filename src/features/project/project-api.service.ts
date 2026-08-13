@@ -38,7 +38,7 @@ import {
   UpdateWorkPlanCommand,
   type UpdateWorkPlanCommandReturnType,
 } from './commands/index.js';
-import type { RecordListData } from './commands/utils/getOffsetPagination.js';
+import type { PageDataType } from './commands/utils/getOffsetPagination.js';
 import {
   GetAdrQuery,
   type GetAdrQueryReturnType,
@@ -106,7 +106,7 @@ export class ProjectApiService {
     );
   }
 
-  listUserProjects(data: RecordListData): Promise<ListUserProjectsQueryReturnType> {
+  listUserProjects(data: PageDataType): Promise<ListUserProjectsQueryReturnType> {
     return this.queries.execute<ListUserProjectsQuery, ListUserProjectsQueryReturnType>(
       new ListUserProjectsQuery(data),
     );
@@ -118,7 +118,7 @@ export class ProjectApiService {
     );
   }
 
-  listAdrs(projectId: string, data: RecordListData): Promise<ListAdrsQueryReturnType> {
+  listAdrs(projectId: string, data: PageDataType): Promise<ListAdrsQueryReturnType> {
     return this.queries.execute<ListAdrsQuery, ListAdrsQueryReturnType>(
       new ListAdrsQuery({ projectId, ...data }),
     );
@@ -150,7 +150,7 @@ export class ProjectApiService {
 
   listRequirements(
     projectId: string,
-    data: RecordListData,
+    data: PageDataType,
   ): Promise<ListRequirementsQueryReturnType> {
     return this.queries.execute<ListRequirementsQuery, ListRequirementsQueryReturnType>(
       new ListRequirementsQuery({ projectId, ...data }),
@@ -185,7 +185,7 @@ export class ProjectApiService {
     );
   }
 
-  listWorkPlans(projectId: string, data: RecordListData): Promise<ListWorkPlansQueryReturnType> {
+  listWorkPlans(projectId: string, data: PageDataType): Promise<ListWorkPlansQueryReturnType> {
     return this.queries.execute<ListWorkPlansQuery, ListWorkPlansQueryReturnType>(
       new ListWorkPlansQuery({ projectId, ...data }),
     );
@@ -215,7 +215,7 @@ export class ProjectApiService {
     );
   }
 
-  listWorkItems(projectId: string, data: RecordListData): Promise<ListWorkItemsQueryReturnType> {
+  listWorkItems(projectId: string, data: PageDataType): Promise<ListWorkItemsQueryReturnType> {
     return this.queries.execute<ListWorkItemsQuery, ListWorkItemsQueryReturnType>(
       new ListWorkItemsQuery({ projectId, ...data }),
     );

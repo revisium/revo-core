@@ -3,8 +3,6 @@ import { type IPaginatedType } from '@revisium/engine';
 
 export type PageDataType = { readonly first: number; after?: string };
 
-export type RecordListData = PageDataType;
-
 export type OffsetPaginationFindManyArgs = {
   take: number;
   skip: number;

@@ -344,6 +344,117 @@ describe('GraphQL API', () => {
       workPlan: { id: 'WP-1' },
       workItem: { id: 'WI-1' },
     });
+
+    await graphql(app, CREATE_REQUIREMENT, {
+      data: {
+        projectId: project.id,
+        id: 'REQ-10',
+        title: 'Need sessions',
+        status: 'accepted',
+        statement: 'Users stay signed in',
+        acceptance: 'Session works',
+        relatedAdr: [],
+      },
+    });
+
+    const firstRequirements = await graphql(app, LIST_RECORDS, {
+      projectId: project.id,
+      data: { first: 1 },
+    });
+    expect(firstRequirements.body.errors).toBeUndefined();
+    expect(firstRequirements.body.data.project.requirements.totalCount).toBe(2);
+    expect(firstRequirements.body.data.project.requirements.pageInfo.hasNextPage).toBe(true);
+
+    const nextRequirements = await graphql(app, LIST_RECORDS, {
+      projectId: project.id,
+      data: {
+        first: 1,
+        after: firstRequirements.body.data.project.requirements.pageInfo.endCursor,
+      },
+    });
+    expect(nextRequirements.body.data.project.requirements.edges).toHaveLength(1);
+    expect(nextRequirements.body.data.project.requirements.edges[0].node.id).not.toBe(
+      firstRequirements.body.data.project.requirements.edges[0].node.id,
+    );
+
+    const firstPlans = await graphql(app, LIST_RECORDS, {
+      projectId: project.id,
+      data: { first: 1 },
+    });
+    const nextPlans = await graphql(app, LIST_RECORDS, {
+      projectId: project.id,
+      data: { first: 1, after: firstPlans.body.data.project.workPlans.pageInfo.endCursor },
+    });
+    expect(nextPlans.body.data.project.workPlans.edges).toHaveLength(0);
+
+    const firstItems = await graphql(app, LIST_RECORDS, {
+      projectId: project.id,
+      data: { first: 1 },
+    });
+    const nextItems = await graphql(app, LIST_RECORDS, {
+      projectId: project.id,
+      data: { first: 1, after: firstItems.body.data.project.workItems.pageInfo.endCursor },
+    });
+    expect(nextItems.body.data.project.workItems.edges).toHaveLength(0);
+
+    const updatedRequirement = await graphql(app, UPDATE_REQUIREMENT, {
+      data: {
+        projectId: project.id,
+        id: 'REQ-9',
+        title: 'Need auth now',
+        status: 'accepted',
+        statement: 'Users sign in',
+        acceptance: 'Login works',
+        relatedAdr: [],
+      },
+    });
+    expect(updatedRequirement.body.data.updateRequirement.title).toBe('Need auth now');
+
+    const updatedPlan = await graphql(app, UPDATE_WORK_PLAN, {
+      data: {
+        projectId: project.id,
+        id: 'WP-1',
+        title: 'Updated plan',
+        status: 'draft',
+        outcome: 'Done',
+        bounds: 'This slice',
+        baselineId: '',
+        acceptance: 'Accepted',
+      },
+    });
+    expect(updatedPlan.body.data.updateWorkPlan.title).toBe('Updated plan');
+
+    const updatedItem = await graphql(app, UPDATE_WORK_ITEM, {
+      data: {
+        projectId: project.id,
+        id: 'WI-1',
+        title: 'Updated item',
+        cancelled: false,
+        goal: 'Ship',
+        inputs: 'Spec',
+        owner: 'owner-1',
+        constraints: 'Time',
+        acceptance: 'Done',
+        plan: 'WP-1',
+        dependsOn: [],
+        relatedRequirements: [],
+        relatedAdr: [],
+      },
+    });
+    expect(updatedItem.body.data.updateWorkItem.title).toBe('Updated item');
+
+    expect(
+      (await graphql(app, DELETE_REQUIREMENT, { data: { projectId: project.id, id: 'REQ-9' } }))
+        .body.data.deleteRequirement,
+    ).toBe(true);
+    expect(
+      (await graphql(app, DELETE_WORK_ITEM, { data: { projectId: project.id, id: 'WI-1' } })).body
+        .data.deleteWorkItem,
+    ).toBe(true);
+    expect(
+      (await graphql(app, DELETE_WORK_PLAN, { data: { projectId: project.id, id: 'WP-1' } })).body
+        .data.deleteWorkPlan,
+    ).toBe(true);
   });
 
   test('isolates records from system_playbooks and another USER project', async () => {
@@ -475,15 +586,73 @@ const CREATE_REQUIREMENT = `
   }
 `;
 
+const UPDATE_REQUIREMENT = `
+  mutation UpdateRequirement($data: RequirementInput!) {
+    updateRequirement(data: $data) { id title }
+  }
+`;
+
+const DELETE_REQUIREMENT = `
+  mutation DeleteRequirement($data: RecordDeleteInput!) {
+    deleteRequirement(data: $data)
+  }
+`;
+
 const CREATE_WORK_PLAN = `
   mutation CreateWorkPlan($data: WorkPlanInput!) {
     createWorkPlan(data: $data) { id title status }
   }
 `;
 
+const UPDATE_WORK_PLAN = `
+  mutation UpdateWorkPlan($data: WorkPlanInput!) {
+    updateWorkPlan(data: $data) { id title }
+  }
+`;
+
+const DELETE_WORK_PLAN = `
+  mutation DeleteWorkPlan($data: RecordDeleteInput!) {
+    deleteWorkPlan(data: $data)
+  }
+`;
+
 const CREATE_WORK_ITEM = `
   mutation CreateWorkItem($data: WorkItemInput!) {
     createWorkItem(data: $data) { id title plan }
+  }
+`;
+
+const UPDATE_WORK_ITEM = `
+  mutation UpdateWorkItem($data: WorkItemInput!) {
+    updateWorkItem(data: $data) { id title }
+  }
+`;
+
+const DELETE_WORK_ITEM = `
+  mutation DeleteWorkItem($data: RecordDeleteInput!) {
+    deleteWorkItem(data: $data)
+  }
+`;
+
+const LIST_RECORDS = `
+  query ListRecords($projectId: ID!, $data: RecordListInput!) {
+    project(id: $projectId) {
+      requirements(data: $data) {
+        totalCount
+        edges { cursor node { id } }
+        pageInfo { endCursor hasNextPage }
+      }
+      workPlans(data: $data) {
+        totalCount
+        edges { cursor node { id } }
+        pageInfo { endCursor hasNextPage }
+      }
+      workItems(data: $data) {
+        totalCount
+        edges { cursor node { id } }
+        pageInfo { endCursor hasNextPage }
+      }
+    }
   }
 `;
 

@@ -1,6 +1,6 @@
-import type { RecordListData } from '../../../features/project/commands/utils/getOffsetPagination.js';
+import type { PageDataType } from '../../../features/project/commands/utils/getOffsetPagination.js';
 
-export function recordListQuery(first: number, after?: string): RecordListData {
+export function recordListQuery(first: number, after?: string): PageDataType {
   if (after === undefined) {
     return { first };
   }
