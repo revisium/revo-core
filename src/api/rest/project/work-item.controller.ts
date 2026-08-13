@@ -40,7 +40,7 @@ export class WorkItemController {
   @ApiCreatedResponse({ type: WorkItemResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   createWorkItem(@Param('projectId') projectId: string, @Body() data: WorkItemRequest) {
-    return this.projects.createWorkItem({ projectId, ...data });
+    return this.projects.createWorkItem(Object.assign({ projectId }, data));
   }
 
   @Get()
@@ -82,7 +82,7 @@ export class WorkItemController {
     @Param('workItemId') workItemId: string,
     @Body() data: WorkItemUpdateRequest,
   ) {
-    return this.projects.updateWorkItem({ projectId, id: workItemId, ...data });
+    return this.projects.updateWorkItem(Object.assign({ projectId, id: workItemId }, data));
   }
 
   @Delete(':workItemId')

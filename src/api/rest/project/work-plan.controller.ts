@@ -40,7 +40,7 @@ export class WorkPlanController {
   @ApiCreatedResponse({ type: WorkPlanResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   createWorkPlan(@Param('projectId') projectId: string, @Body() data: WorkPlanRequest) {
-    return this.projects.createWorkPlan({ projectId, ...data });
+    return this.projects.createWorkPlan(Object.assign({ projectId }, data));
   }
 
   @Get()
@@ -82,7 +82,7 @@ export class WorkPlanController {
     @Param('workPlanId') workPlanId: string,
     @Body() data: WorkPlanUpdateRequest,
   ) {
-    return this.projects.updateWorkPlan({ projectId, id: workPlanId, ...data });
+    return this.projects.updateWorkPlan(Object.assign({ projectId, id: workPlanId }, data));
   }
 
   @Delete(':workPlanId')

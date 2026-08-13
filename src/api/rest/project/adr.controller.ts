@@ -40,7 +40,7 @@ export class AdrController {
   @ApiCreatedResponse({ type: AdrResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   createAdr(@Param('projectId') projectId: string, @Body() data: AdrRequest) {
-    return this.projects.createAdr({ projectId, ...data });
+    return this.projects.createAdr(Object.assign({ projectId }, data));
   }
 
   @Get()
@@ -79,7 +79,7 @@ export class AdrController {
     @Param('adrId') adrId: string,
     @Body() data: AdrUpdateRequest,
   ) {
-    return this.projects.updateAdr({ projectId, id: adrId, ...data });
+    return this.projects.updateAdr(Object.assign({ projectId, id: adrId }, data));
   }
 
   @Delete(':adrId')

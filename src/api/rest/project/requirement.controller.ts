@@ -40,7 +40,7 @@ export class RequirementController {
   @ApiCreatedResponse({ type: RequirementResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   createRequirement(@Param('projectId') projectId: string, @Body() data: RequirementRequest) {
-    return this.projects.createRequirement({ projectId, ...data });
+    return this.projects.createRequirement(Object.assign({ projectId }, data));
   }
 
   @Get()
@@ -82,7 +82,7 @@ export class RequirementController {
     @Param('requirementId') requirementId: string,
     @Body() data: RequirementUpdateRequest,
   ) {
-    return this.projects.updateRequirement({ projectId, id: requirementId, ...data });
+    return this.projects.updateRequirement(Object.assign({ projectId, id: requirementId }, data));
   }
 
   @Delete(':requirementId')
