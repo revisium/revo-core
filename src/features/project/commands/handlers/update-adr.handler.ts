@@ -2,8 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { ProjectError } from '../../constants/project.constants.js';
-import { ProjectTable } from '../../constants/project.constants.js';
+import { ProjectError, ProjectTable } from '../../constants/project.constants.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import { UpdateAdrCommand, type UpdateAdrCommandReturnType } from '../impl/update-adr.command.js';
 
