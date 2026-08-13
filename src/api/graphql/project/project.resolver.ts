@@ -1,0 +1,94 @@
+import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+
+import { ProjectApiService } from '../../../features/project/project-api.service.js';
+import { ProjectCreateInput } from './input/project-create.input.js';
+import { ProjectListInput } from './input/project-list.input.js';
+import { RecordListInput } from './input/record-list.input.js';
+import { listData } from './list-data.js';
+import { AdrConnectionModel } from './model/adr-connection.model.js';
+import { AdrModel } from './model/adr.model.js';
+import { ProjectConnectionModel } from './model/project-connection.model.js';
+import { ProjectModel } from './model/project.model.js';
+import { RequirementConnectionModel } from './model/requirement-connection.model.js';
+import { RequirementModel } from './model/requirement.model.js';
+import { WorkItemConnectionModel } from './model/work-item-connection.model.js';
+import { WorkItemModel } from './model/work-item.model.js';
+import { WorkPlanConnectionModel } from './model/work-plan-connection.model.js';
+import { WorkPlanModel } from './model/work-plan.model.js';
+
+@Resolver(() => ProjectModel)
+export class ProjectResolver {
+  constructor(private readonly projectApi: ProjectApiService) {}
+
+  @Query(() => ProjectModel, { nullable: true })
+  project(@Args('id', { type: () => ID }) id: string) {
+    return this.projectApi.getUserProject(id);
+  }
+
+  @Query(() => ProjectConnectionModel)
+  projects(@Args('data', { type: () => ProjectListInput }) data: ProjectListInput) {
+    return this.projectApi.listUserProjects(listData(data));
+  }
+
+  @Mutation(() => ProjectModel)
+  createProject(@Args('data', { type: () => ProjectCreateInput }) data: ProjectCreateInput) {
+    return this.projectApi.createUserProject(data);
+  }
+
+  @Mutation(() => Boolean)
+  deleteProject(@Args('id', { type: () => ID }) id: string): Promise<boolean> {
+    return this.projectApi.deleteUserProject(id);
+  }
+
+  @ResolveField(() => AdrModel, { nullable: true })
+  adr(@Parent() project: ProjectModel, @Args('id', { type: () => ID }) id: string) {
+    return this.projectApi.getAdr(project.id, id);
+  }
+
+  @ResolveField(() => AdrConnectionModel)
+  adrs(
+    @Parent() project: ProjectModel,
+    @Args('data', { type: () => RecordListInput }) data: RecordListInput,
+  ) {
+    return this.projectApi.listAdrs(project.id, listData(data));
+  }
+
+  @ResolveField(() => RequirementModel, { nullable: true })
+  requirement(@Parent() project: ProjectModel, @Args('id', { type: () => ID }) id: string) {
+    return this.projectApi.getRequirement(project.id, id);
+  }
+
+  @ResolveField(() => RequirementConnectionModel)
+  requirements(
+    @Parent() project: ProjectModel,
+    @Args('data', { type: () => RecordListInput }) data: RecordListInput,
+  ) {
+    return this.projectApi.listRequirements(project.id, listData(data));
+  }
+
+  @ResolveField(() => WorkPlanModel, { nullable: true })
+  workPlan(@Parent() project: ProjectModel, @Args('id', { type: () => ID }) id: string) {
+    return this.projectApi.getWorkPlan(project.id, id);
+  }
+
+  @ResolveField(() => WorkPlanConnectionModel)
+  workPlans(
+    @Parent() project: ProjectModel,
+    @Args('data', { type: () => RecordListInput }) data: RecordListInput,
+  ) {
+    return this.projectApi.listWorkPlans(project.id, listData(data));
+  }
+
+  @ResolveField(() => WorkItemModel, { nullable: true })
+  workItem(@Parent() project: ProjectModel, @Args('id', { type: () => ID }) id: string) {
+    return this.projectApi.getWorkItem(project.id, id);
+  }
+
+  @ResolveField(() => WorkItemConnectionModel)
+  workItems(
+    @Parent() project: ProjectModel,
+    @Args('data', { type: () => RecordListInput }) data: RecordListInput,
+  ) {
+    return this.projectApi.listWorkItems(project.id, listData(data));
+  }
+}

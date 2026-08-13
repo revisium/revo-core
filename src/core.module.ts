@@ -4,6 +4,7 @@ import { EngineModule } from '@revisium/engine';
 
 import { GraphqlApiModule } from './api/graphql/graphql-api.module.js';
 import { RestApiModule } from './api/rest/rest-api.module.js';
+import { UserProjectMigrationsModule } from './features/project/user-project-migrations.module.js';
 import { ReviewModule } from './features/review/review.module.js';
 import { RevisiumBootstrapModule } from './features/revisium-bootstrap/revisium-bootstrap.module.js';
 import { DatabaseModule } from './infrastructure/database/database.module.js';
@@ -14,6 +15,7 @@ import { DatabaseModule } from './infrastructure/database/database.module.js';
     EngineModule.forRoot(),
     ReviewModule,
     RevisiumBootstrapModule,
+    UserProjectMigrationsModule,
     GraphqlApiModule,
     RestApiModule,
     RouterModule.register([{ path: '/api', module: RestApiModule }]),
