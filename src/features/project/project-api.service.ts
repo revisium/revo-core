@@ -1,17 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
-import type { AdrWriteData } from './adr.js';
 import {
   CreateAdrCommand,
+  type CreateAdrCommandData,
   type CreateAdrCommandReturnType,
   CreateRequirementCommand,
+  type CreateRequirementCommandData,
   type CreateRequirementCommandReturnType,
   CreateUserProjectCommand,
   type CreateUserProjectCommandReturnType,
   CreateWorkItemCommand,
+  type CreateWorkItemCommandData,
   type CreateWorkItemCommandReturnType,
   CreateWorkPlanCommand,
+  type CreateWorkPlanCommandData,
   type CreateWorkPlanCommandReturnType,
   DeleteAdrCommand,
   type DeleteAdrCommandReturnType,
@@ -35,7 +38,7 @@ import {
   UpdateWorkPlanCommand,
   type UpdateWorkPlanCommandReturnType,
 } from './commands/index.js';
-import type { RecordListData } from './get-offset-pagination.js';
+import type { RecordListData } from './commands/utils/getOffsetPagination.js';
 import {
   GetAdrQuery,
   type GetAdrQueryReturnType,
@@ -61,10 +64,6 @@ import {
   ListWorkPlansQuery,
   type ListWorkPlansQueryReturnType,
 } from './queries/index.js';
-import type { RequirementWriteData } from './requirement.js';
-import type { WorkItemWriteData } from './work-item.js';
-import type { WorkPlanWriteData } from './work-plan.js';
-
 type RecordDeleteData = {
   readonly projectId: string;
   readonly id: string;
@@ -125,13 +124,13 @@ export class ProjectApiService {
     );
   }
 
-  createAdr(data: AdrWriteData): Promise<CreateAdrCommandReturnType> {
+  createAdr(data: CreateAdrCommandData): Promise<CreateAdrCommandReturnType> {
     return this.commands.execute<CreateAdrCommand, CreateAdrCommandReturnType>(
       new CreateAdrCommand(data),
     );
   }
 
-  updateAdr(data: AdrWriteData): Promise<UpdateAdrCommandReturnType> {
+  updateAdr(data: CreateAdrCommandData): Promise<UpdateAdrCommandReturnType> {
     return this.commands.execute<UpdateAdrCommand, UpdateAdrCommandReturnType>(
       new UpdateAdrCommand(data),
     );
@@ -158,13 +157,17 @@ export class ProjectApiService {
     );
   }
 
-  createRequirement(data: RequirementWriteData): Promise<CreateRequirementCommandReturnType> {
+  createRequirement(
+    data: CreateRequirementCommandData,
+  ): Promise<CreateRequirementCommandReturnType> {
     return this.commands.execute<CreateRequirementCommand, CreateRequirementCommandReturnType>(
       new CreateRequirementCommand(data),
     );
   }
 
-  updateRequirement(data: RequirementWriteData): Promise<UpdateRequirementCommandReturnType> {
+  updateRequirement(
+    data: CreateRequirementCommandData,
+  ): Promise<UpdateRequirementCommandReturnType> {
     return this.commands.execute<UpdateRequirementCommand, UpdateRequirementCommandReturnType>(
       new UpdateRequirementCommand(data),
     );
@@ -188,13 +191,13 @@ export class ProjectApiService {
     );
   }
 
-  createWorkPlan(data: WorkPlanWriteData): Promise<CreateWorkPlanCommandReturnType> {
+  createWorkPlan(data: CreateWorkPlanCommandData): Promise<CreateWorkPlanCommandReturnType> {
     return this.commands.execute<CreateWorkPlanCommand, CreateWorkPlanCommandReturnType>(
       new CreateWorkPlanCommand(data),
     );
   }
 
-  updateWorkPlan(data: WorkPlanWriteData): Promise<UpdateWorkPlanCommandReturnType> {
+  updateWorkPlan(data: CreateWorkPlanCommandData): Promise<UpdateWorkPlanCommandReturnType> {
     return this.commands.execute<UpdateWorkPlanCommand, UpdateWorkPlanCommandReturnType>(
       new UpdateWorkPlanCommand(data),
     );
@@ -218,13 +221,13 @@ export class ProjectApiService {
     );
   }
 
-  createWorkItem(data: WorkItemWriteData): Promise<CreateWorkItemCommandReturnType> {
+  createWorkItem(data: CreateWorkItemCommandData): Promise<CreateWorkItemCommandReturnType> {
     return this.commands.execute<CreateWorkItemCommand, CreateWorkItemCommandReturnType>(
       new CreateWorkItemCommand(data),
     );
   }
 
-  updateWorkItem(data: WorkItemWriteData): Promise<UpdateWorkItemCommandReturnType> {
+  updateWorkItem(data: CreateWorkItemCommandData): Promise<UpdateWorkItemCommandReturnType> {
     return this.commands.execute<UpdateWorkItemCommand, UpdateWorkItemCommandReturnType>(
       new UpdateWorkItemCommand(data),
     );

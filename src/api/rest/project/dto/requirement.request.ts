@@ -1,8 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsIn, IsString } from 'class-validator';
 
-import { ProjectError } from '../../../../features/project/project-errors.js';
-import type { RequirementStatus } from '../../../../features/project/requirement.js';
+import { ProjectError } from '../../../../features/project/constants/project.constants.js';
 
 export class RequirementRequest {
   @ApiProperty()
@@ -15,7 +14,7 @@ export class RequirementRequest {
 
   @ApiProperty({ enum: ['proposed', 'accepted', 'deferred', 'rejected'] })
   @IsIn(['proposed', 'accepted', 'deferred', 'rejected'])
-  status: RequirementStatus;
+  status: 'proposed' | 'accepted' | 'deferred' | 'rejected';
 
   @ApiProperty()
   @IsString()

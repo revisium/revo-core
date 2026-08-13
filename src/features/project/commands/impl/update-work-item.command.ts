@@ -1,8 +1,11 @@
-import type { WorkItem, WorkItemWriteData } from '../../work-item.js';
+import type {
+  CreateWorkItemCommandData,
+  CreateWorkItemCommandReturnType,
+} from './create-work-item.command.js';
 
-export type UpdateWorkItemCommandData = WorkItemWriteData;
+export type UpdateWorkItemCommandData = CreateWorkItemCommandData;
 
-export type UpdateWorkItemCommandReturnType = WorkItem;
+export type UpdateWorkItemCommandReturnType = CreateWorkItemCommandReturnType;
 
 export class UpdateWorkItemCommand {
   constructor(readonly data: UpdateWorkItemCommandData) {}

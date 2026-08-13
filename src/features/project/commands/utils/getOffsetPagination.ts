@@ -1,4 +1,10 @@
+import { BadRequestException } from '@nestjs/common';
 import { type IPaginatedType } from '@revisium/engine';
+
+import { ProjectError } from '../../constants/project.constants.js';
+
+const MIN_PAGE_SIZE = 1;
+const MAX_PAGE_SIZE = 100;
 
 type PageDataType = { readonly first: number; after?: string };
 
@@ -22,12 +28,20 @@ type GetPaginationArgsType<T> = {
   count: CountType;
 };
 
+export function pageSize(first: number): number {
+  if (!Number.isInteger(first) || first < MIN_PAGE_SIZE || first > MAX_PAGE_SIZE) {
+    throw new BadRequestException(ProjectError.invalidPageSize);
+  }
+
+  return first;
+}
+
 export async function getOffsetPagination<T>({
   pageData,
   findMany,
   count,
 }: GetPaginationArgsType<T>): Promise<IPaginatedType<T>> {
-  const take = pageData.first;
+  const take = pageSize(pageData.first);
   const skip = pageData.after ? Number(pageData.after) : 0;
 
   const items = await findMany({

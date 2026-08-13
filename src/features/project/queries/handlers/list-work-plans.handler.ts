@@ -1,9 +1,8 @@
-import { QueryBus, QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
+import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
+import { pageSize } from '../../commands/utils/getOffsetPagination.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
-import { requirePageSize, requireUserProject } from '../../project-request.js';
-import { workPlanFromRow, WORK_PLAN_TABLE_ID } from '../../work-plan.js';
 import {
   ListWorkPlansQuery,
   type ListWorkPlansQueryReturnType,
@@ -15,34 +14,23 @@ export class ListWorkPlansHandler implements IQueryHandler<
   ListWorkPlansQueryReturnType
 > {
   constructor(
-    private readonly queries: QueryBus,
     private readonly drafts: ProjectDraftService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({ data }: ListWorkPlansQuery): Promise<ListWorkPlansQueryReturnType> {
-    requirePageSize(data.first);
-    await requireUserProject(this.queries, data.projectId);
+    const first = pageSize(data.first);
     const revisionId = await this.drafts.getDraftRevisionId(data.projectId);
     const rows =
       data.after === undefined
-        ? await this.engine.getRows({
-            revisionId,
-            tableId: WORK_PLAN_TABLE_ID,
-            first: data.first,
-          })
-        : await this.engine.getRows({
-            revisionId,
-            tableId: WORK_PLAN_TABLE_ID,
-            first: data.first,
-            after: data.after,
-          });
+        ? await this.engine.getRows({ revisionId, tableId: 'WorkPlan', first })
+        : await this.engine.getRows({ revisionId, tableId: 'WorkPlan', first, after: data.after });
 
     return {
       ...rows,
       edges: rows.edges.map((edge) => ({
         cursor: edge.cursor,
-        node: workPlanFromRow(edge.node),
+        node: this.drafts.toRecord(edge.node),
       })),
     };
   }

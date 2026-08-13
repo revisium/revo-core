@@ -113,13 +113,13 @@ describe('REST API', () => {
 
   test('rejects a missing or non-string project name', async () => {
     const missing = await request(app.getHttpServer()).post('/api/projects').send({}).expect(400);
-    expect(missing.body).toMatchObject({ message: 'Name is required.' });
+    expect(missing.body.message).toContain('Name is required.');
 
     const nonString = await request(app.getHttpServer())
       .post('/api/projects')
       .send({ name: 1 })
       .expect(400);
-    expect(nonString.body).toMatchObject({ message: 'Name is required.' });
+    expect(nonString.body.message).toContain('Name is required.');
   });
 
   test('rejects a missing record id', async () => {
@@ -129,7 +129,7 @@ describe('REST API', () => {
       .send({ title: 'First', status: 'proposed', context: 'Context', decision: 'Decision' })
       .expect(400);
 
-    expect(response.body).toMatchObject({ message: 'Record id is required.' });
+    expect(response.body.message).toContain('Record id is required.');
   });
 
   test('rejects an invalid project list page size', async () => {

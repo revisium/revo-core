@@ -2,8 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsIn, IsString, ValidateNested } from 'class-validator';
 
-import type { AdrStatus } from '../../../../features/project/adr.js';
-import { ProjectError } from '../../../../features/project/project-errors.js';
+import { ProjectError } from '../../../../features/project/constants/project.constants.js';
 import { AdrAlternativeResponse } from '../model/adr-alternative.response.js';
 
 export class AdrRequest {
@@ -17,7 +16,7 @@ export class AdrRequest {
 
   @ApiProperty({ enum: ['proposed', 'accepted', 'deprecated', 'superseded', 'rejected'] })
   @IsIn(['proposed', 'accepted', 'deprecated', 'superseded', 'rejected'])
-  status: AdrStatus;
+  status: 'proposed' | 'accepted' | 'deprecated' | 'superseded' | 'rejected';
 
   @ApiProperty()
   @IsString()

@@ -11,6 +11,8 @@ import {
   Post,
   Put,
   Query,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
@@ -22,8 +24,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { ProjectError } from '../../../features/project/constants/project.constants.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
-import { ProjectError } from '../../../features/project/project-errors.js';
 import { RequirementUpdateRequest } from './dto/requirement-update.request.js';
 import { RequirementRequest } from './dto/requirement.request.js';
 import { RequirementConnectionResponse } from './model/requirement-connection.response.js';
@@ -32,6 +34,7 @@ import { recordListQuery } from './record-list.query.js';
 
 @ApiTags('Projects')
 @Controller('projects/:projectId/requirements')
+@UsePipes(new ValidationPipe())
 export class RequirementController {
   constructor(private readonly projects: ProjectApiService) {}
 

@@ -1,9 +1,7 @@
-import { CommandHandler, QueryBus, type ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
 import { ProjectDraftService } from '../../project-draft.service.js';
-import { requireRecordId, requireUserProject } from '../../project-request.js';
-import { requirementFromRow, requirementRowData, REQUIREMENT_TABLE_ID } from '../../requirement.js';
 import {
   CreateRequirementCommand,
   type CreateRequirementCommandReturnType,
@@ -15,22 +13,20 @@ export class CreateRequirementHandler implements ICommandHandler<
   CreateRequirementCommandReturnType
 > {
   constructor(
-    private readonly queries: QueryBus,
     private readonly drafts: ProjectDraftService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({ data }: CreateRequirementCommand): Promise<CreateRequirementCommandReturnType> {
-    requireRecordId(data.id);
-    await requireUserProject(this.queries, data.projectId);
-    const revisionId = await this.drafts.getDraftRevisionId(data.projectId);
+    const { projectId, id, ...row } = data;
+    const revisionId = await this.drafts.getDraftRevisionId(projectId);
     const created = await this.engine.createRow({
       revisionId,
-      tableId: REQUIREMENT_TABLE_ID,
-      rowId: data.id,
-      data: requirementRowData(data),
+      tableId: 'Requirement',
+      rowId: id,
+      data: row,
     });
 
-    return requirementFromRow(created.row);
+    return this.drafts.toRecord(created.row);
   }
 }

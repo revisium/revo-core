@@ -1,8 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsIn, IsString } from 'class-validator';
 
-import { ProjectError } from '../../../../features/project/project-errors.js';
-import type { WorkPlanStatus } from '../../../../features/project/work-plan.js';
+import { ProjectError } from '../../../../features/project/constants/project.constants.js';
 
 export class WorkPlanRequest {
   @ApiProperty()
@@ -15,7 +14,7 @@ export class WorkPlanRequest {
 
   @ApiProperty({ enum: ['draft', 'ready', 'closed'] })
   @IsIn(['draft', 'ready', 'closed'])
-  status: WorkPlanStatus;
+  status: 'draft' | 'ready' | 'closed';
 
   @ApiProperty()
   @IsString()

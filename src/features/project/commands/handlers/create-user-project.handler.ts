@@ -6,8 +6,7 @@ import { nanoid } from 'nanoid';
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind } from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
-import { ProjectError } from '../../project-errors.js';
-import type { UserProject } from '../../user-project.js';
+import { ProjectError } from '../../constants/project.constants.js';
 import {
   ApplyContentModelCommand,
   type ApplyContentModelCommandReturnType,
@@ -60,7 +59,7 @@ export class CreateUserProjectHandler implements ICommandHandler<
     return project;
   }
 
-  private async createProject(name: string): Promise<UserProject> {
+  private async createProject(name: string): Promise<CreateUserProjectCommandReturnType> {
     const projectId = nanoid();
     const branchId = this.ids.generate();
     const headRevisionId = this.ids.generate();

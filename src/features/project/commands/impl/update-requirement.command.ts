@@ -1,8 +1,11 @@
-import type { Requirement, RequirementWriteData } from '../../requirement.js';
+import type {
+  CreateRequirementCommandData,
+  CreateRequirementCommandReturnType,
+} from './create-requirement.command.js';
 
-export type UpdateRequirementCommandData = RequirementWriteData;
+export type UpdateRequirementCommandData = CreateRequirementCommandData;
 
-export type UpdateRequirementCommandReturnType = Requirement;
+export type UpdateRequirementCommandReturnType = CreateRequirementCommandReturnType;
 
 export class UpdateRequirementCommand {
   constructor(readonly data: UpdateRequirementCommandData) {}

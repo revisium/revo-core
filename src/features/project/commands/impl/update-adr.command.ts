@@ -1,8 +1,8 @@
-import type { Adr, AdrWriteData } from '../../adr.js';
+import type { CreateAdrCommandData, CreateAdrCommandReturnType } from './create-adr.command.js';
 
-export type UpdateAdrCommandData = AdrWriteData;
+export type UpdateAdrCommandData = CreateAdrCommandData;
 
-export type UpdateAdrCommandReturnType = Adr;
+export type UpdateAdrCommandReturnType = CreateAdrCommandReturnType;
 
 export class UpdateAdrCommand {
   constructor(readonly data: UpdateAdrCommandData) {}

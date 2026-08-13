@@ -1,8 +1,11 @@
-import type { WorkPlan, WorkPlanWriteData } from '../../work-plan.js';
+import type {
+  CreateWorkPlanCommandData,
+  CreateWorkPlanCommandReturnType,
+} from './create-work-plan.command.js';
 
-export type UpdateWorkPlanCommandData = WorkPlanWriteData;
+export type UpdateWorkPlanCommandData = CreateWorkPlanCommandData;
 
-export type UpdateWorkPlanCommandReturnType = WorkPlan;
+export type UpdateWorkPlanCommandReturnType = CreateWorkPlanCommandReturnType;
 
 export class UpdateWorkPlanCommand {
   constructor(readonly data: UpdateWorkPlanCommandData) {}

@@ -2,8 +2,7 @@ import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
 import { ProjectKind } from '../../../../__generated__/client/enums.js';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
-import { getOffsetPagination } from '../../get-offset-pagination.js';
-import { requirePageSize } from '../../project-request.js';
+import { getOffsetPagination } from '../../commands/utils/getOffsetPagination.js';
 import {
   ListUserProjectsQuery,
   type ListUserProjectsQueryReturnType,
@@ -17,7 +16,6 @@ export class ListUserProjectsHandler implements IQueryHandler<
   constructor(private readonly prisma: PrismaService) {}
 
   execute({ data }: ListUserProjectsQuery): Promise<ListUserProjectsQueryReturnType> {
-    requirePageSize(data.first);
     return getOffsetPagination({
       pageData: data.after === undefined ? { first: data.first } : data,
       findMany: ({ take, skip }) =>

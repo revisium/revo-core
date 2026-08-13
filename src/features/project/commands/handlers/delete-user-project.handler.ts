@@ -4,7 +4,7 @@ import { CommandBus, CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind } from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
-import { ProjectError } from '../../project-errors.js';
+import { ProjectError } from '../../constants/project.constants.js';
 import {
   CleanupProjectDatasetCommand,
   type CleanupProjectDatasetCommandReturnType,

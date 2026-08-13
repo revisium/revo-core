@@ -1,4 +1,4 @@
-import type { RecordListData } from '../../../features/project/get-offset-pagination.js';
+import type { RecordListData } from '../../../features/project/commands/utils/getOffsetPagination.js';
 
 export function recordListQuery(first: number, after?: string): RecordListData {
   if (after === undefined) {

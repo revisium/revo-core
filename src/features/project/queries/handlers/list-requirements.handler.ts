@@ -1,9 +1,8 @@
-import { QueryBus, QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
+import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
+import { pageSize } from '../../commands/utils/getOffsetPagination.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
-import { requirePageSize, requireUserProject } from '../../project-request.js';
-import { requirementFromRow, REQUIREMENT_TABLE_ID } from '../../requirement.js';
 import {
   ListRequirementsQuery,
   type ListRequirementsQueryReturnType,
@@ -15,26 +14,20 @@ export class ListRequirementsHandler implements IQueryHandler<
   ListRequirementsQueryReturnType
 > {
   constructor(
-    private readonly queries: QueryBus,
     private readonly drafts: ProjectDraftService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({ data }: ListRequirementsQuery): Promise<ListRequirementsQueryReturnType> {
-    requirePageSize(data.first);
-    await requireUserProject(this.queries, data.projectId);
+    const first = pageSize(data.first);
     const revisionId = await this.drafts.getDraftRevisionId(data.projectId);
     const rows =
       data.after === undefined
-        ? await this.engine.getRows({
-            revisionId,
-            tableId: REQUIREMENT_TABLE_ID,
-            first: data.first,
-          })
+        ? await this.engine.getRows({ revisionId, tableId: 'Requirement', first })
         : await this.engine.getRows({
             revisionId,
-            tableId: REQUIREMENT_TABLE_ID,
-            first: data.first,
+            tableId: 'Requirement',
+            first,
             after: data.after,
           });
 
@@ -42,7 +35,7 @@ export class ListRequirementsHandler implements IQueryHandler<
       ...rows,
       edges: rows.edges.map((edge) => ({
         cursor: edge.cursor,
-        node: requirementFromRow(edge.node),
+        node: this.drafts.toRecord(edge.node),
       })),
     };
   }

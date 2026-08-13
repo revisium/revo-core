@@ -11,6 +11,8 @@ import {
   Post,
   Put,
   Query,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
@@ -22,8 +24,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { ProjectError } from '../../../features/project/constants/project.constants.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
-import { ProjectError } from '../../../features/project/project-errors.js';
 import { AdrUpdateRequest } from './dto/adr-update.request.js';
 import { AdrRequest } from './dto/adr.request.js';
 import { AdrConnectionResponse } from './model/adr-connection.response.js';
@@ -32,6 +34,7 @@ import { recordListQuery } from './record-list.query.js';
 
 @ApiTags('Projects')
 @Controller('projects/:projectId/adrs')
+@UsePipes(new ValidationPipe())
 export class AdrController {
   constructor(private readonly projects: ProjectApiService) {}
 
