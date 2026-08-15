@@ -6,6 +6,9 @@ import { describe, expect, test } from 'vitest';
 import {
   CATALOG_TABLES,
   CatalogTable,
+  canCreateCatalogTable,
+  canDeleteCatalogTable,
+  canUpdateCatalogTable,
 } from '../src/features/playbook-catalog/constants/catalog.constants.js';
 
 type Migration = {
@@ -163,5 +166,11 @@ describe('Playbook Catalog contracts', () => {
         CatalogTable.launchProfiles,
       ]),
     );
+    expect(canCreateCatalogTable(CatalogTable.playbooks)).toBe(true);
+    expect(canCreateCatalogTable(CatalogTable.pipelineSlots)).toBe(false);
+    expect(canUpdateCatalogTable(CatalogTable.playbooks)).toBe(true);
+    expect(canUpdateCatalogTable(CatalogTable.pipelineRoles)).toBe(false);
+    expect(canDeleteCatalogTable(CatalogTable.playbooks)).toBe(true);
+    expect(canDeleteCatalogTable(CatalogTable.pipelineSlots)).toBe(false);
   });
 });

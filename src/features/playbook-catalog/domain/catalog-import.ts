@@ -11,7 +11,12 @@ export type CatalogImportRecord = {
 export type CatalogImportTables = Map<CatalogTable, CatalogImportRecord[]>;
 
 export function parseCatalogImport(payload: unknown): CatalogImportTables {
-  if (!isObject(payload) || Object.keys(payload).sort().join(',') !== 'tables,version') {
+  if (
+    !isObject(payload) ||
+    Object.keys(payload)
+      .sort((left, right) => left.localeCompare(right))
+      .join(',') !== 'tables,version'
+  ) {
     throw new BadRequestException(CatalogError.invalidImport);
   }
 

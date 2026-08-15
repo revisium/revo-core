@@ -8,7 +8,8 @@ export function derivePipelineSlotId(
   const slug = slotKey
     .toLowerCase()
     .replaceAll(/[^a-z0-9_-]+/g, '-')
-    .replaceAll(/^-+|-+$/g, '')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '')
     .slice(0, 48);
   const digest = createHash('sha1')
     .update(JSON.stringify({ pipelineId, sourcePath, slotKey }))
