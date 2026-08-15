@@ -1,0 +1,310 @@
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+
+import {
+  CatalogChangeType,
+  CatalogTable,
+  LaunchProfileStatus,
+  MethodDocumentKind,
+  PipelineRoleMembership,
+  PipelineStrategy,
+} from '../../../../features/playbook-catalog/constants/catalog.constants.js';
+import { Paginated } from '../../share/paginated.js';
+
+@ObjectType({ isAbstract: true })
+export class CatalogRecordModel {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => ID)
+  revisionId: string;
+
+  @Field()
+  isHead: boolean;
+}
+
+@ObjectType()
+export class PlaybookModel extends CatalogRecordModel {
+  @Field()
+  name: string;
+}
+
+@ObjectType()
+export class RoleModel extends CatalogRecordModel {
+  @Field(() => ID)
+  playbookId: string;
+
+  @Field()
+  body: string;
+}
+
+@ObjectType()
+export class RoleRefModel extends CatalogRecordModel {
+  @Field(() => ID)
+  roleId: string;
+
+  @Field()
+  body: string;
+}
+
+@ObjectType()
+export class SharedReferenceModel extends CatalogRecordModel {
+  @Field(() => ID)
+  playbookId: string;
+
+  @Field()
+  body: string;
+}
+
+@ObjectType()
+export class StackModel extends CatalogRecordModel {
+  @Field(() => ID)
+  playbookId: string;
+
+  @Field()
+  body: string;
+}
+
+@ObjectType()
+export class StackRefModel extends CatalogRecordModel {
+  @Field(() => ID)
+  stackId: string;
+
+  @Field()
+  body: string;
+}
+
+@ObjectType()
+export class MethodDocumentModel extends CatalogRecordModel {
+  @Field(() => ID)
+  playbookId: string;
+
+  @Field(() => MethodDocumentKind)
+  kind: MethodDocumentKind;
+
+  @Field()
+  body: string;
+}
+
+@ObjectType()
+export class PipelineModel extends CatalogRecordModel {
+  @Field(() => ID)
+  playbookId: string;
+
+  @Field()
+  body: string;
+
+  @Field()
+  launchability: string;
+}
+
+@ObjectType()
+export class PipelineRoleModel extends CatalogRecordModel {
+  @Field(() => ID)
+  pipelineId: string;
+
+  @Field(() => ID)
+  roleId: string;
+
+  @Field(() => PipelineRoleMembership)
+  membership: PipelineRoleMembership;
+}
+
+@ObjectType()
+export class PipelineSourceModel extends CatalogRecordModel {
+  @Field(() => ID)
+  pipelineId: string;
+
+  @Field()
+  sourceJson: string;
+}
+
+@ObjectType()
+export class PipelineSlotModel extends CatalogRecordModel {
+  @Field(() => ID)
+  pipelineId: string;
+
+  @Field(() => ID)
+  sourceId: string;
+
+  @Field()
+  slotKey: string;
+
+  @Field()
+  sourcePath: string;
+
+  @Field(() => [PipelineStrategy])
+  strategies: PipelineStrategy[];
+}
+
+@ObjectType()
+export class BindingParticipantModel {
+  @Field()
+  bindingKey: string;
+
+  @Field()
+  runnerId: string;
+
+  @Field()
+  modelLevel: string;
+
+  @Field()
+  permissionMode: string;
+
+  @Field(() => Int)
+  timeoutMs: number;
+}
+
+@ObjectType()
+export class LaunchBindingModel {
+  @Field(() => ID)
+  slotId: string;
+
+  @Field(() => PipelineStrategy)
+  strategy: PipelineStrategy;
+
+  @Field(() => [BindingParticipantModel])
+  participants: BindingParticipantModel[];
+}
+
+@ObjectType()
+export class LaunchProfileModel extends CatalogRecordModel {
+  @Field(() => ID)
+  pipelineId: string;
+
+  @Field(() => LaunchProfileStatus)
+  status: LaunchProfileStatus;
+
+  @Field(() => [LaunchBindingModel])
+  bindings: LaunchBindingModel[];
+}
+
+@ObjectType()
+export class CatalogStatusModel {
+  @Field(() => ID)
+  headRevisionId: string;
+
+  @Field(() => ID)
+  draftRevisionId: string;
+
+  @Field()
+  hasChanges: boolean;
+
+  @Field(() => Int)
+  totalChanges: number;
+}
+
+@ObjectType()
+export class CatalogChangeEntryModel {
+  @Field(() => ID)
+  entryId: string;
+
+  @Field(() => CatalogTable)
+  tableId: CatalogTable;
+
+  @Field(() => ID)
+  recordId: string;
+
+  @Field(() => ID, { nullable: true })
+  previousRecordId?: string;
+
+  @Field(() => CatalogChangeType)
+  changeType: CatalogChangeType;
+
+  @Field(() => [String])
+  fieldPaths: string[];
+}
+
+export const PlaybookConnectionModel = Paginated(PlaybookModel);
+export const RoleConnectionModel = Paginated(RoleModel);
+export const RoleRefConnectionModel = Paginated(RoleRefModel);
+export const SharedReferenceConnectionModel = Paginated(SharedReferenceModel);
+export const StackConnectionModel = Paginated(StackModel);
+export const StackRefConnectionModel = Paginated(StackRefModel);
+export const MethodDocumentConnectionModel = Paginated(MethodDocumentModel);
+export const PipelineConnectionModel = Paginated(PipelineModel);
+export const PipelineRoleConnectionModel = Paginated(PipelineRoleModel);
+export const PipelineSourceConnectionModel = Paginated(PipelineSourceModel);
+export const PipelineSlotConnectionModel = Paginated(PipelineSlotModel);
+export const LaunchProfileConnectionModel = Paginated(LaunchProfileModel);
+export const CatalogChangeConnectionModel = Paginated(CatalogChangeEntryModel);
+
+@ObjectType()
+export class CatalogMutationResultModel {
+  @Field(() => CatalogStatusModel)
+  status: CatalogStatusModel;
+
+  @Field(() => CatalogChangeConnectionModel)
+  changes: InstanceType<typeof CatalogChangeConnectionModel>;
+}
+
+@ObjectType()
+export class CatalogCommitResultModel {
+  @Field(() => ID)
+  revisionId: string;
+
+  @Field(() => ID)
+  previousRevisionId: string;
+}
+
+@ObjectType()
+export class CatalogImportTableResultModel {
+  @Field(() => CatalogTable)
+  tableId: CatalogTable;
+
+  @Field(() => Int)
+  created: number;
+
+  @Field(() => Int)
+  updated: number;
+}
+
+@ObjectType()
+export class CatalogImportResultModel {
+  @Field(() => [CatalogImportTableResultModel])
+  tables: CatalogImportTableResultModel[];
+}
+
+@ObjectType()
+export class CatalogSnapshotModel {
+  @Field(() => ID)
+  revisionId: string;
+
+  @Field()
+  isHead: boolean;
+
+  @Field(() => [PlaybookModel])
+  playbooks: PlaybookModel[];
+
+  @Field(() => [RoleModel])
+  roles: RoleModel[];
+
+  @Field(() => [RoleRefModel])
+  roleRefs: RoleRefModel[];
+
+  @Field(() => [SharedReferenceModel])
+  sharedReferences: SharedReferenceModel[];
+
+  @Field(() => [StackModel])
+  stacks: StackModel[];
+
+  @Field(() => [StackRefModel])
+  stackRefs: StackRefModel[];
+
+  @Field(() => [MethodDocumentModel])
+  methodDocuments: MethodDocumentModel[];
+
+  @Field(() => [PipelineModel])
+  pipelines: PipelineModel[];
+
+  @Field(() => [PipelineRoleModel])
+  pipelineRoles: PipelineRoleModel[];
+
+  @Field(() => [PipelineSourceModel])
+  pipelineSources: PipelineSourceModel[];
+
+  @Field(() => [PipelineSlotModel])
+  pipelineSlots: PipelineSlotModel[];
+
+  @Field(() => [LaunchProfileModel])
+  launchProfiles: LaunchProfileModel[];
+}

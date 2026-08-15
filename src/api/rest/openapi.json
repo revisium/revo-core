@@ -1,6 +1,2356 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/playbook-catalog/status": {
+      "get": {
+        "operationId": "getCatalogStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogStatusResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/changes": {
+      "get": {
+        "operationId": "listCatalogChanges",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogChangeConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/snapshot": {
+      "get": {
+        "operationId": "getCatalogSnapshot",
+        "parameters": [
+          {
+            "name": "revisionId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogSnapshotResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/commit": {
+      "post": {
+        "operationId": "commitCatalog",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommitCatalogRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogCommitResultResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/discard": {
+      "post": {
+        "operationId": "discardCatalog",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogMutationResultResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/import": {
+      "post": {
+        "operationId": "importCatalog",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogImportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogImportResultResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/playbooks": {
+      "get": {
+        "operationId": "listPlaybooks",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaybookConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "post": {
+        "operationId": "createPlaybook",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaybookRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaybookResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/playbooks/{id}": {
+      "get": {
+        "operationId": "getPlaybook",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaybookResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "put": {
+        "operationId": "updatePlaybook",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaybookUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaybookResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "delete": {
+        "operationId": "deletePlaybook",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/roles": {
+      "get": {
+        "operationId": "listRoles",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playbookId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "post": {
+        "operationId": "createRole",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/roles/{id}": {
+      "get": {
+        "operationId": "getRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "put": {
+        "operationId": "updateRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "delete": {
+        "operationId": "deleteRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/role-refs": {
+      "get": {
+        "operationId": "listRoleRefs",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleRefConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "post": {
+        "operationId": "createRoleRef",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleRefRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleRefResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/role-refs/{id}": {
+      "get": {
+        "operationId": "getRoleRef",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleRefResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "put": {
+        "operationId": "updateRoleRef",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleRefUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleRefResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "delete": {
+        "operationId": "deleteRoleRef",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/shared-references": {
+      "get": {
+        "operationId": "listSharedReferences",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playbookId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedReferenceConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "post": {
+        "operationId": "createSharedReference",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharedReferenceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedReferenceResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/shared-references/{id}": {
+      "get": {
+        "operationId": "getSharedReference",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedReferenceResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "put": {
+        "operationId": "updateSharedReference",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharedReferenceUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedReferenceResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "delete": {
+        "operationId": "deleteSharedReference",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/stacks": {
+      "get": {
+        "operationId": "listStacks",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playbookId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StackConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "post": {
+        "operationId": "createStack",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StackRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StackResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/stacks/{id}": {
+      "get": {
+        "operationId": "getStack",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StackResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "put": {
+        "operationId": "updateStack",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StackUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StackResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "delete": {
+        "operationId": "deleteStack",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/stack-refs": {
+      "get": {
+        "operationId": "listStackRefs",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "stackId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StackRefConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "post": {
+        "operationId": "createStackRef",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StackRefRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StackRefResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/stack-refs/{id}": {
+      "get": {
+        "operationId": "getStackRef",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StackRefResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "put": {
+        "operationId": "updateStackRef",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StackRefUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StackRefResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "delete": {
+        "operationId": "deleteStackRef",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/method-documents": {
+      "get": {
+        "operationId": "listMethodDocuments",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playbookId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MethodDocumentConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "post": {
+        "operationId": "createMethodDocument",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MethodDocumentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MethodDocumentResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/method-documents/{id}": {
+      "get": {
+        "operationId": "getMethodDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MethodDocumentResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "put": {
+        "operationId": "updateMethodDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MethodDocumentUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MethodDocumentResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "delete": {
+        "operationId": "deleteMethodDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/pipelines": {
+      "get": {
+        "operationId": "listPipelines",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playbookId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "post": {
+        "operationId": "createPipeline",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/pipelines/{id}": {
+      "get": {
+        "operationId": "getPipeline",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "put": {
+        "operationId": "updatePipeline",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "delete": {
+        "operationId": "deletePipeline",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/pipeline-roles": {
+      "get": {
+        "operationId": "listPipelineRoles",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pipelineId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineRoleConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "post": {
+        "operationId": "createPipelineRole",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineRoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineRoleResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/pipeline-roles/{id}": {
+      "get": {
+        "operationId": "getPipelineRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineRoleResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "delete": {
+        "operationId": "deletePipelineRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/pipeline-sources": {
+      "get": {
+        "operationId": "listPipelineSources",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pipelineId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineSourceConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/pipeline-sources/{id}": {
+      "get": {
+        "operationId": "getPipelineSource",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineSourceResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "put": {
+        "operationId": "updatePipelineSource",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineSourceUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineSourceResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "delete": {
+        "operationId": "deletePipelineSource",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/pipeline-slots": {
+      "get": {
+        "operationId": "listPipelineSlots",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pipelineId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineSlotConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/pipeline-slots/{id}": {
+      "get": {
+        "operationId": "getPipelineSlot",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineSlotResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/launch-profiles": {
+      "get": {
+        "operationId": "listLaunchProfiles",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pipelineId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchProfileConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "post": {
+        "operationId": "createLaunchProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaunchProfileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchProfileResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
+    "/api/playbook-catalog/launch-profiles/{id}": {
+      "get": {
+        "operationId": "getLaunchProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["HEAD", "DRAFT", "REVISION"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "revisionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchProfileResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "put": {
+        "operationId": "updateLaunchProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaunchProfileUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchProfileResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      },
+      "delete": {
+        "operationId": "deleteLaunchProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "",
+        "tags": ["Playbook Catalog"]
+      }
+    },
     "/api/projects": {
       "post": {
         "operationId": "createProject",
@@ -1044,6 +3394,10 @@
       "description": ""
     },
     {
+      "name": "Playbook Catalog",
+      "description": ""
+    },
+    {
       "name": "Runs",
       "description": ""
     },
@@ -1055,6 +3409,1399 @@
   "servers": [],
   "components": {
     "schemas": {
+      "CatalogStatusResponse": {
+        "type": "object",
+        "properties": {
+          "headRevisionId": {
+            "type": "string"
+          },
+          "draftRevisionId": {
+            "type": "string"
+          },
+          "hasChanges": {
+            "type": "boolean"
+          },
+          "totalChanges": {
+            "type": "number"
+          }
+        },
+        "required": ["headRevisionId", "draftRevisionId", "hasChanges", "totalChanges"]
+      },
+      "CatalogChangeEntryResponse": {
+        "type": "object",
+        "properties": {
+          "entryId": {
+            "type": "string"
+          },
+          "tableId": {
+            "type": "string",
+            "enum": [
+              "playbooks",
+              "roles",
+              "shared_references",
+              "stacks",
+              "method_documents",
+              "pipelines",
+              "role_refs",
+              "stack_refs",
+              "pipeline_roles",
+              "pipeline_sources",
+              "pipeline_slots",
+              "launch_profiles"
+            ]
+          },
+          "recordId": {
+            "type": "string"
+          },
+          "previousRecordId": {
+            "type": "string"
+          },
+          "changeType": {
+            "type": "string",
+            "enum": ["ADDED", "MODIFIED", "REMOVED", "RENAMED", "RENAMED_AND_MODIFIED"]
+          },
+          "fieldPaths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["entryId", "tableId", "recordId", "changeType", "fieldPaths"]
+      },
+      "CatalogChangeEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/CatalogChangeEntryResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "CatalogPageInfoResponse": {
+        "type": "object",
+        "properties": {
+          "startCursor": {
+            "type": "string"
+          },
+          "endCursor": {
+            "type": "string"
+          },
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          }
+        },
+        "required": ["hasNextPage", "hasPreviousPage"]
+      },
+      "CatalogChangeConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogChangeEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "PlaybookResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "revisionId", "isHead", "name"]
+      },
+      "RoleResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "playbookId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "revisionId", "isHead", "playbookId", "body"]
+      },
+      "SharedReferenceResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "playbookId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "revisionId", "isHead", "playbookId", "body"]
+      },
+      "StackResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "playbookId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "revisionId", "isHead", "playbookId", "body"]
+      },
+      "MethodDocumentResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "playbookId": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["method", "template", "checklist", "nav"]
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "revisionId", "isHead", "playbookId", "kind", "body"]
+      },
+      "PipelineResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "playbookId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "launchability": {
+            "type": "string",
+            "example": "Not launchable"
+          }
+        },
+        "required": ["id", "revisionId", "isHead", "playbookId", "body", "launchability"]
+      },
+      "RoleRefResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "roleId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "revisionId", "isHead", "roleId", "body"]
+      },
+      "StackRefResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "stackId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "revisionId", "isHead", "stackId", "body"]
+      },
+      "PipelineRoleResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "pipelineId": {
+            "type": "string"
+          },
+          "roleId": {
+            "type": "string"
+          },
+          "membership": {
+            "type": "string",
+            "enum": ["required", "optional", "alternative"]
+          }
+        },
+        "required": ["id", "revisionId", "isHead", "pipelineId", "roleId", "membership"]
+      },
+      "PipelineSourceResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "pipelineId": {
+            "type": "string"
+          },
+          "sourceJson": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "revisionId", "isHead", "pipelineId", "sourceJson"]
+      },
+      "PipelineSlotResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "pipelineId": {
+            "type": "string"
+          },
+          "sourceId": {
+            "type": "string"
+          },
+          "slotKey": {
+            "type": "string"
+          },
+          "sourcePath": {
+            "type": "string"
+          },
+          "strategies": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["single", "consensus"]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "revisionId",
+          "isHead",
+          "pipelineId",
+          "sourceId",
+          "slotKey",
+          "sourcePath",
+          "strategies"
+        ]
+      },
+      "BindingParticipantResponse": {
+        "type": "object",
+        "properties": {
+          "bindingKey": {
+            "type": "string"
+          },
+          "runnerId": {
+            "type": "string"
+          },
+          "modelLevel": {
+            "type": "string"
+          },
+          "permissionMode": {
+            "type": "string"
+          },
+          "timeoutMs": {
+            "type": "number"
+          }
+        },
+        "required": ["bindingKey", "runnerId", "modelLevel", "permissionMode", "timeoutMs"]
+      },
+      "LaunchBindingResponse": {
+        "type": "object",
+        "properties": {
+          "slotId": {
+            "type": "string"
+          },
+          "strategy": {
+            "type": "string",
+            "enum": ["single", "consensus"]
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BindingParticipantResponse"
+            }
+          }
+        },
+        "required": ["slotId", "strategy", "participants"]
+      },
+      "LaunchProfileResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "pipelineId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "deprecated"]
+          },
+          "bindings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LaunchBindingResponse"
+            }
+          }
+        },
+        "required": ["id", "revisionId", "isHead", "pipelineId", "status", "bindings"]
+      },
+      "CatalogSnapshotTablesResponse": {
+        "type": "object",
+        "properties": {
+          "playbooks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlaybookResponse"
+            }
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleResponse"
+            }
+          },
+          "shared_references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SharedReferenceResponse"
+            }
+          },
+          "stacks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StackResponse"
+            }
+          },
+          "method_documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MethodDocumentResponse"
+            }
+          },
+          "pipelines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineResponse"
+            }
+          },
+          "role_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleRefResponse"
+            }
+          },
+          "stack_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StackRefResponse"
+            }
+          },
+          "pipeline_roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineRoleResponse"
+            }
+          },
+          "pipeline_sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineSourceResponse"
+            }
+          },
+          "pipeline_slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineSlotResponse"
+            }
+          },
+          "launch_profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LaunchProfileResponse"
+            }
+          }
+        },
+        "required": [
+          "playbooks",
+          "roles",
+          "shared_references",
+          "stacks",
+          "method_documents",
+          "pipelines",
+          "role_refs",
+          "stack_refs",
+          "pipeline_roles",
+          "pipeline_sources",
+          "pipeline_slots",
+          "launch_profiles"
+        ]
+      },
+      "CatalogSnapshotResponse": {
+        "type": "object",
+        "properties": {
+          "revisionId": {
+            "type": "string"
+          },
+          "isHead": {
+            "type": "boolean"
+          },
+          "tables": {
+            "$ref": "#/components/schemas/CatalogSnapshotTablesResponse"
+          }
+        },
+        "required": ["revisionId", "isHead", "tables"]
+      },
+      "CommitCatalogRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["message"]
+      },
+      "CatalogCommitResultResponse": {
+        "type": "object",
+        "properties": {
+          "revisionId": {
+            "type": "string"
+          },
+          "previousRevisionId": {
+            "type": "string"
+          }
+        },
+        "required": ["revisionId", "previousRevisionId"]
+      },
+      "CatalogMutationResultResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/CatalogStatusResponse"
+          },
+          "changes": {
+            "$ref": "#/components/schemas/CatalogChangeConnectionResponse"
+          }
+        },
+        "required": ["status", "changes"]
+      },
+      "PlaybookRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name"]
+      },
+      "RoleRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "playbookId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "playbookId", "body"]
+      },
+      "SharedReferenceRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "playbookId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "playbookId", "body"]
+      },
+      "StackRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "playbookId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "playbookId", "body"]
+      },
+      "MethodDocumentRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "playbookId": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["method", "template", "checklist", "nav"]
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "playbookId", "kind", "body"]
+      },
+      "PipelineRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "playbookId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "playbookId", "body"]
+      },
+      "RoleRefRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "roleId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "roleId", "body"]
+      },
+      "StackRefRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "stackId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "stackId", "body"]
+      },
+      "PipelineRoleRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "pipelineId": {
+            "type": "string"
+          },
+          "roleId": {
+            "type": "string"
+          },
+          "membership": {
+            "type": "string",
+            "enum": ["required", "optional", "alternative"]
+          }
+        },
+        "required": ["id", "pipelineId", "roleId", "membership"]
+      },
+      "PipelineSourceRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "pipelineId": {
+            "type": "string"
+          },
+          "sourceJson": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "pipelineId", "sourceJson"]
+      },
+      "BindingParticipantRequest": {
+        "type": "object",
+        "properties": {
+          "bindingKey": {
+            "type": "string"
+          },
+          "runnerId": {
+            "type": "string"
+          },
+          "modelLevel": {
+            "type": "string"
+          },
+          "permissionMode": {
+            "type": "string"
+          },
+          "timeoutMs": {
+            "type": "number"
+          }
+        },
+        "required": ["bindingKey", "runnerId", "modelLevel", "permissionMode", "timeoutMs"]
+      },
+      "LaunchBindingRequest": {
+        "type": "object",
+        "properties": {
+          "slotId": {
+            "type": "string"
+          },
+          "strategy": {
+            "type": "string",
+            "enum": ["single", "consensus"]
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BindingParticipantRequest"
+            }
+          }
+        },
+        "required": ["slotId", "strategy", "participants"]
+      },
+      "LaunchProfileRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "pipelineId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "deprecated"]
+          },
+          "bindings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LaunchBindingRequest"
+            }
+          }
+        },
+        "required": ["id", "pipelineId", "status", "bindings"]
+      },
+      "CatalogImportTablesRequest": {
+        "type": "object",
+        "properties": {
+          "playbooks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlaybookRequest"
+            }
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleRequest"
+            }
+          },
+          "shared_references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SharedReferenceRequest"
+            }
+          },
+          "stacks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StackRequest"
+            }
+          },
+          "method_documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MethodDocumentRequest"
+            }
+          },
+          "pipelines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineRequest"
+            }
+          },
+          "role_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleRefRequest"
+            }
+          },
+          "stack_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StackRefRequest"
+            }
+          },
+          "pipeline_roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineRoleRequest"
+            }
+          },
+          "pipeline_sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineSourceRequest"
+            }
+          },
+          "launch_profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LaunchProfileRequest"
+            }
+          }
+        }
+      },
+      "CatalogImportRequest": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "number",
+            "enum": [1]
+          },
+          "tables": {
+            "$ref": "#/components/schemas/CatalogImportTablesRequest"
+          }
+        },
+        "required": ["version", "tables"]
+      },
+      "CatalogImportTableResultResponse": {
+        "type": "object",
+        "properties": {
+          "tableId": {
+            "type": "string"
+          },
+          "created": {
+            "type": "number"
+          },
+          "updated": {
+            "type": "number"
+          }
+        },
+        "required": ["tableId", "created", "updated"]
+      },
+      "CatalogImportResultResponse": {
+        "type": "object",
+        "properties": {
+          "tables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogImportTableResultResponse"
+            }
+          }
+        },
+        "required": ["tables"]
+      },
+      "PlaybookEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/PlaybookResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "PlaybookConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlaybookEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "PlaybookUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": ["name"]
+      },
+      "RoleEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/RoleResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "RoleConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "RoleUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "playbookId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["playbookId", "body"]
+      },
+      "RoleRefEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/RoleRefResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "RoleRefConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleRefEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "RoleRefUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["roleId", "body"]
+      },
+      "SharedReferenceEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/SharedReferenceResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "SharedReferenceConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SharedReferenceEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "SharedReferenceUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "playbookId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["playbookId", "body"]
+      },
+      "StackEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/StackResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "StackConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StackEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "StackUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "playbookId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["playbookId", "body"]
+      },
+      "StackRefEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/StackRefResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "StackRefConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StackRefEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "StackRefUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "stackId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["stackId", "body"]
+      },
+      "MethodDocumentEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/MethodDocumentResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "MethodDocumentConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MethodDocumentEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "MethodDocumentUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "playbookId": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["method", "template", "checklist", "nav"]
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["playbookId", "kind", "body"]
+      },
+      "PipelineEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/PipelineResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "PipelineConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "PipelineUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "playbookId": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": ["playbookId", "body"]
+      },
+      "PipelineRoleEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/PipelineRoleResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "PipelineRoleConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineRoleEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "PipelineSourceEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/PipelineSourceResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "PipelineSourceConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineSourceEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "PipelineSourceUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "pipelineId": {
+            "type": "string"
+          },
+          "sourceJson": {
+            "type": "string"
+          }
+        },
+        "required": ["pipelineId", "sourceJson"]
+      },
+      "PipelineSlotEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/PipelineSlotResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "PipelineSlotConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineSlotEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "LaunchProfileEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/LaunchProfileResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "LaunchProfileConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LaunchProfileEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/CatalogPageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "LaunchProfileUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "pipelineId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "deprecated"]
+          },
+          "bindings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LaunchBindingRequest"
+            }
+          }
+        },
+        "required": ["pipelineId", "status", "bindings"]
+      },
       "ProjectCreateRequest": {
         "type": "object",
         "properties": {

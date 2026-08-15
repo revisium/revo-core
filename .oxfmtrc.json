@@ -7,7 +7,8 @@
     "coverage/**",
     "dist/**",
     "node_modules/**",
-    "src/__generated__/**"
+    "src/__generated__/**",
+    "src/api/graphql/schema.graphql"
   ],
   "printWidth": 100,
   "singleQuote": true,

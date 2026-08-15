@@ -36,3 +36,5 @@ pnpm ci:local:sonar
 
 This scans the current pull request when one exists and fails on a mismatched
 analysis revision, a failed quality gate, or any open Sonar issue.
+
+Feature layout, CQRS, and pagination rules are in [REVIEW.md](REVIEW.md).

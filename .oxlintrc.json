@@ -64,6 +64,25 @@
       "rules": {
         "typescript/no-unsafe-type-assertion": "off"
       }
+    },
+    {
+      "files": ["src/features/playbook-catalog/**/*.ts"],
+      "rules": {
+        "no-await-in-loop": "off",
+        "typescript/no-unsafe-type-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "src/api/graphql/playbook-catalog/**/*.ts",
+        "src/api/graphql/share/paginated.ts",
+        "src/api/rest/playbook-catalog/**/*.ts"
+      ],
+      "rules": {
+        "max-classes-per-file": "off",
+        "typescript/no-misused-spread": "off",
+        "typescript/no-unsafe-type-assertion": "off"
+      }
     }
   ]
 }
