@@ -14,7 +14,7 @@
     "db:test:up": "docker compose --env-file .env.test -f docker-compose-test.yml -p revo-core-test up -d --wait",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
-    "generate:api-contracts": "pnpm build && node scripts/update-api-contracts.mjs && oxfmt --write src/api/graphql/schema.graphql src/api/rest/openapi.json",
+    "generate:api-contracts": "pnpm build && node scripts/update-api-contracts.mjs && oxfmt --write src/api/rest/openapi.json",
     "lint": "oxlint --type-aware --type-check --deny-warnings --report-unused-disable-directives .",
     "start": "node dist/main.js",
     "start:dev": "pnpm build && node dist/main.js",

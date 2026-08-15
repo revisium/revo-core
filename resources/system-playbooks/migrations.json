@@ -1,47 +1,26 @@
 [
   {
-    "id": "2026-08-07T00:00:00.000Z",
+    "id": "2026-08-14T00:00:00.020Z",
     "changeType": "init",
     "tableId": "playbooks",
-    "hash": "cd06046cd7d9d59b713dcc7ff02e45debb35f9b5",
+    "hash": "92af9fa137f70fd04c6b525a2168fb8e52a3cc30",
     "schema": {
       "type": "object",
       "properties": {
         "name": {
           "type": "string",
-          "default": "",
-          "pattern": "^[\\s\\S]{0,200}$"
-        },
-        "packageVersion": {
-          "type": "string",
-          "default": "0.0.0",
-          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
-        },
-        "schemaVersion": {
-          "type": "string",
-          "default": "1",
-          "pattern": "^(0|[1-9][0-9]*)$"
-        },
-        "status": {
-          "type": "string",
-          "default": "active",
-          "enum": ["active", "deprecated"]
-        },
-        "contentRef": {
-          "type": "string",
-          "default": "",
-          "pattern": "^[\\s\\S]{0,2048}$"
+          "default": ""
         }
       },
       "additionalProperties": false,
-      "required": ["name", "packageVersion", "schemaVersion", "status", "contentRef"]
+      "required": ["name"]
     }
   },
   {
-    "id": "2026-08-07T00:00:00.010Z",
+    "id": "2026-08-14T00:00:00.030Z",
     "changeType": "init",
-    "tableId": "profiles",
-    "hash": "11b6d21e6e9a62889f00c0134b81ce7f29eb154a",
+    "tableId": "roles",
+    "hash": "156d784c93e7636fa46f8b6ed66cd535fec96b59",
     "schema": {
       "type": "object",
       "properties": {
@@ -50,34 +29,319 @@
           "default": "",
           "foreignKey": "playbooks"
         },
-        "name": {
+        "body": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false,
+      "required": ["playbookId", "body"]
+    }
+  },
+  {
+    "id": "2026-08-14T00:00:00.040Z",
+    "changeType": "init",
+    "tableId": "shared_references",
+    "hash": "156d784c93e7636fa46f8b6ed66cd535fec96b59",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "playbookId": {
           "type": "string",
           "default": "",
-          "pattern": "^[\\s\\S]{0,200}$"
+          "foreignKey": "playbooks"
+        },
+        "body": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false,
+      "required": ["playbookId", "body"]
+    }
+  },
+  {
+    "id": "2026-08-14T00:00:00.050Z",
+    "changeType": "init",
+    "tableId": "stacks",
+    "hash": "156d784c93e7636fa46f8b6ed66cd535fec96b59",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "playbookId": {
+          "type": "string",
+          "default": "",
+          "foreignKey": "playbooks"
+        },
+        "body": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false,
+      "required": ["playbookId", "body"]
+    }
+  },
+  {
+    "id": "2026-08-14T00:00:00.060Z",
+    "changeType": "init",
+    "tableId": "method_documents",
+    "hash": "2790edc96567ec9df0ca81a7b4b0f3dd9ff9706e",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "playbookId": {
+          "type": "string",
+          "default": "",
+          "foreignKey": "playbooks"
         },
         "kind": {
           "type": "string",
-          "default": "configuration",
-          "enum": ["configuration"]
+          "default": "method",
+          "enum": ["method", "template", "checklist", "nav"]
         },
-        "version": {
+        "body": {
           "type": "string",
-          "default": "1",
-          "pattern": "^(0|[1-9][0-9]*)$"
-        },
-        "configRef": {
+          "default": ""
+        }
+      },
+      "additionalProperties": false,
+      "required": ["playbookId", "kind", "body"]
+    }
+  },
+  {
+    "id": "2026-08-14T00:00:00.070Z",
+    "changeType": "init",
+    "tableId": "pipelines",
+    "hash": "156d784c93e7636fa46f8b6ed66cd535fec96b59",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "playbookId": {
           "type": "string",
           "default": "",
-          "pattern": "^[\\s\\S]{0,2048}$"
+          "foreignKey": "playbooks"
+        },
+        "body": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false,
+      "required": ["playbookId", "body"]
+    }
+  },
+  {
+    "id": "2026-08-14T00:00:00.080Z",
+    "changeType": "init",
+    "tableId": "role_refs",
+    "hash": "fdd9ac1f53d31d5f7d66280da4782f8858ad1210",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "roleId": {
+          "type": "string",
+          "default": "",
+          "foreignKey": "roles"
+        },
+        "body": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false,
+      "required": ["roleId", "body"]
+    }
+  },
+  {
+    "id": "2026-08-14T00:00:00.090Z",
+    "changeType": "init",
+    "tableId": "stack_refs",
+    "hash": "eab8b3ac9505df2a751db93d5a6e5a2fd8775fda",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "stackId": {
+          "type": "string",
+          "default": "",
+          "foreignKey": "stacks"
+        },
+        "body": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false,
+      "required": ["stackId", "body"]
+    }
+  },
+  {
+    "id": "2026-08-14T00:00:00.100Z",
+    "changeType": "init",
+    "tableId": "pipeline_roles",
+    "hash": "72d2412a6a2d9f4f9d4192d19018a57a6fa4a12a",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "pipelineId": {
+          "type": "string",
+          "default": "",
+          "foreignKey": "pipelines"
+        },
+        "roleId": {
+          "type": "string",
+          "default": "",
+          "foreignKey": "roles"
+        },
+        "membership": {
+          "type": "string",
+          "default": "required",
+          "enum": ["required", "optional", "alternative"]
+        }
+      },
+      "additionalProperties": false,
+      "required": ["pipelineId", "roleId", "membership"]
+    }
+  },
+  {
+    "id": "2026-08-14T00:00:00.110Z",
+    "changeType": "init",
+    "tableId": "pipeline_sources",
+    "hash": "f85ab7cbf9fbd461269e9b6df200f2bc9bd1971a",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "pipelineId": {
+          "type": "string",
+          "default": "",
+          "foreignKey": "pipelines"
+        },
+        "sourceJson": {
+          "type": "string",
+          "default": "",
+          "contentMediaType": "application/json"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["pipelineId", "sourceJson"]
+    }
+  },
+  {
+    "id": "2026-08-14T00:00:00.120Z",
+    "changeType": "init",
+    "tableId": "pipeline_slots",
+    "hash": "70f7c865589c0247b67a33c2b8b472a4c6c04c7d",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "pipelineId": {
+          "type": "string",
+          "default": "",
+          "foreignKey": "pipelines"
+        },
+        "sourceId": {
+          "type": "string",
+          "default": "",
+          "foreignKey": "pipeline_sources"
+        },
+        "slotKey": {
+          "type": "string",
+          "default": ""
+        },
+        "sourcePath": {
+          "type": "string",
+          "default": ""
+        },
+        "strategies": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": "",
+            "enum": ["single", "consensus"]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["pipelineId", "sourceId", "slotKey", "sourcePath", "strategies"]
+    }
+  },
+  {
+    "id": "2026-08-14T00:00:00.130Z",
+    "changeType": "init",
+    "tableId": "launch_profiles",
+    "hash": "25a2b9aac0b52a64e910a1d169c353b1ed28edeb",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "pipelineId": {
+          "type": "string",
+          "default": "",
+          "foreignKey": "pipelines"
         },
         "status": {
           "type": "string",
           "default": "active",
           "enum": ["active", "deprecated"]
+        },
+        "bindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "slotId": {
+                "type": "string",
+                "default": "",
+                "foreignKey": "pipeline_slots"
+              },
+              "strategy": {
+                "type": "string",
+                "default": "single",
+                "enum": ["single", "consensus"]
+              },
+              "participants": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "bindingKey": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "runnerId": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "modelLevel": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "permissionMode": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "timeoutMs": {
+                      "type": "number",
+                      "default": 0
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "bindingKey",
+                    "runnerId",
+                    "modelLevel",
+                    "permissionMode",
+                    "timeoutMs"
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": ["slotId", "strategy", "participants"]
+          }
         }
       },
       "additionalProperties": false,
-      "required": ["playbookId", "name", "kind", "version", "configRef", "status"]
+      "required": ["pipelineId", "status", "bindings"]
     }
   }
 ]

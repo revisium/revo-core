@@ -1,8 +1,16 @@
 import { readFile } from 'node:fs/promises';
 
-import { Inject, Injectable, type OnApplicationBootstrap } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+  type OnApplicationBootstrap,
+} from '@nestjs/common';
 import { EngineApiService, SystemTablesService } from '@revisium/engine';
 
+import { CatalogTable } from '../playbook-catalog/constants/catalog.constants.js';
+import { PlaybookCatalogApiService } from '../playbook-catalog/playbook-catalog-api.service.js';
 import { ProjectApiService } from '../project/project-api.service.js';
 import {
   SYSTEM_PLAYBOOKS_PROJECT,
@@ -10,20 +18,19 @@ import {
   type SystemTableValue,
 } from './revisium-bootstrap.constants.js';
 
-const MIGRATIONS_URL = new URL(
-  '../../../resources/system-playbooks/migrations.json',
-  import.meta.url,
-);
+const SEED_URL = new URL('../../../resources/playbook-catalog/seed.json', import.meta.url);
+
 type SystemTablesApi = {
   ensureSystemTable(
     revisionId: string,
     tableId: SystemTableValue,
   ): ReturnType<SystemTablesService['ensureSystemTable']>;
 };
-type EngineMigrations = Parameters<EngineApiService['applyMigrations']>[0]['migrations'];
 
 @Injectable()
 export class RevisiumBootstrapService implements OnApplicationBootstrap {
+  private readonly logger = new Logger(RevisiumBootstrapService.name);
+
   constructor(
     @Inject(ProjectApiService)
     private readonly projects: ProjectApiService,
@@ -31,6 +38,8 @@ export class RevisiumBootstrapService implements OnApplicationBootstrap {
     private readonly systemTables: SystemTablesApi,
     @Inject(EngineApiService)
     private readonly engine: EngineApiService,
+    @Inject(PlaybookCatalogApiService)
+    private readonly catalog: PlaybookCatalogApiService,
   ) {}
 
   onApplicationBootstrap(): Promise<void> {
@@ -44,14 +53,20 @@ export class RevisiumBootstrapService implements OnApplicationBootstrap {
       branchName: 'master',
     });
     const draft = await this.engine.getDraftRevision(branch.id);
-
     await this.ensureSystemTables(draft.id);
-    const migrationsApplied = await this.applyMigrations(draft.id);
-    if (!migrationsApplied) {
+    await this.catalog.bootstrapCatalog();
+
+    if (await this.engine.getTouchedByBranchId(branch.id)) {
+      this.logger.warn('Catalog seed skipped because the Draft has uncommitted changes');
+
       return;
     }
 
-    await this.engine.createRevision({ projectId, branchName: 'master' });
+    const head = await this.engine.getHeadRevision(branch.id);
+
+    if ((await this.headHasNoPlaybooks(head.id)) && (await this.importSeed())) {
+      await this.catalog.commitCatalog('Bootstrap Playbook Catalog');
+    }
   }
 
   private async ensureSystemTables(draftRevisionId: string): Promise<void> {
@@ -61,22 +76,32 @@ export class RevisiumBootstrapService implements OnApplicationBootstrap {
     }
   }
 
-  private async applyMigrations(draftRevisionId: string): Promise<boolean> {
-    const migrations = await this.loadMigrations();
-    const results = await this.engine.applyMigrations({ revisionId: draftRevisionId, migrations });
-    const failed = results.find(({ status }) => status === 'failed');
-    if (failed !== undefined) {
-      const details = failed.error === undefined ? '' : `: ${failed.error}`;
-      throw new Error(`Revisium migration "${failed.id}" failed${details}`);
-    }
+  private async headHasNoPlaybooks(headRevisionId: string): Promise<boolean> {
+    try {
+      const playbooks = await this.engine.getRows({
+        revisionId: headRevisionId,
+        tableId: CatalogTable.playbooks,
+        first: 1,
+      });
 
-    return results.some(({ status }) => status === 'applied');
+      return playbooks.totalCount === 0;
+    } catch (error) {
+      if (
+        error instanceof BadRequestException &&
+        error.message.includes('does not exist in the revision')
+      ) {
+        return true;
+      }
+
+      throw error;
+    }
   }
 
-  private async loadMigrations(): Promise<EngineMigrations> {
-    const content = await readFile(MIGRATIONS_URL, 'utf8');
-    // oxlint-disable-next-line typescript/no-unsafe-assignment -- The engine validates migration JSON at runtime.
-    const migrations: EngineMigrations = JSON.parse(content);
-    return migrations;
+  private async importSeed(): Promise<boolean> {
+    const content = await readFile(SEED_URL, 'utf8');
+    const payload: unknown = JSON.parse(content);
+    const result = await this.catalog.importCatalog(payload);
+
+    return result.tables.some(({ created, updated }) => created > 0 || updated > 0);
   }
 }

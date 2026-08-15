@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "tables": {
+    "playbooks": [
+      {
+        "id": "revo",
+        "name": "Revo"
+      }
+    ],
+    "roles": [],
+    "shared_references": [],
+    "stacks": [],
+    "method_documents": [],
+    "pipelines": [],
+    "role_refs": [],
+    "stack_refs": [],
+    "pipeline_roles": [],
+    "pipeline_sources": [],
+    "pipeline_slots": [],
+    "launch_profiles": []
+  }
+}

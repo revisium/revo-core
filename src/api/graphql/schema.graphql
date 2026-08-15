@@ -52,6 +52,115 @@ enum AdrStatus {
   superseded
 }
 
+input BindingParticipantInput {
+  bindingKey: String!
+  modelLevel: String!
+  permissionMode: String!
+  runnerId: String!
+  timeoutMs: Int!
+}
+
+type BindingParticipantModel {
+  bindingKey: String!
+  modelLevel: String!
+  permissionMode: String!
+  runnerId: String!
+  timeoutMs: Int!
+}
+
+type CatalogChangeEntryConnection {
+  edges: [CatalogChangeEntryEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type CatalogChangeEntryEdge {
+  cursor: String!
+  node: CatalogChangeEntryModel!
+}
+
+type CatalogChangeEntryModel {
+  changeType: CatalogChangeType!
+  entryId: ID!
+  fieldPaths: [String!]!
+  previousRecordId: ID
+  recordId: ID!
+  tableId: CatalogTable!
+}
+
+enum CatalogChangeType {
+  ADDED
+  MODIFIED
+  REMOVED
+  RENAMED
+  RENAMED_AND_MODIFIED
+}
+
+type CatalogCommitResultModel {
+  previousRevisionId: ID!
+  revisionId: ID!
+}
+
+type CatalogImportResultModel {
+  tables: [CatalogImportTableResultModel!]!
+}
+
+type CatalogImportTableResultModel {
+  created: Int!
+  tableId: CatalogTable!
+  updated: Int!
+}
+
+type CatalogMutationResultModel {
+  changes: CatalogChangeEntryConnection!
+  status: CatalogStatusModel!
+}
+
+enum CatalogScope {
+  DRAFT
+  HEAD
+  REVISION
+}
+
+type CatalogSnapshotModel {
+  isHead: Boolean!
+  launchProfiles: [LaunchProfileModel!]!
+  methodDocuments: [MethodDocumentModel!]!
+  pipelineRoles: [PipelineRoleModel!]!
+  pipelineSlots: [PipelineSlotModel!]!
+  pipelineSources: [PipelineSourceModel!]!
+  pipelines: [PipelineModel!]!
+  playbooks: [PlaybookModel!]!
+  revisionId: ID!
+  roleRefs: [RoleRefModel!]!
+  roles: [RoleModel!]!
+  sharedReferences: [SharedReferenceModel!]!
+  stackRefs: [StackRefModel!]!
+  stacks: [StackModel!]!
+}
+
+type CatalogStatusModel {
+  draftRevisionId: ID!
+  hasChanges: Boolean!
+  headRevisionId: ID!
+  totalChanges: Int!
+}
+
+enum CatalogTable {
+  launchProfiles
+  methodDocuments
+  pipelineRoles
+  pipelineSlots
+  pipelineSources
+  pipelines
+  playbooks
+  roleRefs
+  roles
+  sharedReferences
+  stackRefs
+  stacks
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -62,20 +171,132 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 """
 scalar JSON
 
+input LaunchBindingInput {
+  participants: [BindingParticipantInput!]!
+  slotId: ID!
+  strategy: PipelineStrategy!
+}
+
+type LaunchBindingModel {
+  participants: [BindingParticipantModel!]!
+  slotId: ID!
+  strategy: PipelineStrategy!
+}
+
+type LaunchProfileConnection {
+  edges: [LaunchProfileEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type LaunchProfileEdge {
+  cursor: String!
+  node: LaunchProfileModel!
+}
+
+input LaunchProfileInput {
+  bindings: [LaunchBindingInput!]!
+  id: ID!
+  pipelineId: ID!
+  status: LaunchProfileStatus!
+}
+
+type LaunchProfileModel {
+  bindings: [LaunchBindingModel!]!
+  id: ID!
+  isHead: Boolean!
+  pipelineId: ID!
+  revisionId: ID!
+  status: LaunchProfileStatus!
+}
+
+enum LaunchProfileStatus {
+  active
+  deprecated
+}
+
+type MethodDocumentConnection {
+  edges: [MethodDocumentEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type MethodDocumentEdge {
+  cursor: String!
+  node: MethodDocumentModel!
+}
+
+input MethodDocumentInput {
+  body: String!
+  id: ID!
+  kind: MethodDocumentKind!
+  playbookId: ID!
+}
+
+enum MethodDocumentKind {
+  checklist
+  method
+  nav
+  template
+}
+
+type MethodDocumentModel {
+  body: String!
+  id: ID!
+  isHead: Boolean!
+  kind: MethodDocumentKind!
+  playbookId: ID!
+  revisionId: ID!
+}
+
 type Mutation {
+  commitCatalog(message: String!): CatalogCommitResultModel!
   createAdr(data: AdrInput!): AdrModel!
+  createLaunchProfile(data: LaunchProfileInput!): LaunchProfileModel!
+  createMethodDocument(data: MethodDocumentInput!): MethodDocumentModel!
+  createPipeline(data: PipelineInput!): PipelineModel!
+  createPipelineRole(data: PipelineRoleInput!): PipelineRoleModel!
+  createPlaybook(data: PlaybookInput!): PlaybookModel!
   createProject(data: ProjectCreateInput!): ProjectModel!
   createRequirement(data: RequirementInput!): RequirementModel!
+  createRole(data: RoleInput!): RoleModel!
+  createRoleRef(data: RoleRefInput!): RoleRefModel!
+  createSharedReference(data: SharedReferenceInput!): SharedReferenceModel!
+  createStack(data: StackInput!): StackModel!
+  createStackRef(data: StackRefInput!): StackRefModel!
   createWorkItem(data: WorkItemInput!): WorkItemModel!
   createWorkPlan(data: WorkPlanInput!): WorkPlanModel!
   deleteAdr(data: RecordDeleteInput!): Boolean!
+  deleteLaunchProfile(id: ID!): Boolean!
+  deleteMethodDocument(id: ID!): Boolean!
+  deletePipeline(id: ID!): Boolean!
+  deletePipelineRole(id: ID!): Boolean!
+  deletePipelineSource(id: ID!): Boolean!
+  deletePlaybook(id: ID!): Boolean!
   deleteProject(id: ID!): Boolean!
   deleteRequirement(data: RecordDeleteInput!): Boolean!
+  deleteRole(id: ID!): Boolean!
+  deleteRoleRef(id: ID!): Boolean!
+  deleteSharedReference(id: ID!): Boolean!
+  deleteStack(id: ID!): Boolean!
+  deleteStackRef(id: ID!): Boolean!
   deleteWorkItem(data: RecordDeleteInput!): Boolean!
   deleteWorkPlan(data: RecordDeleteInput!): Boolean!
+  discardCatalog: CatalogMutationResultModel!
+  importCatalog(data: JSON!): CatalogImportResultModel!
   startRun(data: StartRunInput!): StartRunResultModel!
   updateAdr(data: AdrInput!): AdrModel!
+  updateLaunchProfile(data: LaunchProfileInput!): LaunchProfileModel!
+  updateMethodDocument(data: MethodDocumentInput!): MethodDocumentModel!
+  updatePipeline(data: PipelineInput!): PipelineModel!
+  updatePipelineSource(data: PipelineSourceInput!): PipelineSourceModel!
+  updatePlaybook(data: PlaybookInput!): PlaybookModel!
   updateRequirement(data: RequirementInput!): RequirementModel!
+  updateRole(data: RoleInput!): RoleModel!
+  updateRoleRef(data: RoleRefInput!): RoleRefModel!
+  updateSharedReference(data: SharedReferenceInput!): SharedReferenceModel!
+  updateStack(data: StackInput!): StackModel!
+  updateStackRef(data: StackRefInput!): StackRefModel!
   updateWorkItem(data: WorkItemInput!): WorkItemModel!
   updateWorkPlan(data: WorkPlanInput!): WorkPlanModel!
 }
@@ -85,6 +306,140 @@ type PageInfoModel {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
   startCursor: String
+}
+
+type PipelineConnection {
+  edges: [PipelineEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type PipelineEdge {
+  cursor: String!
+  node: PipelineModel!
+}
+
+input PipelineInput {
+  body: String!
+  id: ID!
+  playbookId: ID!
+}
+
+type PipelineModel {
+  body: String!
+  id: ID!
+  isHead: Boolean!
+  launchability: String!
+  playbookId: ID!
+  revisionId: ID!
+}
+
+type PipelineRoleConnection {
+  edges: [PipelineRoleEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type PipelineRoleEdge {
+  cursor: String!
+  node: PipelineRoleModel!
+}
+
+input PipelineRoleInput {
+  id: ID!
+  membership: PipelineRoleMembership!
+  pipelineId: ID!
+  roleId: ID!
+}
+
+enum PipelineRoleMembership {
+  alternative
+  optional
+  required
+}
+
+type PipelineRoleModel {
+  id: ID!
+  isHead: Boolean!
+  membership: PipelineRoleMembership!
+  pipelineId: ID!
+  revisionId: ID!
+  roleId: ID!
+}
+
+type PipelineSlotConnection {
+  edges: [PipelineSlotEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type PipelineSlotEdge {
+  cursor: String!
+  node: PipelineSlotModel!
+}
+
+type PipelineSlotModel {
+  id: ID!
+  isHead: Boolean!
+  pipelineId: ID!
+  revisionId: ID!
+  slotKey: String!
+  sourceId: ID!
+  sourcePath: String!
+  strategies: [PipelineStrategy!]!
+}
+
+type PipelineSourceConnection {
+  edges: [PipelineSourceEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type PipelineSourceEdge {
+  cursor: String!
+  node: PipelineSourceModel!
+}
+
+input PipelineSourceInput {
+  id: ID!
+  pipelineId: ID!
+  sourceJson: String!
+}
+
+type PipelineSourceModel {
+  id: ID!
+  isHead: Boolean!
+  pipelineId: ID!
+  revisionId: ID!
+  sourceJson: String!
+}
+
+enum PipelineStrategy {
+  consensus
+  single
+}
+
+type PlaybookConnection {
+  edges: [PlaybookEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type PlaybookEdge {
+  cursor: String!
+  node: PlaybookModel!
+}
+
+input PlaybookInput {
+  id: ID!
+  name: String!
+}
+
+type PlaybookModel {
+  id: ID!
+  isHead: Boolean!
+  name: String!
+  revisionId: ID!
 }
 
 type ProjectConnectionModel {
@@ -121,9 +476,36 @@ type ProjectModel {
 }
 
 type Query {
+  catalogChangeSet(after: String, first: Int!): CatalogChangeEntryConnection!
+  catalogSnapshot(revisionId: ID!): CatalogSnapshotModel!
+  catalogStatus: CatalogStatusModel!
+  launchProfile(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): LaunchProfileModel!
+  launchProfiles(after: String, first: Int!, pipelineId: ID, revisionId: ID, scope: CatalogScope! = HEAD): LaunchProfileConnection!
+  methodDocument(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): MethodDocumentModel!
+  methodDocuments(after: String, first: Int!, playbookId: ID, revisionId: ID, scope: CatalogScope! = HEAD): MethodDocumentConnection!
+  pipeline(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): PipelineModel!
+  pipelineRole(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): PipelineRoleModel!
+  pipelineRoles(after: String, first: Int!, pipelineId: ID, revisionId: ID, scope: CatalogScope! = HEAD): PipelineRoleConnection!
+  pipelineSlot(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): PipelineSlotModel!
+  pipelineSlots(after: String, first: Int!, pipelineId: ID, revisionId: ID, scope: CatalogScope! = HEAD): PipelineSlotConnection!
+  pipelineSource(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): PipelineSourceModel!
+  pipelineSources(after: String, first: Int!, pipelineId: ID, revisionId: ID, scope: CatalogScope! = HEAD): PipelineSourceConnection!
+  pipelines(after: String, first: Int!, playbookId: ID, revisionId: ID, scope: CatalogScope! = HEAD): PipelineConnection!
+  playbook(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): PlaybookModel!
+  playbooks(after: String, first: Int!, revisionId: ID, scope: CatalogScope! = HEAD): PlaybookConnection!
   project(id: ID!): ProjectModel
   projects(data: ProjectListInput!): ProjectConnectionModel!
+  role(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): RoleModel!
+  roleRef(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): RoleRefModel!
+  roleRefs(after: String, first: Int!, revisionId: ID, roleId: ID, scope: CatalogScope! = HEAD): RoleRefConnection!
+  roles(after: String, first: Int!, playbookId: ID, revisionId: ID, scope: CatalogScope! = HEAD): RoleConnection!
   run(id: ID!): RunModel
+  sharedReference(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): SharedReferenceModel!
+  sharedReferences(after: String, first: Int!, playbookId: ID, revisionId: ID, scope: CatalogScope! = HEAD): SharedReferenceConnection!
+  stack(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): StackModel!
+  stackRef(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): StackRefModel!
+  stackRefs(after: String, first: Int!, revisionId: ID, scope: CatalogScope! = HEAD, stackId: ID): StackRefConnection!
+  stacks(after: String, first: Int!, playbookId: ID, revisionId: ID, scope: CatalogScope! = HEAD): StackConnection!
   systemInfo: SystemInfoModel!
 }
 
@@ -174,6 +556,56 @@ enum RequirementStatus {
   rejected
 }
 
+type RoleConnection {
+  edges: [RoleEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type RoleEdge {
+  cursor: String!
+  node: RoleModel!
+}
+
+input RoleInput {
+  body: String!
+  id: ID!
+  playbookId: ID!
+}
+
+type RoleModel {
+  body: String!
+  id: ID!
+  isHead: Boolean!
+  playbookId: ID!
+  revisionId: ID!
+}
+
+type RoleRefConnection {
+  edges: [RoleRefEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type RoleRefEdge {
+  cursor: String!
+  node: RoleRefModel!
+}
+
+input RoleRefInput {
+  body: String!
+  id: ID!
+  roleId: ID!
+}
+
+type RoleRefModel {
+  body: String!
+  id: ID!
+  isHead: Boolean!
+  revisionId: ID!
+  roleId: ID!
+}
+
 type RunErrorModel {
   code: String!
   message: String!
@@ -188,6 +620,81 @@ type RunModel {
   result: JSON
   status: String!
   updatedAt: DateTime!
+}
+
+type SharedReferenceConnection {
+  edges: [SharedReferenceEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type SharedReferenceEdge {
+  cursor: String!
+  node: SharedReferenceModel!
+}
+
+input SharedReferenceInput {
+  body: String!
+  id: ID!
+  playbookId: ID!
+}
+
+type SharedReferenceModel {
+  body: String!
+  id: ID!
+  isHead: Boolean!
+  playbookId: ID!
+  revisionId: ID!
+}
+
+type StackConnection {
+  edges: [StackEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type StackEdge {
+  cursor: String!
+  node: StackModel!
+}
+
+input StackInput {
+  body: String!
+  id: ID!
+  playbookId: ID!
+}
+
+type StackModel {
+  body: String!
+  id: ID!
+  isHead: Boolean!
+  playbookId: ID!
+  revisionId: ID!
+}
+
+type StackRefConnection {
+  edges: [StackRefEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type StackRefEdge {
+  cursor: String!
+  node: StackRefModel!
+}
+
+input StackRefInput {
+  body: String!
+  id: ID!
+  stackId: ID!
+}
+
+type StackRefModel {
+  body: String!
+  id: ID!
+  isHead: Boolean!
+  revisionId: ID!
+  stackId: ID!
 }
 
 input StartRunInput {
