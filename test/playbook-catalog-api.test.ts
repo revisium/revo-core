@@ -62,7 +62,8 @@ describe('Playbook Catalog API', () => {
 
   test('creates, reads, updates, and deletes every writable catalog record', async () => {
     const tree = await catalog.tree();
-    expect(tree.pipeline.launchability).toBe('Not launchable');
+    const updatedPipeline = '{"updated":true}';
+    const updatedProfile = '{"updated":true}';
 
     await catalog.api.updatePlaybook({ id: tree.playbook.id, name: 'Updated playbook' });
     await catalog.api.updateRole({
@@ -99,18 +100,13 @@ describe('Playbook Catalog API', () => {
     await catalog.api.updatePipeline({
       id: tree.pipeline.id,
       playbookId: tree.playbook.id,
-      body: 'Updated pipeline',
-    });
-    await catalog.api.updatePipelineSource({
-      id: tree.source.id,
-      pipelineId: tree.pipeline.id,
-      sourceJson: tree.source.sourceJson as string,
+      pipeline: updatedPipeline,
     });
     await catalog.api.updateLaunchProfile({
       id: tree.profile.id,
       pipelineId: tree.pipeline.id,
       status: 'deprecated',
-      bindings: [],
+      profile: updatedProfile,
     });
 
     const draft = { scope: CatalogScope.DRAFT };
@@ -136,16 +132,14 @@ describe('Playbook Catalog API', () => {
       catalog.api.getMethodDocument(tree.methodDocument.id, draft),
     ).resolves.toMatchObject({ kind: 'template' });
     await expect(catalog.api.getPipeline(tree.pipeline.id, draft)).resolves.toMatchObject({
-      launchability: 'Not launchable',
+      pipeline: updatedPipeline,
     });
     await expect(catalog.api.getPipelineRole(tree.pipelineRole.id, draft)).resolves.toMatchObject({
       id: tree.pipelineRole.id,
     });
-    await expect(catalog.api.getPipelineSource(tree.source.id, draft)).resolves.toMatchObject({
-      id: tree.source.id,
-    });
     await expect(catalog.api.getLaunchProfile(tree.profile.id, draft)).resolves.toMatchObject({
       status: 'deprecated',
+      profile: updatedProfile,
     });
 
     await expect(
@@ -227,18 +221,6 @@ describe('Playbook Catalog API', () => {
       }),
     );
     await expect(
-      catalog.api.listPipelineSources({ first: 10, pipelineId: tree.pipeline.id, ...draft }),
-    ).resolves.toEqual(
-      expect.objectContaining({
-        edges: expect.arrayContaining([
-          expect.objectContaining({ node: expect.objectContaining({ id: tree.source.id }) }),
-        ]),
-      }),
-    );
-    await expect(
-      catalog.api.listPipelineSlots({ first: 10, pipelineId: tree.pipeline.id, ...draft }),
-    ).resolves.toMatchObject({ edges: expect.any(Array) });
-    await expect(
       catalog.api.listLaunchProfiles({ first: 10, pipelineId: tree.pipeline.id, ...draft }),
     ).resolves.toEqual(
       expect.objectContaining({
@@ -249,7 +231,6 @@ describe('Playbook Catalog API', () => {
     );
 
     await catalog.api.deleteLaunchProfile(tree.profile.id);
-    await catalog.api.deletePipelineSource(tree.source.id);
     await catalog.api.deletePipelineRole(tree.pipelineRole.id);
     await catalog.api.deleteMethodDocument(tree.methodDocument.id);
     await catalog.api.deleteStackRef(tree.stackRef.id);
@@ -305,9 +286,6 @@ describe('Playbook Catalog API', () => {
 
     await expect(
       catalog.api.getPlaybook(catalog.id('missing'), { scope: CatalogScope.DRAFT }),
-    ).rejects.toBeInstanceOf(NotFoundException);
-    await expect(
-      catalog.api.getPipelineSlot(catalog.id('missing_slot'), { scope: CatalogScope.DRAFT }),
     ).rejects.toBeInstanceOf(NotFoundException);
     await expect(
       catalog.api.getPlaybook(playbook.id, { scope: CatalogScope.HEAD, revisionId: 'rev' }),

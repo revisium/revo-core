@@ -4,7 +4,7 @@ export type CreateLaunchProfileCommandData = {
   readonly id: string;
   readonly pipelineId: string;
   readonly status: string;
-  readonly bindings: unknown;
+  readonly profile: string;
 };
 
 export type CreateLaunchProfileCommandReturnType = CatalogRecord;

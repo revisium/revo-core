@@ -32,6 +32,6 @@ export class UpdatePlaybookHandler implements ICommandHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(updated.row, revisionId, false, CatalogTable.playbooks);
+    return this.drafts.toRecord(updated.row, revisionId, false);
   }
 }

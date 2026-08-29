@@ -28,6 +28,6 @@ export class GetRoleRefHandler implements IQueryHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(row, revisionId, isHead, CatalogTable.roleRefs);
+    return this.drafts.toRecord(row, revisionId, isHead);
   }
 }

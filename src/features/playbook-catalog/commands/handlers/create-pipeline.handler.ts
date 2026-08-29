@@ -24,9 +24,9 @@ export class CreatePipelineHandler implements ICommandHandler<
       revisionId,
       tableId: CatalogTable.pipelines,
       rowId: data.id,
-      data: { playbookId: data.playbookId, body: data.body },
+      data: { playbookId: data.playbookId, pipeline: data.pipeline },
     });
 
-    return this.drafts.toRecord(created.row, revisionId, false, CatalogTable.pipelines);
+    return this.drafts.toRecord(created.row, revisionId, false);
   }
 }

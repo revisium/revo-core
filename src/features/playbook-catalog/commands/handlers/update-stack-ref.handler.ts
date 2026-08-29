@@ -32,6 +32,6 @@ export class UpdateStackRefHandler implements ICommandHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(updated.row, revisionId, false, CatalogTable.stackRefs);
+    return this.drafts.toRecord(updated.row, revisionId, false);
   }
 }

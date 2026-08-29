@@ -1,7 +1,7 @@
 # Review rules
 
 - API transports call a feature API service, not CQRS buses or infrastructure directly.
-- Features do not import API or infrastructure modules.
+- Features do not import transport API modules or another feature's persistence or infrastructure internals. Shared infrastructure providers and modules are allowed.
 - Commands and queries declare their input and result types next to the message.
 - CQRS return types use the `CommandReturnType` or `QueryReturnType` suffix.
 - GraphQL and REST transport models live in a local `model/` directory.
@@ -18,11 +18,12 @@
 ## Feature and CQRS layout
 
 - A feature is `commands/`, `queries/`, `*-api.service.ts`, and `*.module.ts`.
-- The feature API service only executes commands and queries on the bus.
-- The handler owns the use case: validate, read and write persistence, map the result. Split steps into private methods on that handler.
-- A handler does not execute another command or query. It loads whatever it needs from Engine or Prisma itself.
+- A feature module exports its `*-api.service.ts` as its transport-agnostic application API. REST, GraphQL, jobs, CLI, and other features may consume it and explicitly designated public contract modules or files; they do not import another feature's handlers, message classes, or persistence internals.
+- A feature API service contains no business or persistence behavior and dispatches only its own feature's commands and queries.
+- A handler owns its use case and does not dispatch another command or query, call another handler, or recursively call its own feature API. It may call another feature's exported API when the dependency graph is acyclic and that API's consistency and error semantics fit the use case.
+- Use synchronous feature API calls when the result is required; use events for fan-out or eventual work. A use case that requires one transaction or snapshot stays behind one explicit owning boundary.
 - Do not add a repository or application-service layer that wraps what the handler should do.
-- Extra injectables are only for a different process or lifecycle, not for ordinary use-case steps.
+- Add a narrow port only for an actual integration, lifecycle, or substitution need.
 - Shared value-level checks may be pure functions. Extract them only when more than one handler uses them.
 
 ## Pagination

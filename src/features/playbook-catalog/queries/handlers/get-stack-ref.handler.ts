@@ -28,6 +28,6 @@ export class GetStackRefHandler implements IQueryHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(row, revisionId, isHead, CatalogTable.stackRefs);
+    return this.drafts.toRecord(row, revisionId, isHead);
   }
 }

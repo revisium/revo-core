@@ -28,6 +28,6 @@ export class GetPipelineHandler implements IQueryHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(row, revisionId, isHead, CatalogTable.pipelines);
+    return this.drafts.toRecord(row, revisionId, isHead);
   }
 }

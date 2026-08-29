@@ -14,7 +14,7 @@ import {
 type Migration = {
   id: string;
   changeType: string;
-  tableId: string;
+  tableId: CatalogTable;
   hash?: string;
   schema?: unknown;
 };
@@ -38,7 +38,33 @@ describe('Playbook Catalog contracts', () => {
     );
   });
 
-  test('exposes list and get reads for all twelve tables with cursor pagination', async () => {
+  test('ships exact pipeline and launch profile document fields', async () => {
+    const migrations = JSON.parse(await readFile(migrationsUrl, 'utf8')) as Migration[];
+    const pipeline = migrations.find(({ tableId }) => tableId === CatalogTable.pipelines);
+    const launchProfile = migrations.find(({ tableId }) => tableId === CatalogTable.launchProfiles);
+
+    expect(pipeline?.schema).toEqual({
+      type: 'object',
+      properties: {
+        playbookId: { type: 'string', default: '', foreignKey: 'playbooks' },
+        pipeline: { type: 'string', default: '', contentMediaType: 'application/json' },
+      },
+      additionalProperties: false,
+      required: ['playbookId', 'pipeline'],
+    });
+    expect(launchProfile?.schema).toEqual({
+      type: 'object',
+      properties: {
+        pipelineId: { type: 'string', default: '', foreignKey: 'pipelines' },
+        status: { type: 'string', default: 'active', enum: ['active', 'deprecated'] },
+        profile: { type: 'string', default: '', contentMediaType: 'application/json' },
+      },
+      additionalProperties: false,
+      required: ['pipelineId', 'status', 'profile'],
+    });
+  });
+
+  test('exposes list and get reads for all canonical tables with cursor pagination', async () => {
     const schema = await readFile(schemaUrl, 'utf8');
     const listNames = [
       'playbooks',
@@ -50,8 +76,6 @@ describe('Playbook Catalog contracts', () => {
       'methodDocuments',
       'pipelines',
       'pipelineRoles',
-      'pipelineSources',
-      'pipelineSlots',
       'launchProfiles',
     ];
     const getNames = [
@@ -64,8 +88,6 @@ describe('Playbook Catalog contracts', () => {
       'methodDocument',
       'pipeline',
       'pipelineRole',
-      'pipelineSource',
-      'pipelineSlot',
       'launchProfile',
     ];
     for (const name of listNames) {
@@ -80,25 +102,24 @@ describe('Playbook Catalog contracts', () => {
     }
   });
 
-  test('publishes domain writes and omits generic, slot-write, and bulk-role operations', async () => {
+  test('publishes the canonical domain writes without generic operations', async () => {
     const schema = await readFile(schemaUrl, 'utf8');
     for (const operation of [
       'createPlaybook',
       'updatePlaybook',
       'deletePlaybook',
-      'updatePipelineSource',
-      'deletePipelineSource',
+      'updatePipeline',
+      'updateLaunchProfile',
       'importCatalog',
       'commitCatalog',
     ]) {
       expect(schema).toContain(`${operation}(`);
     }
     expect(schema).toContain('discardCatalog:');
-    expect(schema).not.toMatch(/createPipelineSlot|deletePipelineSlot|setPipelineRoles/);
     expect(schema).not.toMatch(/createRow|updateRow|deleteRow/);
   });
 
-  test('keeps every REST list cursor-paginated and the slot resource read-only', async () => {
+  test('keeps every canonical REST list cursor-paginated', async () => {
     const document = JSON.parse(await readFile(openApiUrl, 'utf8')) as {
       paths: Record<
         string,
@@ -125,8 +146,6 @@ describe('Playbook Catalog contracts', () => {
       'method-documents',
       'pipelines',
       'pipeline-roles',
-      'pipeline-sources',
-      'pipeline-slots',
       'launch-profiles',
     ];
     for (const path of collectionPaths) {
@@ -136,12 +155,6 @@ describe('Playbook Catalog contracts', () => {
         expect.arrayContaining(['first', 'after']),
       );
     }
-    expect(document.paths['/api/playbook-catalog/pipeline-slots']).toEqual({
-      get: expect.any(Object),
-    });
-    expect(document.paths['/api/playbook-catalog/pipeline-slots/{id}']).toEqual({
-      get: expect.any(Object),
-    });
     const playbookList =
       document.paths['/api/playbook-catalog/playbooks']?.get?.responses?.['200']?.content?.[
         'application/json'
@@ -149,7 +162,7 @@ describe('Playbook Catalog contracts', () => {
     expect(playbookList).toMatchObject({ $ref: '#/components/schemas/PlaybookConnectionResponse' });
   });
 
-  test('declares the twelve expected table ids', () => {
+  test('declares the ten canonical table ids', () => {
     expect(new Set(CATALOG_TABLES)).toEqual(
       new Set([
         CatalogTable.playbooks,
@@ -161,16 +174,12 @@ describe('Playbook Catalog contracts', () => {
         CatalogTable.methodDocuments,
         CatalogTable.pipelines,
         CatalogTable.pipelineRoles,
-        CatalogTable.pipelineSources,
-        CatalogTable.pipelineSlots,
         CatalogTable.launchProfiles,
       ]),
     );
     expect(canCreateCatalogTable(CatalogTable.playbooks)).toBe(true);
-    expect(canCreateCatalogTable(CatalogTable.pipelineSlots)).toBe(false);
     expect(canUpdateCatalogTable(CatalogTable.playbooks)).toBe(true);
     expect(canUpdateCatalogTable(CatalogTable.pipelineRoles)).toBe(false);
     expect(canDeleteCatalogTable(CatalogTable.playbooks)).toBe(true);
-    expect(canDeleteCatalogTable(CatalogTable.pipelineSlots)).toBe(false);
   });
 });

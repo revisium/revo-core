@@ -32,6 +32,6 @@ export class UpdateStackHandler implements ICommandHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(updated.row, revisionId, false, CatalogTable.stacks);
+    return this.drafts.toRecord(updated.row, revisionId, false);
   }
 }

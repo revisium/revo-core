@@ -1879,283 +1879,6 @@
         "tags": ["Playbook Catalog"]
       }
     },
-    "/api/playbook-catalog/pipeline-sources": {
-      "get": {
-        "operationId": "listPipelineSources",
-        "parameters": [
-          {
-            "name": "first",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "maximum": 1000,
-              "default": 100,
-              "type": "number"
-            }
-          },
-          {
-            "name": "after",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "pipelineId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "scope",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "enum": ["HEAD", "DRAFT", "REVISION"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "revisionId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PipelineSourceConnectionResponse"
-                }
-              }
-            }
-          }
-        },
-        "summary": "",
-        "tags": ["Playbook Catalog"]
-      }
-    },
-    "/api/playbook-catalog/pipeline-sources/{id}": {
-      "get": {
-        "operationId": "getPipelineSource",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "scope",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "enum": ["HEAD", "DRAFT", "REVISION"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "revisionId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PipelineSourceResponse"
-                }
-              }
-            }
-          }
-        },
-        "summary": "",
-        "tags": ["Playbook Catalog"]
-      },
-      "put": {
-        "operationId": "updatePipelineSource",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PipelineSourceUpdateRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PipelineSourceResponse"
-                }
-              }
-            }
-          }
-        },
-        "summary": "",
-        "tags": ["Playbook Catalog"]
-      },
-      "delete": {
-        "operationId": "deletePipelineSource",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          }
-        },
-        "summary": "",
-        "tags": ["Playbook Catalog"]
-      }
-    },
-    "/api/playbook-catalog/pipeline-slots": {
-      "get": {
-        "operationId": "listPipelineSlots",
-        "parameters": [
-          {
-            "name": "first",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "maximum": 1000,
-              "default": 100,
-              "type": "number"
-            }
-          },
-          {
-            "name": "after",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "pipelineId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "scope",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "enum": ["HEAD", "DRAFT", "REVISION"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "revisionId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PipelineSlotConnectionResponse"
-                }
-              }
-            }
-          }
-        },
-        "summary": "",
-        "tags": ["Playbook Catalog"]
-      }
-    },
-    "/api/playbook-catalog/pipeline-slots/{id}": {
-      "get": {
-        "operationId": "getPipelineSlot",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "scope",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "enum": ["HEAD", "DRAFT", "REVISION"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "revisionId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PipelineSlotResponse"
-                }
-              }
-            }
-          }
-        },
-        "summary": "",
-        "tags": ["Playbook Catalog"]
-      }
-    },
     "/api/playbook-catalog/launch-profiles": {
       "get": {
         "operationId": "listLaunchProfiles",
@@ -3308,7 +3031,43 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/StartRunRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/StartRunRequest"
+                  },
+                  {
+                    "oneOf": [
+                      {
+                        "required": ["pipelineId"],
+                        "not": {
+                          "required": ["pipeline"]
+                        }
+                      },
+                      {
+                        "required": ["pipeline"],
+                        "not": {
+                          "required": ["pipelineId"]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "oneOf": [
+                      {
+                        "required": ["profileId"],
+                        "not": {
+                          "required": ["profile"]
+                        }
+                      },
+                      {
+                        "required": ["profile"],
+                        "not": {
+                          "required": ["profileId"]
+                        }
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
@@ -3445,8 +3204,6 @@
               "role_refs",
               "stack_refs",
               "pipeline_roles",
-              "pipeline_sources",
-              "pipeline_slots",
               "launch_profiles"
             ]
           },
@@ -3638,15 +3395,11 @@
           "playbookId": {
             "type": "string"
           },
-          "body": {
+          "pipeline": {
             "type": "string"
-          },
-          "launchability": {
-            "type": "string",
-            "example": "Not launchable"
           }
         },
-        "required": ["id", "revisionId", "isHead", "playbookId", "body", "launchability"]
+        "required": ["id", "revisionId", "isHead", "playbookId", "pipeline"]
       },
       "RoleRefResponse": {
         "type": "object",
@@ -3715,110 +3468,6 @@
         },
         "required": ["id", "revisionId", "isHead", "pipelineId", "roleId", "membership"]
       },
-      "PipelineSourceResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "revisionId": {
-            "type": "string"
-          },
-          "isHead": {
-            "type": "boolean"
-          },
-          "pipelineId": {
-            "type": "string"
-          },
-          "sourceJson": {
-            "type": "string"
-          }
-        },
-        "required": ["id", "revisionId", "isHead", "pipelineId", "sourceJson"]
-      },
-      "PipelineSlotResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "revisionId": {
-            "type": "string"
-          },
-          "isHead": {
-            "type": "boolean"
-          },
-          "pipelineId": {
-            "type": "string"
-          },
-          "sourceId": {
-            "type": "string"
-          },
-          "slotKey": {
-            "type": "string"
-          },
-          "sourcePath": {
-            "type": "string"
-          },
-          "strategies": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": ["single", "consensus"]
-            }
-          }
-        },
-        "required": [
-          "id",
-          "revisionId",
-          "isHead",
-          "pipelineId",
-          "sourceId",
-          "slotKey",
-          "sourcePath",
-          "strategies"
-        ]
-      },
-      "BindingParticipantResponse": {
-        "type": "object",
-        "properties": {
-          "bindingKey": {
-            "type": "string"
-          },
-          "runnerId": {
-            "type": "string"
-          },
-          "modelLevel": {
-            "type": "string"
-          },
-          "permissionMode": {
-            "type": "string"
-          },
-          "timeoutMs": {
-            "type": "number"
-          }
-        },
-        "required": ["bindingKey", "runnerId", "modelLevel", "permissionMode", "timeoutMs"]
-      },
-      "LaunchBindingResponse": {
-        "type": "object",
-        "properties": {
-          "slotId": {
-            "type": "string"
-          },
-          "strategy": {
-            "type": "string",
-            "enum": ["single", "consensus"]
-          },
-          "participants": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BindingParticipantResponse"
-            }
-          }
-        },
-        "required": ["slotId", "strategy", "participants"]
-      },
       "LaunchProfileResponse": {
         "type": "object",
         "properties": {
@@ -3838,14 +3487,11 @@
             "type": "string",
             "enum": ["active", "deprecated"]
           },
-          "bindings": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LaunchBindingResponse"
-            }
+          "profile": {
+            "type": "string"
           }
         },
-        "required": ["id", "revisionId", "isHead", "pipelineId", "status", "bindings"]
+        "required": ["id", "revisionId", "isHead", "pipelineId", "status", "profile"]
       },
       "CatalogSnapshotTablesResponse": {
         "type": "object",
@@ -3904,18 +3550,6 @@
               "$ref": "#/components/schemas/PipelineRoleResponse"
             }
           },
-          "pipeline_sources": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PipelineSourceResponse"
-            }
-          },
-          "pipeline_slots": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PipelineSlotResponse"
-            }
-          },
           "launch_profiles": {
             "type": "array",
             "items": {
@@ -3933,8 +3567,6 @@
           "role_refs",
           "stack_refs",
           "pipeline_roles",
-          "pipeline_sources",
-          "pipeline_slots",
           "launch_profiles"
         ]
       },
@@ -4071,11 +3703,11 @@
           "playbookId": {
             "type": "string"
           },
-          "body": {
+          "pipeline": {
             "type": "string"
           }
         },
-        "required": ["id", "playbookId", "body"]
+        "required": ["id", "playbookId", "pipeline"]
       },
       "RoleRefRequest": {
         "type": "object",
@@ -4126,61 +3758,6 @@
         },
         "required": ["id", "pipelineId", "roleId", "membership"]
       },
-      "PipelineSourceRequest": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "pipelineId": {
-            "type": "string"
-          },
-          "sourceJson": {
-            "type": "string"
-          }
-        },
-        "required": ["id", "pipelineId", "sourceJson"]
-      },
-      "BindingParticipantRequest": {
-        "type": "object",
-        "properties": {
-          "bindingKey": {
-            "type": "string"
-          },
-          "runnerId": {
-            "type": "string"
-          },
-          "modelLevel": {
-            "type": "string"
-          },
-          "permissionMode": {
-            "type": "string"
-          },
-          "timeoutMs": {
-            "type": "number"
-          }
-        },
-        "required": ["bindingKey", "runnerId", "modelLevel", "permissionMode", "timeoutMs"]
-      },
-      "LaunchBindingRequest": {
-        "type": "object",
-        "properties": {
-          "slotId": {
-            "type": "string"
-          },
-          "strategy": {
-            "type": "string",
-            "enum": ["single", "consensus"]
-          },
-          "participants": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BindingParticipantRequest"
-            }
-          }
-        },
-        "required": ["slotId", "strategy", "participants"]
-      },
       "LaunchProfileRequest": {
         "type": "object",
         "properties": {
@@ -4194,14 +3771,11 @@
             "type": "string",
             "enum": ["active", "deprecated"]
           },
-          "bindings": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LaunchBindingRequest"
-            }
+          "profile": {
+            "type": "string"
           }
         },
-        "required": ["id", "pipelineId", "status", "bindings"]
+        "required": ["id", "pipelineId", "status", "profile"]
       },
       "CatalogImportTablesRequest": {
         "type": "object",
@@ -4258,12 +3832,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PipelineRoleRequest"
-            }
-          },
-          "pipeline_sources": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PipelineSourceRequest"
             }
           },
           "launch_profiles": {
@@ -4645,11 +4213,11 @@
           "playbookId": {
             "type": "string"
           },
-          "body": {
+          "pipeline": {
             "type": "string"
           }
         },
-        "required": ["playbookId", "body"]
+        "required": ["playbookId", "pipeline"]
       },
       "PipelineRoleEdgeResponse": {
         "type": "object",
@@ -4670,78 +4238,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PipelineRoleEdgeResponse"
-            }
-          },
-          "totalCount": {
-            "type": "number"
-          },
-          "pageInfo": {
-            "$ref": "#/components/schemas/CatalogPageInfoResponse"
-          }
-        },
-        "required": ["edges", "totalCount", "pageInfo"]
-      },
-      "PipelineSourceEdgeResponse": {
-        "type": "object",
-        "properties": {
-          "cursor": {
-            "type": "string"
-          },
-          "node": {
-            "$ref": "#/components/schemas/PipelineSourceResponse"
-          }
-        },
-        "required": ["cursor", "node"]
-      },
-      "PipelineSourceConnectionResponse": {
-        "type": "object",
-        "properties": {
-          "edges": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PipelineSourceEdgeResponse"
-            }
-          },
-          "totalCount": {
-            "type": "number"
-          },
-          "pageInfo": {
-            "$ref": "#/components/schemas/CatalogPageInfoResponse"
-          }
-        },
-        "required": ["edges", "totalCount", "pageInfo"]
-      },
-      "PipelineSourceUpdateRequest": {
-        "type": "object",
-        "properties": {
-          "pipelineId": {
-            "type": "string"
-          },
-          "sourceJson": {
-            "type": "string"
-          }
-        },
-        "required": ["pipelineId", "sourceJson"]
-      },
-      "PipelineSlotEdgeResponse": {
-        "type": "object",
-        "properties": {
-          "cursor": {
-            "type": "string"
-          },
-          "node": {
-            "$ref": "#/components/schemas/PipelineSlotResponse"
-          }
-        },
-        "required": ["cursor", "node"]
-      },
-      "PipelineSlotConnectionResponse": {
-        "type": "object",
-        "properties": {
-          "edges": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PipelineSlotEdgeResponse"
             }
           },
           "totalCount": {
@@ -4793,14 +4289,11 @@
             "type": "string",
             "enum": ["active", "deprecated"]
           },
-          "bindings": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LaunchBindingRequest"
-            }
+          "profile": {
+            "type": "string"
           }
         },
-        "required": ["pipelineId", "status", "bindings"]
+        "required": ["pipelineId", "status", "profile"]
       },
       "ProjectCreateRequest": {
         "type": "object",
@@ -5502,7 +4995,23 @@
       "StartRunRequest": {
         "type": "object",
         "properties": {
+          "pipelineId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[\\w-]+$"
+          },
           "pipeline": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "profileId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[\\w-]+$"
+          },
+          "profile": {
             "type": "object",
             "additionalProperties": true
           },
@@ -5531,7 +5040,7 @@
             ]
           }
         },
-        "required": ["pipeline", "input"]
+        "required": ["input"]
       },
       "StartRunResponse": {
         "type": "object",
@@ -5542,88 +5051,32 @@
         },
         "required": ["runId"]
       },
-      "RunErrorResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "enum": [
-              "execution_failed",
-              "workflow_failed",
-              "recovery_exhausted",
-              "invalid_workflow_state"
-            ]
-          },
-          "message": {
-            "type": "string"
-          }
-        },
-        "required": ["code", "message"]
-      },
       "RunResponse": {
         "type": "object",
         "properties": {
-          "id": {
+          "schemaVersion": {
+            "type": "string",
+            "enum": ["run-snapshot/v1"]
+          },
+          "runId": {
             "type": "string"
           },
           "status": {
             "type": "string",
-            "enum": ["pending", "running", "succeeded", "failed", "cancelled"]
+            "enum": [
+              "pending",
+              "running",
+              "cancelling",
+              "recovery_required",
+              "succeeded",
+              "failed",
+              "cancelled"
+            ]
           },
-          "executionPlan": {
+          "terminal": {
             "type": "object",
-            "additionalProperties": true
-          },
-          "input": {
-            "oneOf": [
-              {
-                "type": "object",
-                "additionalProperties": true
-              },
-              {
-                "type": "array",
-                "items": {}
-              },
-              {
-                "type": "string"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "result": {
-            "oneOf": [
-              {
-                "type": "object",
-                "additionalProperties": true
-              },
-              {
-                "type": "array",
-                "items": {}
-              },
-              {
-                "type": "string"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "error": {
-            "$ref": "#/components/schemas/RunErrorResponse"
+            "additionalProperties": true,
+            "nullable": true
           },
           "createdAt": {
             "type": "string",
@@ -5634,7 +5087,7 @@
             "format": "date-time"
           }
         },
-        "required": ["id", "status", "executionPlan", "input", "createdAt", "updatedAt"]
+        "required": ["schemaVersion", "runId", "status", "terminal", "createdAt", "updatedAt"]
       },
       "SystemInfoResponse": {
         "type": "object",

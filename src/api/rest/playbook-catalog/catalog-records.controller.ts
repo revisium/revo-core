@@ -31,7 +31,6 @@ import {
   MethodDocumentUpdateRequest,
   PipelineRequest,
   PipelineRoleRequest,
-  PipelineSourceUpdateRequest,
   PipelineUpdateRequest,
   PlaybookRequest,
   PlaybookUpdateRequest,
@@ -55,10 +54,6 @@ import {
   PipelineResponse,
   PipelineRoleConnectionResponse,
   PipelineRoleResponse,
-  PipelineSlotConnectionResponse,
-  PipelineSlotResponse,
-  PipelineSourceConnectionResponse,
-  PipelineSourceResponse,
   PlaybookConnectionResponse,
   PlaybookResponse,
   RoleConnectionResponse,
@@ -533,81 +528,6 @@ export class CatalogRecordsController {
   @ApiNoContentResponse()
   deletePipelineRole(@Param('id') id: string) {
     return this.catalog.deletePipelineRole(id);
-  }
-
-  @Get('pipeline-sources')
-  @ApiOperation({ operationId: 'listPipelineSources' })
-  @ApiCatalogList()
-  @ApiQuery({ name: 'pipelineId', required: false })
-  @ApiOkResponse({ type: PipelineSourceConnectionResponse })
-  listPipelineSources(
-    @Query('first') first?: string,
-    @Query('after') after?: string,
-    @Query('pipelineId') pipelineId?: string,
-    @Query('scope') scope?: string,
-    @Query('revisionId') revisionId?: string,
-  ) {
-    return this.catalog.listPipelineSources({
-      ...catalogPage(first, after, scope, revisionId),
-      ...(pipelineId === undefined ? {} : { pipelineId }),
-    });
-  }
-
-  @Get('pipeline-sources/:id')
-  @ApiOperation({ operationId: 'getPipelineSource' })
-  @ApiCatalogScope()
-  @ApiOkResponse({ type: PipelineSourceResponse })
-  getPipelineSource(
-    @Param('id') id: string,
-    @Query('scope') scope?: string,
-    @Query('revisionId') revisionId?: string,
-  ) {
-    return this.catalog.getPipelineSource(id, catalogSelector(scope, revisionId));
-  }
-
-  @Put('pipeline-sources/:id')
-  @ApiOperation({ operationId: 'updatePipelineSource' })
-  @ApiOkResponse({ type: PipelineSourceResponse })
-  updatePipelineSource(@Param('id') id: string, @Body() data: PipelineSourceUpdateRequest) {
-    return this.catalog.updatePipelineSource({ id, ...data });
-  }
-
-  @Delete('pipeline-sources/:id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ operationId: 'deletePipelineSource' })
-  @ApiNoContentResponse()
-  deletePipelineSource(@Param('id') id: string) {
-    return this.catalog.deletePipelineSource(id);
-  }
-
-  @Get('pipeline-slots')
-  @ApiOperation({ operationId: 'listPipelineSlots' })
-  @ApiCatalogList()
-  @ApiQuery({ name: 'pipelineId', required: false })
-  @ApiOkResponse({ type: PipelineSlotConnectionResponse })
-  listPipelineSlots(
-    @Query('first') first?: string,
-    @Query('after') after?: string,
-    @Query('pipelineId') pipelineId?: string,
-    @Query('scope') scope?: string,
-    @Query('revisionId') revisionId?: string,
-  ) {
-    return this.catalog.listPipelineSlots({
-      ...catalogPage(first, after, scope, revisionId),
-      ...(pipelineId === undefined ? {} : { pipelineId }),
-    });
-  }
-
-  @Get('pipeline-slots/:id')
-  @ApiOperation({ operationId: 'getPipelineSlot' })
-  @ApiCatalogScope()
-  @ApiOkResponse({ type: PipelineSlotResponse })
-  getPipelineSlot(
-    @Param('id') id: string,
-    @Query('scope') scope?: string,
-    @Query('revisionId') revisionId?: string,
-  ) {
-    return this.catalog.getPipelineSlot(id, catalogSelector(scope, revisionId));
   }
 
   @Get('launch-profiles')

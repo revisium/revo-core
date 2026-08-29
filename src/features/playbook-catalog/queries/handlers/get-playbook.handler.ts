@@ -28,6 +28,6 @@ export class GetPlaybookHandler implements IQueryHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(row, revisionId, isHead, CatalogTable.playbooks);
+    return this.drafts.toRecord(row, revisionId, isHead);
   }
 }

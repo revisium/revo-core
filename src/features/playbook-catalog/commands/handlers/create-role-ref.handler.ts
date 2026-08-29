@@ -27,6 +27,6 @@ export class CreateRoleRefHandler implements ICommandHandler<
       data: { roleId: data.roleId, body: data.body },
     });
 
-    return this.drafts.toRecord(created.row, revisionId, false, CatalogTable.roleRefs);
+    return this.drafts.toRecord(created.row, revisionId, false);
   }
 }

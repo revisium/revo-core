@@ -1,6 +1,8 @@
 import { Body, Controller, Get, NotFoundException, Param, Post } from '@nestjs/common';
 import {
+  ApiBody,
   ApiCreatedResponse,
+  ApiExtraModels,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -8,17 +10,19 @@ import {
 } from '@nestjs/swagger';
 
 import { RunApiService } from '../../../features/run/run-api.service.js';
-import { StartRunRequest } from './dto/start-run.request.js';
+import { START_RUN_REQUEST_SCHEMA, StartRunRequest } from './dto/start-run.request.js';
 import { RunResponse } from './model/run.response.js';
 import { StartRunResponse } from './model/start-run.response.js';
 
 @ApiTags('Runs')
+@ApiExtraModels(StartRunRequest)
 @Controller('runs')
 export class RunController {
   constructor(private readonly runs: RunApiService) {}
 
   @Post()
   @ApiOperation({ operationId: 'startRun', summary: 'Start a run' })
+  @ApiBody({ schema: START_RUN_REQUEST_SCHEMA })
   @ApiCreatedResponse({ type: StartRunResponse })
   startRun(@Body() data: StartRunRequest): Promise<StartRunResponse> {
     return this.runs.startRun(data);

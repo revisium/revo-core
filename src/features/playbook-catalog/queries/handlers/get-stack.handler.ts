@@ -25,6 +25,6 @@ export class GetStackHandler implements IQueryHandler<GetStackQuery, GetStackQue
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(row, revisionId, isHead, CatalogTable.stacks);
+    return this.drafts.toRecord(row, revisionId, isHead);
   }
 }

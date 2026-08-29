@@ -27,6 +27,6 @@ export class CreateStackRefHandler implements ICommandHandler<
       data: { stackId: data.stackId, body: data.body },
     });
 
-    return this.drafts.toRecord(created.row, revisionId, false, CatalogTable.stackRefs);
+    return this.drafts.toRecord(created.row, revisionId, false);
   }
 }

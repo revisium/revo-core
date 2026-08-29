@@ -31,6 +31,6 @@ export class GetSharedReferenceHandler implements IQueryHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(row, revisionId, isHead, CatalogTable.sharedReferences);
+    return this.drafts.toRecord(row, revisionId, isHead);
   }
 }

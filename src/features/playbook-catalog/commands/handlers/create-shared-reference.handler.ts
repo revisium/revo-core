@@ -29,6 +29,6 @@ export class CreateSharedReferenceHandler implements ICommandHandler<
       data: { playbookId: data.playbookId, body: data.body },
     });
 
-    return this.drafts.toRecord(created.row, revisionId, false, CatalogTable.sharedReferences);
+    return this.drafts.toRecord(created.row, revisionId, false);
   }
 }

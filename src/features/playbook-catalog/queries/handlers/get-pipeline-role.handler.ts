@@ -31,6 +31,6 @@ export class GetPipelineRoleHandler implements IQueryHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(row, revisionId, isHead, CatalogTable.pipelineRoles);
+    return this.drafts.toRecord(row, revisionId, isHead);
   }
 }

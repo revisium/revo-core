@@ -13,7 +13,6 @@ import { CreateStackHandler } from './handlers/create-stack.handler.js';
 import { DeleteLaunchProfileHandler } from './handlers/delete-launch-profile.handler.js';
 import { DeleteMethodDocumentHandler } from './handlers/delete-method-document.handler.js';
 import { DeletePipelineRoleHandler } from './handlers/delete-pipeline-role.handler.js';
-import { DeletePipelineSourceHandler } from './handlers/delete-pipeline-source.handler.js';
 import { DeletePipelineHandler } from './handlers/delete-pipeline.handler.js';
 import { DeletePlaybookHandler } from './handlers/delete-playbook.handler.js';
 import { DeleteRoleRefHandler } from './handlers/delete-role-ref.handler.js';
@@ -25,7 +24,6 @@ import { DiscardCatalogHandler } from './handlers/discard-catalog.handler.js';
 import { ImportCatalogHandler } from './handlers/import-catalog.handler.js';
 import { UpdateLaunchProfileHandler } from './handlers/update-launch-profile.handler.js';
 import { UpdateMethodDocumentHandler } from './handlers/update-method-document.handler.js';
-import { UpdatePipelineSourceHandler } from './handlers/update-pipeline-source.handler.js';
 import { UpdatePipelineHandler } from './handlers/update-pipeline.handler.js';
 import { UpdatePlaybookHandler } from './handlers/update-playbook.handler.js';
 import { UpdateRoleRefHandler } from './handlers/update-role-ref.handler.js';
@@ -164,11 +162,6 @@ export type {
   DeletePipelineRoleCommandData,
   DeletePipelineRoleCommandReturnType,
 } from './impl/delete-pipeline-role.command.js';
-export { DeletePipelineSourceCommand } from './impl/delete-pipeline-source.command.js';
-export type {
-  DeletePipelineSourceCommandData,
-  DeletePipelineSourceCommandReturnType,
-} from './impl/delete-pipeline-source.command.js';
 export { CreateLaunchProfileCommand } from './impl/create-launch-profile.command.js';
 export type {
   CreateLaunchProfileCommandData,
@@ -198,11 +191,6 @@ export type {
   ImportCatalogCommandData,
   ImportCatalogCommandReturnType,
 } from './impl/import-catalog.command.js';
-export { UpdatePipelineSourceCommand } from './impl/update-pipeline-source.command.js';
-export type {
-  UpdatePipelineSourceCommandData,
-  UpdatePipelineSourceCommandReturnType,
-} from './impl/update-pipeline-source.command.js';
 
 export const PLAYBOOK_CATALOG_COMMAND_HANDLERS = [
   CreatePlaybookHandler,
@@ -231,11 +219,9 @@ export const PLAYBOOK_CATALOG_COMMAND_HANDLERS = [
   DeletePipelineHandler,
   CreatePipelineRoleHandler,
   DeletePipelineRoleHandler,
-  DeletePipelineSourceHandler,
   CreateLaunchProfileHandler,
   UpdateLaunchProfileHandler,
   DeleteLaunchProfileHandler,
-  UpdatePipelineSourceHandler,
   ImportCatalogHandler,
   CommitCatalogHandler,
   DiscardCatalogHandler,

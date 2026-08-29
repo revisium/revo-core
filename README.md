@@ -18,7 +18,6 @@
 - REST and Swagger at `/api`.
 - Committed GraphQL and OpenAPI contracts.
 - Durable pipeline execution through `@revisium/revo-run`.
-- Temporary MVP task execution without external effects.
 - PostgreSQL with Prisma-owned product data and DBOS-owned workflow state.
 
 ## Boundaries
@@ -53,15 +52,21 @@ Both return:
 }
 ```
 
-Runs can be started with a public `PipelineDefinition`. Revo Core validates and compiles it before
-starting the durable workflow:
+Runs accept independent selectors: exactly one of `pipelineId` or `pipeline`, and exactly one of
+`profileId` or `profile`:
 
 ```http
 POST /api/runs
 GET /api/runs/:runId
 ```
 
-or the `startRun` mutation and `run` query in GraphQL.
+The `startRun` mutation and `run` query expose the same contract in GraphQL. ID selectors read the
+current Catalog HEAD through the exported `PlaybookCatalogModule` API. Direct documents bypass the
+Catalog. `@revisium/revo-run` owns document validation, pipeline compilation, admission, and durable
+execution.
+
+Feature modules expose transport-agnostic API services; transports and other features consume those
+services instead of feature internals. See [REVIEW.md](REVIEW.md) for the detailed module rules.
 
 ## GraphQL subscriptions
 
@@ -92,7 +97,6 @@ Run `pnpm generate:api-contracts` only when intentionally changing a public API.
 ## Composition
 
 - `revo-run`
-- `revo-pipeline`
 - PostgreSQL and Prisma
 
-`revo-agent-runtime` and `revo-scripts` are the next execution adapters planned for this composition.
+`revo-agent-runtime` is a planned execution adapter for this composition.

@@ -11,8 +11,6 @@ export enum CatalogTable {
   roleRefs = 'role_refs',
   stackRefs = 'stack_refs',
   pipelineRoles = 'pipeline_roles',
-  pipelineSources = 'pipeline_sources',
-  pipelineSlots = 'pipeline_slots',
   launchProfiles = 'launch_profiles',
 }
 
@@ -26,8 +24,6 @@ export const CATALOG_TABLES = [
   CatalogTable.roleRefs,
   CatalogTable.stackRefs,
   CatalogTable.pipelineRoles,
-  CatalogTable.pipelineSources,
-  CatalogTable.pipelineSlots,
   CatalogTable.launchProfiles,
 ] as const;
 
@@ -69,7 +65,6 @@ export const CATALOG_WRITABLE_DELETE_TABLES = [
   CatalogTable.roleRefs,
   CatalogTable.stackRefs,
   CatalogTable.pipelineRoles,
-  CatalogTable.pipelineSources,
   CatalogTable.launchProfiles,
 ] as const;
 
@@ -82,8 +77,6 @@ export const CATALOG_PARENT_FIELD: Partial<Record<CatalogTable, string>> = {
   [CatalogTable.roleRefs]: 'roleId',
   [CatalogTable.stackRefs]: 'stackId',
   [CatalogTable.pipelineRoles]: 'pipelineId',
-  [CatalogTable.pipelineSources]: 'pipelineId',
-  [CatalogTable.pipelineSlots]: 'pipelineId',
   [CatalogTable.launchProfiles]: 'pipelineId',
 };
 
@@ -113,21 +106,6 @@ export const CATALOG_CHILD_RELATIONS: ReadonlyArray<{
     parentTableId: CatalogTable.pipelines,
   },
   { tableId: CatalogTable.pipelineRoles, field: 'roleId', parentTableId: CatalogTable.roles },
-  {
-    tableId: CatalogTable.pipelineSources,
-    field: 'pipelineId',
-    parentTableId: CatalogTable.pipelines,
-  },
-  {
-    tableId: CatalogTable.pipelineSlots,
-    field: 'pipelineId',
-    parentTableId: CatalogTable.pipelines,
-  },
-  {
-    tableId: CatalogTable.pipelineSlots,
-    field: 'sourceId',
-    parentTableId: CatalogTable.pipelineSources,
-  },
   {
     tableId: CatalogTable.launchProfiles,
     field: 'pipelineId',
@@ -165,11 +143,6 @@ export enum PipelineRoleMembership {
 export enum LaunchProfileStatus {
   active = 'active',
   deprecated = 'deprecated',
-}
-
-export enum PipelineStrategy {
-  single = 'single',
-  consensus = 'consensus',
 }
 
 export const CatalogError = {

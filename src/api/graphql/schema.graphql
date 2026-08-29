@@ -52,22 +52,6 @@ enum AdrStatus {
   superseded
 }
 
-input BindingParticipantInput {
-  bindingKey: String!
-  modelLevel: String!
-  permissionMode: String!
-  runnerId: String!
-  timeoutMs: Int!
-}
-
-type BindingParticipantModel {
-  bindingKey: String!
-  modelLevel: String!
-  permissionMode: String!
-  runnerId: String!
-  timeoutMs: Int!
-}
-
 type CatalogChangeEntryConnection {
   edges: [CatalogChangeEntryEdge!]!
   pageInfo: PageInfoModel!
@@ -127,8 +111,6 @@ type CatalogSnapshotModel {
   launchProfiles: [LaunchProfileModel!]!
   methodDocuments: [MethodDocumentModel!]!
   pipelineRoles: [PipelineRoleModel!]!
-  pipelineSlots: [PipelineSlotModel!]!
-  pipelineSources: [PipelineSourceModel!]!
   pipelines: [PipelineModel!]!
   playbooks: [PlaybookModel!]!
   revisionId: ID!
@@ -150,8 +132,6 @@ enum CatalogTable {
   launchProfiles
   methodDocuments
   pipelineRoles
-  pipelineSlots
-  pipelineSources
   pipelines
   playbooks
   roleRefs
@@ -162,26 +142,9 @@ enum CatalogTable {
 }
 
 """
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
-"""
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar JSON
-
-input LaunchBindingInput {
-  participants: [BindingParticipantInput!]!
-  slotId: ID!
-  strategy: PipelineStrategy!
-}
-
-type LaunchBindingModel {
-  participants: [BindingParticipantModel!]!
-  slotId: ID!
-  strategy: PipelineStrategy!
-}
 
 type LaunchProfileConnection {
   edges: [LaunchProfileEdge!]!
@@ -195,17 +158,17 @@ type LaunchProfileEdge {
 }
 
 input LaunchProfileInput {
-  bindings: [LaunchBindingInput!]!
   id: ID!
   pipelineId: ID!
+  profile: String!
   status: LaunchProfileStatus!
 }
 
 type LaunchProfileModel {
-  bindings: [LaunchBindingModel!]!
   id: ID!
   isHead: Boolean!
   pipelineId: ID!
+  profile: String!
   revisionId: ID!
   status: LaunchProfileStatus!
 }
@@ -271,7 +234,6 @@ type Mutation {
   deleteMethodDocument(id: ID!): Boolean!
   deletePipeline(id: ID!): Boolean!
   deletePipelineRole(id: ID!): Boolean!
-  deletePipelineSource(id: ID!): Boolean!
   deletePlaybook(id: ID!): Boolean!
   deleteProject(id: ID!): Boolean!
   deleteRequirement(data: RecordDeleteInput!): Boolean!
@@ -289,7 +251,6 @@ type Mutation {
   updateLaunchProfile(data: LaunchProfileInput!): LaunchProfileModel!
   updateMethodDocument(data: MethodDocumentInput!): MethodDocumentModel!
   updatePipeline(data: PipelineInput!): PipelineModel!
-  updatePipelineSource(data: PipelineSourceInput!): PipelineSourceModel!
   updatePlaybook(data: PlaybookInput!): PlaybookModel!
   updateRequirement(data: RequirementInput!): RequirementModel!
   updateRole(data: RoleInput!): RoleModel!
@@ -320,16 +281,15 @@ type PipelineEdge {
 }
 
 input PipelineInput {
-  body: String!
   id: ID!
+  pipeline: String!
   playbookId: ID!
 }
 
 type PipelineModel {
-  body: String!
   id: ID!
   isHead: Boolean!
-  launchability: String!
+  pipeline: String!
   playbookId: ID!
   revisionId: ID!
 }
@@ -365,58 +325,6 @@ type PipelineRoleModel {
   pipelineId: ID!
   revisionId: ID!
   roleId: ID!
-}
-
-type PipelineSlotConnection {
-  edges: [PipelineSlotEdge!]!
-  pageInfo: PageInfoModel!
-  totalCount: Int!
-}
-
-type PipelineSlotEdge {
-  cursor: String!
-  node: PipelineSlotModel!
-}
-
-type PipelineSlotModel {
-  id: ID!
-  isHead: Boolean!
-  pipelineId: ID!
-  revisionId: ID!
-  slotKey: String!
-  sourceId: ID!
-  sourcePath: String!
-  strategies: [PipelineStrategy!]!
-}
-
-type PipelineSourceConnection {
-  edges: [PipelineSourceEdge!]!
-  pageInfo: PageInfoModel!
-  totalCount: Int!
-}
-
-type PipelineSourceEdge {
-  cursor: String!
-  node: PipelineSourceModel!
-}
-
-input PipelineSourceInput {
-  id: ID!
-  pipelineId: ID!
-  sourceJson: String!
-}
-
-type PipelineSourceModel {
-  id: ID!
-  isHead: Boolean!
-  pipelineId: ID!
-  revisionId: ID!
-  sourceJson: String!
-}
-
-enum PipelineStrategy {
-  consensus
-  single
 }
 
 type PlaybookConnection {
@@ -486,10 +394,6 @@ type Query {
   pipeline(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): PipelineModel!
   pipelineRole(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): PipelineRoleModel!
   pipelineRoles(after: String, first: Int!, pipelineId: ID, revisionId: ID, scope: CatalogScope! = HEAD): PipelineRoleConnection!
-  pipelineSlot(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): PipelineSlotModel!
-  pipelineSlots(after: String, first: Int!, pipelineId: ID, revisionId: ID, scope: CatalogScope! = HEAD): PipelineSlotConnection!
-  pipelineSource(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): PipelineSourceModel!
-  pipelineSources(after: String, first: Int!, pipelineId: ID, revisionId: ID, scope: CatalogScope! = HEAD): PipelineSourceConnection!
   pipelines(after: String, first: Int!, playbookId: ID, revisionId: ID, scope: CatalogScope! = HEAD): PipelineConnection!
   playbook(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): PlaybookModel!
   playbooks(after: String, first: Int!, revisionId: ID, scope: CatalogScope! = HEAD): PlaybookConnection!
@@ -606,20 +510,13 @@ type RoleRefModel {
   roleId: ID!
 }
 
-type RunErrorModel {
-  code: String!
-  message: String!
-}
-
 type RunModel {
-  createdAt: DateTime!
-  error: RunErrorModel
-  executionPlan: JSON!
-  id: ID!
-  input: JSON!
-  result: JSON
+  createdAt: String!
+  runId: ID!
+  schemaVersion: String!
   status: String!
-  updatedAt: DateTime!
+  terminal: JSON
+  updatedAt: String!
 }
 
 type SharedReferenceConnection {
@@ -699,7 +596,10 @@ type StackRefModel {
 
 input StartRunInput {
   input: JSON!
-  pipeline: JSON!
+  pipeline: JSON
+  pipelineId: String
+  profile: JSON
+  profileId: String
 }
 
 type StartRunResultModel {

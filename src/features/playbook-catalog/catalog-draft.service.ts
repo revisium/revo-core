@@ -7,7 +7,6 @@ import {
   CATALOG_PROJECT_ID,
   CatalogError,
   CatalogScope,
-  CatalogTable,
 } from './constants/catalog.constants.js';
 import { asCatalogData } from './domain/catalog-record.js';
 
@@ -72,22 +71,13 @@ export class CatalogDraftService {
     return { revisionId: selector.revisionId, isHead: selector.revisionId === head.id };
   }
 
-  toRecord(
-    row: Pick<Row, 'id' | 'data'>,
-    revisionId: string,
-    isHead: boolean,
-    tableId: CatalogTable,
-  ): CatalogRecord {
+  toRecord(row: Pick<Row, 'id' | 'data'>, revisionId: string, isHead: boolean): CatalogRecord {
     const record: CatalogRecord = {
       id: row.id,
       ...asCatalogData(row.data),
       revisionId,
       isHead,
     };
-
-    if (tableId === CatalogTable.pipelines) {
-      record.launchability = 'Not launchable';
-    }
 
     return record;
   }

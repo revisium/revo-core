@@ -33,13 +33,12 @@ export class BootstrapCatalogHandler implements ICommandHandler<
       projectId: CATALOG_PROJECT_ID,
       branchName: CATALOG_BRANCH_NAME,
     });
-    const dirty = await this.engine.getTouchedByBranchId(branch.id);
     const draft = await this.engine.getDraftRevision(branch.id);
     const migrations = await this.loadMigrations();
     const pending = await this.hasPendingMigration(draft.id, migrations);
 
-    if (dirty && pending) {
-      await this.commit('Bootstrap Playbook Catalog');
+    if (pending && (await this.hasUserDraftChanges(draft.id))) {
+      throw new BadRequestException('Catalog migration requires a clean Draft.');
     }
 
     const revisionId = await this.drafts.getDraftRevisionId();
@@ -50,6 +49,16 @@ export class BootstrapCatalogHandler implements ICommandHandler<
     }
 
     return applied;
+  }
+
+  private async hasUserDraftChanges(revisionId: string): Promise<boolean> {
+    const changes = await this.engine.rowChanges({
+      revisionId,
+      first: 1,
+      filters: { includeSystem: false },
+    });
+
+    return changes.totalCount > 0;
   }
 
   private async hasPendingMigration(

@@ -32,6 +32,6 @@ export class UpdateRoleHandler implements ICommandHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(updated.row, revisionId, false, CatalogTable.roles);
+    return this.drafts.toRecord(updated.row, revisionId, false);
   }
 }

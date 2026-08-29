@@ -27,6 +27,6 @@ export class CreateRoleHandler implements ICommandHandler<
       data: { playbookId: data.playbookId, body: data.body },
     });
 
-    return this.drafts.toRecord(created.row, revisionId, false, CatalogTable.roles);
+    return this.drafts.toRecord(created.row, revisionId, false);
   }
 }

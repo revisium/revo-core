@@ -25,13 +25,13 @@ export class UpdatePipelineHandler implements ICommandHandler<
       revisionId,
       tableId: CatalogTable.pipelines,
       rowId: data.id,
-      data: { playbookId: data.playbookId, body: data.body },
+      data: { playbookId: data.playbookId, pipeline: data.pipeline },
     });
 
     if (updated.row === null) {
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(updated.row, revisionId, false, CatalogTable.pipelines);
+    return this.drafts.toRecord(updated.row, revisionId, false);
   }
 }

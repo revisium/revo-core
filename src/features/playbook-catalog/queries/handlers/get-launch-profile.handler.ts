@@ -31,6 +31,6 @@ export class GetLaunchProfileHandler implements IQueryHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(row, revisionId, isHead, CatalogTable.launchProfiles);
+    return this.drafts.toRecord(row, revisionId, isHead);
   }
 }

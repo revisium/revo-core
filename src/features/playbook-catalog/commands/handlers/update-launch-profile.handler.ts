@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
-import { EngineApiService, type InputJsonValue } from '@revisium/engine';
+import { EngineApiService } from '@revisium/engine';
 
 import { CatalogDraftService } from '../../catalog-draft.service.js';
 import { CatalogError, CatalogTable } from '../../constants/catalog.constants.js';
@@ -30,14 +30,14 @@ export class UpdateLaunchProfileHandler implements ICommandHandler<
       data: {
         pipelineId: data.pipelineId,
         status: data.status,
-        bindings: data.bindings,
-      } as InputJsonValue,
+        profile: data.profile,
+      },
     });
 
     if (updated.row === null) {
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(updated.row, revisionId, false, CatalogTable.launchProfiles);
+    return this.drafts.toRecord(updated.row, revisionId, false);
   }
 }

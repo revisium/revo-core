@@ -41,12 +41,9 @@ importers:
       '@revisium/engine':
         specifier: 0.7.0
         version: 0.7.0(@nestjs/cache-manager@3.1.3(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.28)(cache-manager@7.2.9)(keyv@5.6.0)(rxjs@7.8.2))(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/config@4.0.4(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2))(@nestjs/core@11.1.28)(@nestjs/cqrs@11.0.3(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.28)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@prisma/adapter-pg@7.9.1)(@prisma/client@7.9.1(prisma@7.9.1(@types/react@19.2.18)(magicast@0.5.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@7.0.2))(typescript@7.0.2))(pg@8.22.0)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@revisium/revo-pipeline':
-        specifier: 0.1.0-alpha.0
-        version: 0.1.0-alpha.0
       '@revisium/revo-run':
-        specifier: 0.1.0-alpha.2
-        version: 0.1.0-alpha.2
+        specifier: 0.2.0-alpha.2
+        version: 0.2.0-alpha.2
       class-transformer:
         specifier: 0.5.1
         version: 0.5.1
@@ -74,6 +71,9 @@ importers:
       rxjs:
         specifier: 7.8.2
         version: 7.8.2
+      typebox:
+        specifier: 1.3.10
+        version: 1.3.10
     devDependencies:
       '@nestjs/testing':
         specifier: 11.1.28
@@ -1183,12 +1183,16 @@ packages:
     peerDependencies:
       '@prisma/client': ^5.0.0 || ^6.0.0 || ^7.0.0
 
-  '@revisium/revo-pipeline@0.1.0-alpha.0':
-    resolution: {integrity: sha512-Clge2ZL0vcs2jaJ0YG3SjKgOaAOZsEt5tDjY7Nwt+p/VTdNAp+HIzLIBAuvpEdri9KuYx02WGIN5jjqUi012Mw==}
+  '@revisium/revo-pipeline@0.2.0-alpha.3':
+    resolution: {integrity: sha512-r+lBnr/SD5Q6SfbKtkjf0uuPZfK4noGUuzoGu+50KRbeFPtdFFXBoZMX1+8L1OG5nORi1auK+p4dZ4hZZmjGLg==}
     engines: {node: '>=24.11.1 <25'}
 
-  '@revisium/revo-run@0.1.0-alpha.2':
-    resolution: {integrity: sha512-7SD2XWQpmuO7pWetuVRhWpTSdBlsFsGaSsoU4XM1bJEeikQ7K1Zx78G0cczEtMEEnxYeJ7u4xdR2Gr94XrM0ZA==}
+  '@revisium/revo-run@0.2.0-alpha.2':
+    resolution: {integrity: sha512-XKW6fVLq932SERXVxa7RqdPFDmwTsLH+w99ms78+vB7Mx1oEWcBRra+OrK/kahgw13gtOHFUc10/g+e+giBcLA==}
+    engines: {node: '>=24.11.1 <25'}
+
+  '@revisium/revo-scripts@0.1.0-alpha.1':
+    resolution: {integrity: sha512-HFLiJaVUr+ffSkfJXQmo8jXkpOC6A3++j5MXG7YCDtTxc/j0aZieWTKIzL5AVscyRix2D1+mj9g00LenIWxE+Q==}
     engines: {node: '>=24.11.1 <25'}
 
   '@revisium/schema-toolkit@0.24.2':
@@ -1773,6 +1777,16 @@ packages:
   call-bound@1.0.4:
     resolution: {integrity: sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg==}
     engines: {node: '>= 0.4'}
+
+  canonicalize@3.0.0:
+    resolution: {integrity: sha512-yYLfHyDMIXRyRqsKBRLX023riFLpXY2YOfdtqKXZRZy9qsfOJ9U+4F9YZL7MEzL5+ziN2x2nlBvY/Voi3EBljA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  canonicalize@4.0.0:
+    resolution: {integrity: sha512-FEdXzwWs+N3rZqEqpqleiY9M1A6IAf9oo1zHFABnLW9FcJ/jzsu+G/Ks3Hq3FglmPKe80GeGBw8ZXLEnwPB0vQ==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   chai@6.2.2:
     resolution: {integrity: sha512-NUPRluOfOiTKBKvWPtSD4PhFvWCqOi0BGStNWs57X9js7XGTprSmFoz5F0tWhR4WPjNeR9jXqdC7/UpSJTnlRg==}
@@ -2949,6 +2963,9 @@ packages:
     resolution: {integrity: sha512-faYHw0anBbc/kWF3zFTEnxSFOAGUX9GFbOBthvDdLsIlEoWOFOtS0zgCiQYwIskL9iGXZL3kAXD8OoZ4GmMATA==}
     engines: {node: '>= 18'}
 
+  typebox@1.3.10:
+    resolution: {integrity: sha512-L0MT00X96q0P30f1NrGULgaSbmu8hfTjWbLULeVoM+j5u0jR5wyefoDquX2NmRa39f0KiNIBo1wWSaVvHJTZlA==}
+
   typedarray@0.0.6:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
 
@@ -3141,6 +3158,9 @@ packages:
 
   zeptomatch@2.1.0:
     resolution: {integrity: sha512-KiGErG2J0G82LSpniV0CtIzjlJ10E04j02VOudJsPyPwNZgGnRKQy7I1R7GMyg/QswnE4l7ohSGrQbQbjXPPDA==}
+
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
 snapshots:
 
@@ -3964,16 +3984,28 @@ snapshots:
     dependencies:
       '@prisma/client': 7.9.1(prisma@7.9.1(@types/react@19.2.18)(magicast@0.5.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@7.0.2))(typescript@7.0.2)
 
-  '@revisium/revo-pipeline@0.1.0-alpha.0': {}
+  '@revisium/revo-pipeline@0.2.0-alpha.3':
+    dependencies:
+      canonicalize: 4.0.0
+      typebox: 1.3.10
 
-  '@revisium/revo-run@0.1.0-alpha.2':
+  '@revisium/revo-run@0.2.0-alpha.2':
     dependencies:
       '@dbos-inc/dbos-sdk': 4.25.14
-      '@revisium/revo-pipeline': 0.1.0-alpha.0
+      '@revisium/revo-pipeline': 0.2.0-alpha.3
+      '@revisium/revo-scripts': 0.1.0-alpha.1
+      typebox: 1.3.10
     transitivePeerDependencies:
       - bufferutil
       - pg-native
       - utf-8-validate
+
+  '@revisium/revo-scripts@0.1.0-alpha.1':
+    dependencies:
+      '@standard-schema/spec': 1.1.0
+      ajv: 8.20.0
+      canonicalize: 3.0.0
+      zod: 4.4.3
 
   '@revisium/schema-toolkit@0.24.2':
     dependencies:
@@ -4502,6 +4534,10 @@ snapshots:
     dependencies:
       call-bind-apply-helpers: 1.0.2
       get-intrinsic: 1.3.0
+
+  canonicalize@3.0.0: {}
+
+  canonicalize@4.0.0: {}
 
   chai@6.2.2: {}
 
@@ -5684,6 +5720,8 @@ snapshots:
       media-typer: 1.1.1
       mime-types: 3.0.2
 
+  typebox@1.3.10: {}
+
   typedarray@0.0.6: {}
 
   typescript@7.0.2:
@@ -5817,3 +5855,5 @@ snapshots:
     dependencies:
       grammex: 3.1.13
       graphmatch: 1.1.1
+
+  zod@4.4.3: {}

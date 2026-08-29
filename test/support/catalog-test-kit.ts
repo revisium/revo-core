@@ -17,13 +17,12 @@ import type {
   CreateSharedReferenceCommandData,
   CreateStackCommandData,
   CreateStackRefCommandData,
-  UpdatePipelineSourceCommandData,
 } from '../../src/features/playbook-catalog/commands/index.js';
 import { PlaybookCatalogApiService } from '../../src/features/playbook-catalog/playbook-catalog-api.service.js';
 import { PlaybookCatalogModule } from '../../src/features/playbook-catalog/playbook-catalog.module.js';
 import { ProjectModule } from '../../src/features/project/project.module.js';
 import { RevisiumBootstrapModule } from '../../src/features/revisium-bootstrap/revisium-bootstrap.module.js';
-import { taskPipeline } from '../fixtures/task-pipeline.js';
+import { taskPipeline, taskProfile } from '../fixtures/task-pipeline.js';
 
 export type CatalogTree = {
   playbook: CatalogRecord;
@@ -35,7 +34,6 @@ export type CatalogTree = {
   methodDocument: CatalogRecord;
   pipeline: CatalogRecord;
   pipelineRole: CatalogRecord;
-  source: CatalogRecord;
   profile: CatalogRecord;
 };
 
@@ -136,7 +134,7 @@ export class CatalogTestKit {
     return {
       id: input.id ?? this.id('pipeline'),
       playbookId,
-      body: input.body ?? 'Pipeline',
+      pipeline: input.pipeline ?? JSON.stringify(taskPipeline()),
     };
   }
 
@@ -153,17 +151,6 @@ export class CatalogTestKit {
     };
   }
 
-  pipelineSource(
-    pipelineId: string,
-    input: Partial<UpdatePipelineSourceCommandData> = {},
-  ): UpdatePipelineSourceCommandData {
-    return {
-      id: input.id ?? this.id('source'),
-      pipelineId,
-      sourceJson: input.sourceJson ?? JSON.stringify(taskPipeline()),
-    };
-  }
-
   launchProfile(
     pipelineId: string,
     input: Partial<CreateLaunchProfileCommandData> = {},
@@ -172,7 +159,7 @@ export class CatalogTestKit {
       id: input.id ?? this.id('profile'),
       pipelineId,
       status: input.status ?? 'active',
-      bindings: input.bindings ?? [],
+      profile: input.profile ?? JSON.stringify(taskProfile()),
     };
   }
 
@@ -186,7 +173,6 @@ export class CatalogTestKit {
     const methodDocument = await this.api.createMethodDocument(this.methodDocument(playbook.id));
     const pipeline = await this.api.createPipeline(this.pipeline(playbook.id));
     const pipelineRole = await this.api.createPipelineRole(this.pipelineRole(pipeline.id, role.id));
-    const source = await this.api.updatePipelineSource(this.pipelineSource(pipeline.id));
     const profile = await this.api.createLaunchProfile(this.launchProfile(pipeline.id));
 
     return {
@@ -199,7 +185,6 @@ export class CatalogTestKit {
       methodDocument,
       pipeline,
       pipelineRole,
-      source,
       profile,
     };
   }

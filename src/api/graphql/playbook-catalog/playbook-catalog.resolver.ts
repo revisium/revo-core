@@ -15,7 +15,6 @@ import {
   MethodDocumentInput,
   PipelineInput,
   PipelineRoleInput,
-  PipelineSourceInput,
   PlaybookInput,
   RoleInput,
   RoleRefInput,
@@ -38,10 +37,6 @@ import {
   PipelineModel,
   PipelineRoleConnectionModel,
   PipelineRoleModel,
-  PipelineSlotConnectionModel,
-  PipelineSlotModel,
-  PipelineSourceConnectionModel,
-  PipelineSourceModel,
   PlaybookConnectionModel,
   PlaybookModel,
   RoleConnectionModel,
@@ -281,56 +276,6 @@ export class PlaybookCatalogResolver {
     return this.catalog.getPipelineRole(id, this.selector(scope, revisionId));
   }
 
-  @Query(() => PipelineSourceConnectionModel)
-  pipelineSources(
-    @Args('first', { type: () => Int }) first: number,
-    @Args('after', { nullable: true }) after?: string,
-    @Args('pipelineId', { type: () => ID, nullable: true }) pipelineId?: string,
-    @Args('scope', { type: () => CatalogScope, defaultValue: CatalogScope.HEAD })
-    scope: CatalogScope = CatalogScope.HEAD,
-    @Args('revisionId', { type: () => ID, nullable: true }) revisionId?: string,
-  ) {
-    return this.catalog.listPipelineSources({
-      ...this.page(first, after, scope, revisionId),
-      ...(pipelineId === undefined ? {} : { pipelineId }),
-    });
-  }
-
-  @Query(() => PipelineSourceModel)
-  pipelineSource(
-    @Args('id', { type: () => ID }) id: string,
-    @Args('scope', { type: () => CatalogScope, defaultValue: CatalogScope.HEAD })
-    scope: CatalogScope = CatalogScope.HEAD,
-    @Args('revisionId', { type: () => ID, nullable: true }) revisionId?: string,
-  ) {
-    return this.catalog.getPipelineSource(id, this.selector(scope, revisionId));
-  }
-
-  @Query(() => PipelineSlotConnectionModel)
-  pipelineSlots(
-    @Args('first', { type: () => Int }) first: number,
-    @Args('after', { nullable: true }) after?: string,
-    @Args('pipelineId', { type: () => ID, nullable: true }) pipelineId?: string,
-    @Args('scope', { type: () => CatalogScope, defaultValue: CatalogScope.HEAD })
-    scope: CatalogScope = CatalogScope.HEAD,
-    @Args('revisionId', { type: () => ID, nullable: true }) revisionId?: string,
-  ) {
-    return this.catalog.listPipelineSlots({
-      ...this.page(first, after, scope, revisionId),
-      ...(pipelineId === undefined ? {} : { pipelineId }),
-    });
-  }
-
-  @Query(() => PipelineSlotModel)
-  pipelineSlot(
-    @Args('id', { type: () => ID }) id: string,
-    @Args('scope', { type: () => CatalogScope, defaultValue: CatalogScope.HEAD })
-    scope: CatalogScope = CatalogScope.HEAD,
-    @Args('revisionId', { type: () => ID, nullable: true }) revisionId?: string,
-  ) {
-    return this.catalog.getPipelineSlot(id, this.selector(scope, revisionId));
-  }
-
   @Query(() => LaunchProfileConnectionModel)
   launchProfiles(
     @Args('first', { type: () => Int }) first: number,
@@ -384,8 +329,6 @@ export class PlaybookCatalogResolver {
       methodDocuments: snapshot.tables[CatalogTable.methodDocuments],
       pipelines: snapshot.tables[CatalogTable.pipelines],
       pipelineRoles: snapshot.tables[CatalogTable.pipelineRoles],
-      pipelineSources: snapshot.tables[CatalogTable.pipelineSources],
-      pipelineSlots: snapshot.tables[CatalogTable.pipelineSlots],
       launchProfiles: snapshot.tables[CatalogTable.launchProfiles],
     };
   }
@@ -493,14 +436,6 @@ export class PlaybookCatalogResolver {
   @Mutation(() => Boolean)
   deletePipelineRole(@Args('id', { type: () => ID }) id: string) {
     return this.catalog.deletePipelineRole(id);
-  }
-  @Mutation(() => PipelineSourceModel)
-  updatePipelineSource(@Args('data') data: PipelineSourceInput) {
-    return this.catalog.updatePipelineSource(data);
-  }
-  @Mutation(() => Boolean)
-  deletePipelineSource(@Args('id', { type: () => ID }) id: string) {
-    return this.catalog.deletePipelineSource(id);
   }
   @Mutation(() => LaunchProfileModel)
   createLaunchProfile(@Args('data') data: LaunchProfileInput) {

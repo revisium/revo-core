@@ -13,7 +13,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 
 import { AppModule } from '../src/app.module.js';
 import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
-import { taskPipeline } from './fixtures/task-pipeline.js';
+import { taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
 
 describe('GraphQL API', () => {
   let app: INestApplication;
@@ -46,7 +46,8 @@ describe('GraphQL API', () => {
 
   test('starts and reads a durable run', async () => {
     const pipeline = taskPipeline();
-    const input = { transport: 'graphql' };
+    const profile = taskProfile();
+    const input = {};
     const started = await request(app.getHttpServer())
       .post('/graphql')
       .send({
@@ -55,7 +56,7 @@ describe('GraphQL API', () => {
             startRun(data: $data) { runId }
           }
         `,
-        variables: { data: { pipeline, input } },
+        variables: { data: { pipeline, profile, input } },
       })
       .expect(200);
 
@@ -70,7 +71,7 @@ describe('GraphQL API', () => {
           .send({
             query: `
               query Run($id: ID!) {
-                run(id: $id) { id status executionPlan input }
+                run(id: $id) { runId status terminal }
               }
             `,
             variables: { id: runId },
@@ -81,13 +82,13 @@ describe('GraphQL API', () => {
       })
       .toBe('succeeded');
 
-    expect(snapshot).toMatchObject({ id: runId, status: 'succeeded', input });
+    expect(snapshot).toMatchObject({ runId, status: 'succeeded' });
   });
 
   test('returns null for an unknown run', async () => {
     const response = await request(app.getHttpServer())
       .post('/graphql')
-      .send({ query: 'query { run(id: "missing-run") { id } }' })
+      .send({ query: 'query { run(id: "missing-run") { runId } }' })
       .expect(200);
 
     expect(response.body).toEqual({ data: { run: null } });

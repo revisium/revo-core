@@ -33,7 +33,7 @@ export class GetCatalogSnapshotHandler implements IQueryHandler<
       CATALOG_TABLES.map(async (tableId): Promise<[CatalogTable, CatalogRecord[]]> => [
         tableId,
         (await this.readTable(revisionId, tableId)).map((row) =>
-          this.drafts.toRecord(row, revisionId, isHead, tableId),
+          this.drafts.toRecord(row, revisionId, isHead),
         ),
       ]),
     );

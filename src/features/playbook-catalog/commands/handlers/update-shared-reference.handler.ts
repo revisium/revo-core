@@ -34,6 +34,6 @@ export class UpdateSharedReferenceHandler implements ICommandHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(updated.row, revisionId, false, CatalogTable.sharedReferences);
+    return this.drafts.toRecord(updated.row, revisionId, false);
   }
 }

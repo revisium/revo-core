@@ -9,25 +9,8 @@ import {
   toCatalogChanges,
 } from '../src/features/playbook-catalog/domain/catalog-change.js';
 import { parseCatalogImport } from '../src/features/playbook-catalog/domain/catalog-import.js';
-import { derivePipelineSlotId } from '../src/features/playbook-catalog/domain/pipeline-source.js';
 
 describe('Playbook Catalog domain rules', () => {
-  test('derives a stable bounded slot row id from the full slot identity', () => {
-    const first = derivePipelineSlotId(
-      'feature-development',
-      'pipelines/feature.json',
-      'developer',
-    );
-    expect(first).toBe(
-      derivePipelineSlotId('feature-development', 'pipelines/feature.json', 'developer'),
-    );
-    expect(first).not.toBe(
-      derivePipelineSlotId('feature-development', 'pipelines/other.json', 'developer'),
-    );
-    expect(first).toMatch(/^[a-z0-9_-]{1,64}$/);
-    expect(derivePipelineSlotId('pipe', 'source', '!!!')).toMatch(/^slot-[0-9a-f]{12}$/);
-  });
-
   test('parses a catalog import and rejects malformed payloads', () => {
     expect(() => parseCatalogImport(null)).toThrow(CatalogError.invalidImport);
     expect(() => parseCatalogImport({ version: 1 })).toThrow(CatalogError.invalidImport);

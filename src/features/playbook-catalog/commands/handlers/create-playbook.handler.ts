@@ -27,6 +27,6 @@ export class CreatePlaybookHandler implements ICommandHandler<
       data: { name: data.name },
     });
 
-    return this.drafts.toRecord(created.row, revisionId, false, CatalogTable.playbooks);
+    return this.drafts.toRecord(created.row, revisionId, false);
   }
 }

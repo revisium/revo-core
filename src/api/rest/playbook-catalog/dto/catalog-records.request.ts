@@ -1,6 +1,6 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsIn, IsNumber, IsString, ValidateNested } from 'class-validator';
+import { IsIn, IsNumber, IsString, ValidateNested } from 'class-validator';
 
 export class PlaybookRequest {
   @ApiProperty()
@@ -120,7 +120,7 @@ export class PipelineRequest {
 
   @ApiProperty()
   @IsString()
-  body: string;
+  pipeline: string;
 }
 export class PipelineUpdateRequest extends OmitType(PipelineRequest, ['id'] as const) {}
 
@@ -142,59 +142,6 @@ export class PipelineRoleRequest {
   membership: 'required' | 'optional' | 'alternative';
 }
 
-export class PipelineSourceRequest {
-  @ApiProperty()
-  @IsString()
-  id: string;
-
-  @ApiProperty()
-  @IsString()
-  pipelineId: string;
-
-  @ApiProperty()
-  @IsString()
-  sourceJson: string;
-}
-export class PipelineSourceUpdateRequest extends OmitType(PipelineSourceRequest, ['id'] as const) {}
-
-export class BindingParticipantRequest {
-  @ApiProperty()
-  @IsString()
-  bindingKey: string;
-
-  @ApiProperty()
-  @IsString()
-  runnerId: string;
-
-  @ApiProperty()
-  @IsString()
-  modelLevel: string;
-
-  @ApiProperty()
-  @IsString()
-  permissionMode: string;
-
-  @ApiProperty()
-  @IsNumber()
-  timeoutMs: number;
-}
-
-export class LaunchBindingRequest {
-  @ApiProperty()
-  @IsString()
-  slotId: string;
-
-  @ApiProperty({ enum: ['single', 'consensus'] })
-  @IsIn(['single', 'consensus'])
-  strategy: 'single' | 'consensus';
-
-  @ApiProperty({ type: [BindingParticipantRequest] })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => BindingParticipantRequest)
-  participants: BindingParticipantRequest[];
-}
-
 export class LaunchProfileRequest {
   @ApiProperty()
   @IsString()
@@ -208,11 +155,9 @@ export class LaunchProfileRequest {
   @IsIn(['active', 'deprecated'])
   status: 'active' | 'deprecated';
 
-  @ApiProperty({ type: [LaunchBindingRequest] })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => LaunchBindingRequest)
-  bindings: LaunchBindingRequest[];
+  @ApiProperty()
+  @IsString()
+  profile: string;
 }
 export class LaunchProfileUpdateRequest extends OmitType(LaunchProfileRequest, ['id'] as const) {}
 
@@ -241,8 +186,6 @@ export class CatalogImportTablesRequest {
   stack_refs?: StackRefRequest[];
   @ApiProperty({ type: [PipelineRoleRequest], required: false })
   pipeline_roles?: PipelineRoleRequest[];
-  @ApiProperty({ type: [PipelineSourceRequest], required: false })
-  pipeline_sources?: PipelineSourceRequest[];
   @ApiProperty({ type: [LaunchProfileRequest], required: false })
   launch_profiles?: LaunchProfileRequest[];
 }

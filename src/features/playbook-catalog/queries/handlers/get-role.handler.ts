@@ -25,6 +25,6 @@ export class GetRoleHandler implements IQueryHandler<GetRoleQuery, GetRoleQueryR
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(row, revisionId, isHead, CatalogTable.roles);
+    return this.drafts.toRecord(row, revisionId, isHead);
   }
 }

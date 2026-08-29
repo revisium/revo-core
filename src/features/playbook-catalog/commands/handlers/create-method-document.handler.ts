@@ -33,6 +33,6 @@ export class CreateMethodDocumentHandler implements ICommandHandler<
       },
     });
 
-    return this.drafts.toRecord(created.row, revisionId, false, CatalogTable.methodDocuments);
+    return this.drafts.toRecord(created.row, revisionId, false);
   }
 }

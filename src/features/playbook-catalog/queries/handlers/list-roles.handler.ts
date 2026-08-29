@@ -28,7 +28,7 @@ export class ListRolesHandler implements IQueryHandler<ListRolesQuery, ListRoles
       ...page,
       edges: page.edges.map((edge) => ({
         cursor: edge.cursor,
-        node: this.drafts.toRecord(edge.node, revisionId, isHead, CatalogTable.roles),
+        node: this.drafts.toRecord(edge.node, revisionId, isHead),
       })),
     };
   }

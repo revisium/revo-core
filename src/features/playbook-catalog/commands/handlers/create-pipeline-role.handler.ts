@@ -34,7 +34,7 @@ export class CreatePipelineRoleHandler implements ICommandHandler<
       },
     });
 
-    return this.drafts.toRecord(created.row, revisionId, false, CatalogTable.pipelineRoles);
+    return this.drafts.toRecord(created.row, revisionId, false);
   }
 
   private async assertSamePlaybook(

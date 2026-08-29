@@ -3,7 +3,7 @@ import type { CatalogRecord } from '../../catalog.types.js';
 export type UpdatePipelineCommandData = {
   readonly id: string;
   readonly playbookId: string;
-  readonly body: string;
+  readonly pipeline: string;
 };
 
 export type UpdatePipelineCommandReturnType = CatalogRecord;

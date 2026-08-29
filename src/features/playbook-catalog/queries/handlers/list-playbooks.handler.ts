@@ -31,7 +31,7 @@ export class ListPlaybooksHandler implements IQueryHandler<
       ...page,
       edges: page.edges.map((edge) => ({
         cursor: edge.cursor,
-        node: this.drafts.toRecord(edge.node, revisionId, isHead, CatalogTable.playbooks),
+        node: this.drafts.toRecord(edge.node, revisionId, isHead),
       })),
     };
   }

@@ -31,6 +31,6 @@ export class GetMethodDocumentHandler implements IQueryHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(row, revisionId, isHead, CatalogTable.methodDocuments);
+    return this.drafts.toRecord(row, revisionId, isHead);
   }
 }
