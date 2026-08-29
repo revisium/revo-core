@@ -6,7 +6,11 @@ import { isCatalogRecordId } from '../../../playbook-catalog/contracts/catalog-r
 import { PlaybookCatalogApiService } from '../../../playbook-catalog/playbook-catalog-api.service.js';
 import { RevoRunService } from '../../revo-run.service.js';
 import { rethrowPublicRunError } from '../../run-manager-error.mapper.js';
-import { StartRunCommand, type StartRunCommandReturnType } from '../impl/start-run.command.js';
+import {
+  StartRunCommand,
+  type StartRunCommandData,
+  type StartRunCommandReturnType,
+} from '../impl/start-run.command.js';
 
 @CommandHandler(StartRunCommand)
 export class StartRunHandler implements ICommandHandler<
@@ -38,31 +42,8 @@ export class StartRunHandler implements ICommandHandler<
       return this.invalidProfileSelector('required');
     }
 
-    let pipeline: unknown;
-    if (hasPipelineId) {
-      if (!isCatalogRecordId(data.pipelineId)) {
-        return this.invalidPipelineSelector('invalid_id');
-      }
-      pipeline = (await this.catalog.getPipeline(data.pipelineId)).pipeline;
-    } else {
-      if (data.pipeline === undefined) {
-        return this.invalidPipelineSelector('required');
-      }
-      pipeline = data.pipeline;
-    }
-
-    let profile: unknown;
-    if (hasProfileId) {
-      if (!isCatalogRecordId(data.profileId)) {
-        return this.invalidProfileSelector('invalid_id');
-      }
-      profile = (await this.catalog.getLaunchProfile(data.profileId)).profile;
-    } else {
-      if (data.profile === undefined) {
-        return this.invalidProfileSelector('required');
-      }
-      profile = data.profile;
-    }
+    const pipeline = await this.selectedPipeline(data, hasPipelineId);
+    const profile = await this.selectedProfile(data, hasProfileId);
 
     try {
       return await this.runs.startRun({
@@ -74,6 +55,44 @@ export class StartRunHandler implements ICommandHandler<
     } catch (error) {
       return rethrowPublicRunError(error);
     }
+  }
+
+  private async selectedPipeline(
+    data: StartRunCommandData,
+    hasPipelineId: boolean,
+  ): Promise<unknown> {
+    if (hasPipelineId) {
+      if (!isCatalogRecordId(data.pipelineId)) {
+        return this.invalidPipelineSelector('invalid_id');
+      }
+
+      return (await this.catalog.getPipeline(data.pipelineId)).pipeline;
+    }
+
+    if (data.pipeline === undefined) {
+      return this.invalidPipelineSelector('required');
+    }
+
+    return data.pipeline;
+  }
+
+  private async selectedProfile(
+    data: StartRunCommandData,
+    hasProfileId: boolean,
+  ): Promise<unknown> {
+    if (hasProfileId) {
+      if (!isCatalogRecordId(data.profileId)) {
+        return this.invalidProfileSelector('invalid_id');
+      }
+
+      return (await this.catalog.getLaunchProfile(data.profileId)).profile;
+    }
+
+    if (data.profile === undefined) {
+      return this.invalidProfileSelector('required');
+    }
+
+    return data.profile;
   }
 
   private invalidPipelineSelector(reason: string): never {
