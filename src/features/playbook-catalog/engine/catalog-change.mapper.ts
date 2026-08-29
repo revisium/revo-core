@@ -1,11 +1,8 @@
 import type { EngineApiService } from '@revisium/engine';
 
-import type { CatalogChangeEntry, CatalogChanges } from '../catalog.types.js';
-import {
-  CATALOG_TABLES,
-  CatalogChangeType,
-  type CatalogTable,
-} from '../constants/catalog.constants.js';
+import { CATALOG_TABLES, type CatalogTable } from '../contracts/catalog-table.js';
+import { CatalogChangeType } from '../contracts/catalog.enums.js';
+import type { CatalogChangeEntry, CatalogChanges } from '../contracts/catalog.types.js';
 
 export type EngineRowChange = Awaited<
   ReturnType<EngineApiService['rowChanges']>

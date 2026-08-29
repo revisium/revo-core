@@ -1,18 +1,18 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService, type Row } from '@revisium/engine';
 
-import { CatalogDraftService } from '../../catalog-draft.service.js';
-import type { CatalogRecord } from '../../catalog.types.js';
-import {
-  CATALOG_INTERNAL_PAGE_SIZE,
-  CATALOG_TABLES,
-  CatalogScope,
-  CatalogTable,
-} from '../../constants/catalog.constants.js';
+import { CATALOG_TABLES, CatalogTable } from '../../contracts/catalog-table.js';
+import { CatalogScope } from '../../contracts/catalog.enums.js';
+import type { CatalogRecord, CatalogSnapshotTables } from '../../contracts/catalog.types.js';
+import { decodeCatalogRecordData } from '../../engine/catalog-record.codec.js';
+import { toCatalogRecord } from '../../engine/catalog-record.mapper.js';
+import { CatalogRevisionService } from '../../engine/catalog-revision.service.js';
 import {
   GetCatalogSnapshotQuery,
   type GetCatalogSnapshotQueryReturnType,
 } from '../impl/get-catalog-snapshot.query.js';
+
+const SNAPSHOT_PAGE_SIZE = 1000;
 
 @QueryHandler(GetCatalogSnapshotQuery)
 export class GetCatalogSnapshotHandler implements IQueryHandler<
@@ -20,20 +20,20 @@ export class GetCatalogSnapshotHandler implements IQueryHandler<
   GetCatalogSnapshotQueryReturnType
 > {
   constructor(
-    private readonly drafts: CatalogDraftService,
+    private readonly revisions: CatalogRevisionService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({ data }: GetCatalogSnapshotQuery): Promise<GetCatalogSnapshotQueryReturnType> {
-    const { revisionId, isHead } = await this.drafts.resolveRevision({
+    const { revisionId, isHead } = await this.revisions.resolveRevision({
       scope: CatalogScope.REVISION,
       revisionId: data.revisionId,
     });
     const entries = await Promise.all(
-      CATALOG_TABLES.map(async (tableId): Promise<[CatalogTable, CatalogRecord[]]> => [
+      CATALOG_TABLES.map(async (tableId): Promise<[CatalogTable, CatalogRecord<object>[]]> => [
         tableId,
         (await this.readTable(revisionId, tableId)).map((row) =>
-          this.drafts.toRecord(row, revisionId, isHead, tableId),
+          toCatalogRecord(row, revisionId, isHead, decodeCatalogRecordData(tableId, row.data)),
         ),
       ]),
     );
@@ -41,7 +41,7 @@ export class GetCatalogSnapshotHandler implements IQueryHandler<
     return {
       revisionId,
       isHead,
-      tables: Object.fromEntries(entries) as Record<CatalogTable, CatalogRecord[]>,
+      tables: Object.fromEntries(entries) as CatalogSnapshotTables,
     };
   }
 
@@ -53,7 +53,7 @@ export class GetCatalogSnapshotHandler implements IQueryHandler<
       const page = await this.engine.getRows({
         revisionId,
         tableId,
-        first: CATALOG_INTERNAL_PAGE_SIZE,
+        first: SNAPSHOT_PAGE_SIZE,
         ...(after === undefined ? {} : { after }),
       });
       rows.push(...page.edges.map(({ node }) => node));

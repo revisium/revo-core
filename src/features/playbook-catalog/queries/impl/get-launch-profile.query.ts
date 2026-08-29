@@ -1,10 +1,10 @@
-import type { CatalogReadSelector, CatalogRecord } from '../../catalog.types.js';
+import type { CatalogReadSelector, LaunchProfileRecord } from '../../contracts/catalog.types.js';
 
 export type GetLaunchProfileQueryData = CatalogReadSelector & {
   readonly id: string;
 };
 
-export type GetLaunchProfileQueryReturnType = CatalogRecord;
+export type GetLaunchProfileQueryReturnType = LaunchProfileRecord;
 
 export class GetLaunchProfileQuery {
   constructor(readonly data: GetLaunchProfileQueryData) {}

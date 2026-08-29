@@ -7,7 +7,7 @@ import { EngineApiService, HashService, SystemTablesService } from '@revisium/en
 import {
   SYSTEM_TABLE_IDS,
   type SystemTableValue,
-} from '../../../revisium-bootstrap/revisium-bootstrap.constants.js';
+} from '../../../../infrastructure/system-tables.constants.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import {
   ApplyContentModelCommand,

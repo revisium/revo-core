@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
-import type { CatalogPageData, CatalogReadSelector } from './catalog.types.js';
 import {
   BootstrapCatalogCommand,
   type BootstrapCatalogCommandReturnType,
@@ -45,8 +44,6 @@ import {
   type DeletePipelineCommandReturnType,
   DeletePipelineRoleCommand,
   type DeletePipelineRoleCommandReturnType,
-  DeletePipelineSourceCommand,
-  type DeletePipelineSourceCommandReturnType,
   DeletePlaybookCommand,
   type DeletePlaybookCommandReturnType,
   DeleteRoleCommand,
@@ -72,9 +69,6 @@ import {
   UpdatePipelineCommand,
   type UpdatePipelineCommandData,
   type UpdatePipelineCommandReturnType,
-  UpdatePipelineSourceCommand,
-  type UpdatePipelineSourceCommandData,
-  type UpdatePipelineSourceCommandReturnType,
   UpdatePlaybookCommand,
   type UpdatePlaybookCommandData,
   type UpdatePlaybookCommandReturnType,
@@ -94,6 +88,7 @@ import {
   type UpdateStackRefCommandData,
   type UpdateStackRefCommandReturnType,
 } from './commands/index.js';
+import type { CatalogPageData, CatalogReadSelector } from './contracts/catalog.types.js';
 import {
   GetCatalogSnapshotQuery,
   type GetCatalogSnapshotQueryReturnType,
@@ -107,10 +102,6 @@ import {
   type GetPipelineQueryReturnType,
   GetPipelineRoleQuery,
   type GetPipelineRoleQueryReturnType,
-  GetPipelineSlotQuery,
-  type GetPipelineSlotQueryReturnType,
-  GetPipelineSourceQuery,
-  type GetPipelineSourceQueryReturnType,
   GetPlaybookQuery,
   type GetPlaybookQueryReturnType,
   GetRoleQuery,
@@ -134,10 +125,6 @@ import {
   type ListPipelineRolesQueryReturnType,
   ListPipelinesQuery,
   type ListPipelinesQueryReturnType,
-  ListPipelineSlotsQuery,
-  type ListPipelineSlotsQueryReturnType,
-  ListPipelineSourcesQuery,
-  type ListPipelineSourcesQueryReturnType,
   ListPlaybooksQuery,
   type ListPlaybooksQueryReturnType,
   ListRoleRefsQuery,
@@ -457,54 +444,6 @@ export class PlaybookCatalogApiService {
   deletePipelineRole(id: string): Promise<DeletePipelineRoleCommandReturnType> {
     return this.commands.execute<DeletePipelineRoleCommand, DeletePipelineRoleCommandReturnType>(
       new DeletePipelineRoleCommand({ id }),
-    );
-  }
-
-  getPipelineSource(
-    id: string,
-    selector: CatalogReadSelector = {},
-  ): Promise<GetPipelineSourceQueryReturnType> {
-    return this.queries.execute<GetPipelineSourceQuery, GetPipelineSourceQueryReturnType>(
-      new GetPipelineSourceQuery({ id, ...selector }),
-    );
-  }
-
-  listPipelineSources(
-    data: ParentPageData<'pipelineId'>,
-  ): Promise<ListPipelineSourcesQueryReturnType> {
-    return this.queries.execute<ListPipelineSourcesQuery, ListPipelineSourcesQueryReturnType>(
-      new ListPipelineSourcesQuery(data),
-    );
-  }
-
-  updatePipelineSource(
-    data: UpdatePipelineSourceCommandData,
-  ): Promise<UpdatePipelineSourceCommandReturnType> {
-    return this.commands.execute<
-      UpdatePipelineSourceCommand,
-      UpdatePipelineSourceCommandReturnType
-    >(new UpdatePipelineSourceCommand(data));
-  }
-
-  deletePipelineSource(id: string): Promise<DeletePipelineSourceCommandReturnType> {
-    return this.commands.execute<
-      DeletePipelineSourceCommand,
-      DeletePipelineSourceCommandReturnType
-    >(new DeletePipelineSourceCommand({ id }));
-  }
-
-  getPipelineSlot(
-    id: string,
-    selector: CatalogReadSelector = {},
-  ): Promise<GetPipelineSlotQueryReturnType> {
-    return this.queries.execute<GetPipelineSlotQuery, GetPipelineSlotQueryReturnType>(
-      new GetPipelineSlotQuery({ id, ...selector }),
-    );
-  }
-
-  listPipelineSlots(data: ParentPageData<'pipelineId'>): Promise<ListPipelineSlotsQueryReturnType> {
-    return this.queries.execute<ListPipelineSlotsQuery, ListPipelineSlotsQueryReturnType>(
-      new ListPipelineSlotsQuery(data),
     );
   }
 

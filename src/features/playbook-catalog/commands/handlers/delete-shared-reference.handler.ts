@@ -1,8 +1,8 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { CatalogDraftService } from '../../catalog-draft.service.js';
-import { CatalogTable } from '../../constants/catalog.constants.js';
+import { CatalogTable } from '../../contracts/catalog-table.js';
+import { CatalogRevisionService } from '../../engine/catalog-revision.service.js';
 import {
   DeleteSharedReferenceCommand,
   type DeleteSharedReferenceCommandReturnType,
@@ -14,14 +14,14 @@ export class DeleteSharedReferenceHandler implements ICommandHandler<
   DeleteSharedReferenceCommandReturnType
 > {
   constructor(
-    private readonly drafts: CatalogDraftService,
+    private readonly revisions: CatalogRevisionService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({
     data,
   }: DeleteSharedReferenceCommand): Promise<DeleteSharedReferenceCommandReturnType> {
-    const revisionId = await this.drafts.getDraftRevisionId();
+    const revisionId = await this.revisions.getDraftRevisionId();
     await this.engine.removeRow({
       revisionId,
       tableId: CatalogTable.sharedReferences,

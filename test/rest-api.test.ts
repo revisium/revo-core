@@ -9,7 +9,7 @@ import packageJson from '../package.json' with { type: 'json' };
 import { initSwagger } from '../src/api/rest/swagger.js';
 import { AppModule } from '../src/app.module.js';
 import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
-import { invalidPipeline, taskPipeline } from './fixtures/task-pipeline.js';
+import { invalidPipeline, taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
 
 describe('REST API', () => {
   let app: INestApplication;
@@ -40,10 +40,11 @@ describe('REST API', () => {
 
   test('starts and reads a durable run', async () => {
     const pipeline = taskPipeline();
-    const input = { transport: 'rest' };
+    const profile = taskProfile();
+    const input = {};
     const started = await request(app.getHttpServer())
       .post('/api/runs')
-      .send({ pipeline, input })
+      .send({ pipeline, profile, input })
       .expect(201);
 
     expect(started.body.runId).toEqual(expect.any(String));
@@ -59,7 +60,7 @@ describe('REST API', () => {
       })
       .toBe('succeeded');
 
-    expect(snapshot).toMatchObject({ id: runId, input });
+    expect(snapshot).toMatchObject({ runId, status: 'succeeded' });
   });
 
   test('returns not found for an unknown run', async () => {
@@ -71,10 +72,15 @@ describe('REST API', () => {
   test('rejects an invalid pipeline', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/runs')
-      .send({ pipeline: invalidPipeline(), input: null })
-      .expect(400);
+      .send({ pipeline: invalidPipeline(), profile: taskProfile(), input: null })
+      .expect(422);
 
-    expect(response.body).toMatchObject({ message: 'Pipeline definition is invalid.' });
+    expect(response.body).toMatchObject({
+      statusCode: 422,
+      code: 'pipeline_compilation_failed',
+      message: 'Pipeline compilation failed.',
+      path: null,
+    });
   });
 
   test('creates, lists, gets, and deletes a USER project', async () => {

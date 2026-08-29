@@ -9,14 +9,13 @@ import {
 } from '@nestjs/common';
 import { EngineApiService, SystemTablesService } from '@revisium/engine';
 
-import { CatalogTable } from '../playbook-catalog/constants/catalog.constants.js';
-import { PlaybookCatalogApiService } from '../playbook-catalog/playbook-catalog-api.service.js';
-import { ProjectApiService } from '../project/project-api.service.js';
 import {
-  SYSTEM_PLAYBOOKS_PROJECT,
   SYSTEM_TABLE_IDS,
   type SystemTableValue,
-} from './revisium-bootstrap.constants.js';
+} from '../../infrastructure/system-tables.constants.js';
+import { PlaybookCatalogApiService } from '../playbook-catalog/playbook-catalog-api.service.js';
+import { ProjectApiService } from '../project/project-api.service.js';
+import { SYSTEM_PLAYBOOKS_PROJECT } from './revisium-bootstrap.constants.js';
 
 const SEED_URL = new URL('../../../resources/playbook-catalog/seed.json', import.meta.url);
 
@@ -62,9 +61,7 @@ export class RevisiumBootstrapService implements OnApplicationBootstrap {
       return;
     }
 
-    const head = await this.engine.getHeadRevision(branch.id);
-
-    if ((await this.headHasNoPlaybooks(head.id)) && (await this.importSeed())) {
+    if ((await this.headHasNoPlaybooks()) && (await this.importSeed())) {
       await this.catalog.commitCatalog('Bootstrap Playbook Catalog');
     }
   }
@@ -76,13 +73,9 @@ export class RevisiumBootstrapService implements OnApplicationBootstrap {
     }
   }
 
-  private async headHasNoPlaybooks(headRevisionId: string): Promise<boolean> {
+  private async headHasNoPlaybooks(): Promise<boolean> {
     try {
-      const playbooks = await this.engine.getRows({
-        revisionId: headRevisionId,
-        tableId: CatalogTable.playbooks,
-        first: 1,
-      });
+      const playbooks = await this.catalog.listPlaybooks({ first: 1 });
 
       return playbooks.totalCount === 0;
     } catch (error) {

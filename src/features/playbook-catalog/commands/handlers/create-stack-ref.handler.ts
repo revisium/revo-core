@@ -1,8 +1,9 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { CatalogDraftService } from '../../catalog-draft.service.js';
-import { CatalogTable } from '../../constants/catalog.constants.js';
+import { CatalogTable } from '../../contracts/catalog-table.js';
+import { toCatalogRecord } from '../../engine/catalog-record.mapper.js';
+import { CatalogRevisionService } from '../../engine/catalog-revision.service.js';
 import {
   CreateStackRefCommand,
   type CreateStackRefCommandReturnType,
@@ -14,12 +15,12 @@ export class CreateStackRefHandler implements ICommandHandler<
   CreateStackRefCommandReturnType
 > {
   constructor(
-    private readonly drafts: CatalogDraftService,
+    private readonly revisions: CatalogRevisionService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({ data }: CreateStackRefCommand): Promise<CreateStackRefCommandReturnType> {
-    const revisionId = await this.drafts.getDraftRevisionId();
+    const revisionId = await this.revisions.getDraftRevisionId();
     const created = await this.engine.createRow({
       revisionId,
       tableId: CatalogTable.stackRefs,
@@ -27,6 +28,6 @@ export class CreateStackRefHandler implements ICommandHandler<
       data: { stackId: data.stackId, body: data.body },
     });
 
-    return this.drafts.toRecord(created.row, revisionId, false, CatalogTable.stackRefs);
+    return toCatalogRecord(created.row, revisionId, false);
   }
 }

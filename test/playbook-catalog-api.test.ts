@@ -2,10 +2,18 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 
 import {
-  CatalogError,
   CatalogScope,
-} from '../src/features/playbook-catalog/constants/catalog.constants.js';
+  LaunchProfileStatus,
+} from '../src/features/playbook-catalog/contracts/catalog.enums.js';
+import { CatalogError } from '../src/features/playbook-catalog/contracts/catalog.errors.js';
+import { taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
 import { CatalogTestKit } from './support/catalog-test-kit.js';
+
+function withToJSON<Document extends object>(document: Document, toJSON: () => unknown): Document {
+  Object.defineProperty(document, 'toJSON', { value: toJSON });
+
+  return document;
+}
 
 describe('Playbook Catalog API', () => {
   let catalog: CatalogTestKit;
@@ -62,7 +70,8 @@ describe('Playbook Catalog API', () => {
 
   test('creates, reads, updates, and deletes every writable catalog record', async () => {
     const tree = await catalog.tree();
-    expect(tree.pipeline.launchability).toBe('Not launchable');
+    const updatedPipeline = taskPipeline();
+    const updatedProfile = taskProfile();
 
     await catalog.api.updatePlaybook({ id: tree.playbook.id, name: 'Updated playbook' });
     await catalog.api.updateRole({
@@ -99,18 +108,13 @@ describe('Playbook Catalog API', () => {
     await catalog.api.updatePipeline({
       id: tree.pipeline.id,
       playbookId: tree.playbook.id,
-      body: 'Updated pipeline',
-    });
-    await catalog.api.updatePipelineSource({
-      id: tree.source.id,
-      pipelineId: tree.pipeline.id,
-      sourceJson: tree.source.sourceJson as string,
+      pipeline: updatedPipeline,
     });
     await catalog.api.updateLaunchProfile({
       id: tree.profile.id,
       pipelineId: tree.pipeline.id,
-      status: 'deprecated',
-      bindings: [],
+      status: LaunchProfileStatus.deprecated,
+      profile: updatedProfile,
     });
 
     const draft = { scope: CatalogScope.DRAFT };
@@ -136,16 +140,14 @@ describe('Playbook Catalog API', () => {
       catalog.api.getMethodDocument(tree.methodDocument.id, draft),
     ).resolves.toMatchObject({ kind: 'template' });
     await expect(catalog.api.getPipeline(tree.pipeline.id, draft)).resolves.toMatchObject({
-      launchability: 'Not launchable',
+      pipeline: updatedPipeline,
     });
     await expect(catalog.api.getPipelineRole(tree.pipelineRole.id, draft)).resolves.toMatchObject({
       id: tree.pipelineRole.id,
     });
-    await expect(catalog.api.getPipelineSource(tree.source.id, draft)).resolves.toMatchObject({
-      id: tree.source.id,
-    });
     await expect(catalog.api.getLaunchProfile(tree.profile.id, draft)).resolves.toMatchObject({
       status: 'deprecated',
+      profile: updatedProfile,
     });
 
     await expect(
@@ -211,7 +213,12 @@ describe('Playbook Catalog API', () => {
     ).resolves.toEqual(
       expect.objectContaining({
         edges: expect.arrayContaining([
-          expect.objectContaining({ node: expect.objectContaining({ id: tree.pipeline.id }) }),
+          expect.objectContaining({
+            node: expect.objectContaining({
+              id: tree.pipeline.id,
+              pipeline: updatedPipeline,
+            }),
+          }),
         ]),
       }),
     );
@@ -227,29 +234,21 @@ describe('Playbook Catalog API', () => {
       }),
     );
     await expect(
-      catalog.api.listPipelineSources({ first: 10, pipelineId: tree.pipeline.id, ...draft }),
-    ).resolves.toEqual(
-      expect.objectContaining({
-        edges: expect.arrayContaining([
-          expect.objectContaining({ node: expect.objectContaining({ id: tree.source.id }) }),
-        ]),
-      }),
-    );
-    await expect(
-      catalog.api.listPipelineSlots({ first: 10, pipelineId: tree.pipeline.id, ...draft }),
-    ).resolves.toMatchObject({ edges: expect.any(Array) });
-    await expect(
       catalog.api.listLaunchProfiles({ first: 10, pipelineId: tree.pipeline.id, ...draft }),
     ).resolves.toEqual(
       expect.objectContaining({
         edges: expect.arrayContaining([
-          expect.objectContaining({ node: expect.objectContaining({ id: tree.profile.id }) }),
+          expect.objectContaining({
+            node: expect.objectContaining({
+              id: tree.profile.id,
+              profile: updatedProfile,
+            }),
+          }),
         ]),
       }),
     );
 
     await catalog.api.deleteLaunchProfile(tree.profile.id);
-    await catalog.api.deletePipelineSource(tree.source.id);
     await catalog.api.deletePipelineRole(tree.pipelineRole.id);
     await catalog.api.deleteMethodDocument(tree.methodDocument.id);
     await catalog.api.deleteStackRef(tree.stackRef.id);
@@ -307,9 +306,6 @@ describe('Playbook Catalog API', () => {
       catalog.api.getPlaybook(catalog.id('missing'), { scope: CatalogScope.DRAFT }),
     ).rejects.toBeInstanceOf(NotFoundException);
     await expect(
-      catalog.api.getPipelineSlot(catalog.id('missing_slot'), { scope: CatalogScope.DRAFT }),
-    ).rejects.toBeInstanceOf(NotFoundException);
-    await expect(
       catalog.api.getPlaybook(playbook.id, { scope: CatalogScope.HEAD, revisionId: 'rev' }),
     ).rejects.toBeInstanceOf(BadRequestException);
     await expect(
@@ -326,15 +322,31 @@ describe('Playbook Catalog API', () => {
 
   test('imports into Draft, then updates the same rows on a second import', async () => {
     const playbook = catalog.playbook({ name: 'Imported' });
+    const pipeline = catalog.pipeline(playbook.id);
+    const profile = catalog.launchProfile(pipeline.id);
     const imported = await catalog.api.importCatalog({
       version: 1,
-      tables: { playbooks: [playbook] },
+      tables: {
+        playbooks: [playbook],
+        pipelines: [pipeline],
+        launch_profiles: [profile],
+      },
     });
     expect(imported.tables.some((table) => table.created > 0)).toBe(true);
+    await expect(
+      catalog.api.getPipeline(pipeline.id, { scope: CatalogScope.DRAFT }),
+    ).resolves.toMatchObject({ pipeline: pipeline.pipeline });
+    await expect(
+      catalog.api.getLaunchProfile(profile.id, { scope: CatalogScope.DRAFT }),
+    ).resolves.toMatchObject({ profile: profile.profile });
 
     const reimported = await catalog.api.importCatalog({
       version: 1,
-      tables: { playbooks: [{ ...playbook, name: 'Imported again' }] },
+      tables: {
+        playbooks: [{ ...playbook, name: 'Imported again' }],
+        pipelines: [pipeline],
+        launch_profiles: [profile],
+      },
     });
     expect(reimported.tables.some((table) => table.updated > 0)).toBe(true);
     await expect(
@@ -346,19 +358,171 @@ describe('Playbook Catalog API', () => {
     });
   });
 
+  test('rejects create documents whose toJSON result is not an object before writing rows', async () => {
+    const playbook = await catalog.api.createPlaybook(catalog.playbook());
+    const pipeline = catalog.pipeline(playbook.id, {
+      pipeline: withToJSON(taskPipeline(), () => 'scalar'),
+    });
+    const validPipeline = await catalog.api.createPipeline(catalog.pipeline(playbook.id));
+    const profile = catalog.launchProfile(validPipeline.id, {
+      profile: withToJSON(taskProfile(), () => undefined),
+    });
+
+    await expect(catalog.api.createPipeline(pipeline)).rejects.toMatchObject({
+      response: {
+        statusCode: 400,
+        code: 'catalog_definition_invalid',
+        path: '/pipeline',
+        details: { reason: 'object_required' },
+      },
+    });
+    await expect(catalog.api.createLaunchProfile(profile)).rejects.toMatchObject({
+      response: {
+        statusCode: 400,
+        code: 'catalog_definition_invalid',
+        path: '/profile',
+        details: { reason: 'object_required' },
+      },
+    });
+
+    await expect(
+      catalog.api.getPipeline(pipeline.id, { scope: CatalogScope.DRAFT }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(
+      catalog.api.getLaunchProfile(profile.id, { scope: CatalogScope.DRAFT }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  test('rejects document serialization failures before changing existing rows', async () => {
+    const tree = await catalog.tree();
+    const throws = (): never => {
+      throw new Error('serialization must fail');
+    };
+
+    await expect(
+      catalog.api.updatePipeline({
+        id: tree.pipeline.id,
+        playbookId: tree.playbook.id,
+        pipeline: withToJSON(taskPipeline(), throws),
+      }),
+    ).rejects.toMatchObject({
+      response: {
+        statusCode: 400,
+        code: 'catalog_definition_invalid',
+        path: '/pipeline',
+        details: { reason: 'serialization_failed' },
+      },
+    });
+    await expect(
+      catalog.api.updateLaunchProfile({
+        id: tree.profile.id,
+        pipelineId: tree.pipeline.id,
+        status: LaunchProfileStatus.deprecated,
+        profile: withToJSON(taskProfile(), throws),
+      }),
+    ).rejects.toMatchObject({
+      response: {
+        statusCode: 400,
+        code: 'catalog_definition_invalid',
+        path: '/profile',
+        details: { reason: 'serialization_failed' },
+      },
+    });
+
+    await expect(
+      catalog.api.getPipeline(tree.pipeline.id, { scope: CatalogScope.DRAFT }),
+    ).resolves.toMatchObject({ pipeline: tree.pipeline.pipeline });
+    await expect(
+      catalog.api.getLaunchProfile(tree.profile.id, { scope: CatalogScope.DRAFT }),
+    ).resolves.toMatchObject({
+      status: tree.profile.status,
+      profile: tree.profile.profile,
+    });
+  });
+
+  test('validates all import documents before writing any rows', async () => {
+    const pipelinePlaybook = catalog.playbook({ name: 'Invalid pipeline import' });
+    const pipeline = catalog.pipeline(pipelinePlaybook.id, {
+      pipeline: withToJSON(taskPipeline(), () => 'scalar'),
+    });
+
+    await expect(
+      catalog.api.importCatalog({
+        version: 1,
+        tables: { playbooks: [pipelinePlaybook], pipelines: [pipeline] },
+      }),
+    ).rejects.toMatchObject({
+      response: {
+        statusCode: 400,
+        code: 'catalog_definition_invalid',
+        path: '/pipeline',
+        details: { reason: 'object_required' },
+      },
+    });
+    await expect(
+      catalog.api.getPlaybook(pipelinePlaybook.id, { scope: CatalogScope.DRAFT }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(
+      catalog.api.getPipeline(pipeline.id, { scope: CatalogScope.DRAFT }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    const profilePlaybook = catalog.playbook({ name: 'Invalid profile import' });
+    const validPipeline = catalog.pipeline(profilePlaybook.id);
+    const profile = catalog.launchProfile(validPipeline.id, {
+      profile: withToJSON(taskProfile(), () => undefined),
+    });
+
+    await expect(
+      catalog.api.importCatalog({
+        version: 1,
+        tables: {
+          playbooks: [profilePlaybook],
+          pipelines: [validPipeline],
+          launch_profiles: [profile],
+        },
+      }),
+    ).rejects.toMatchObject({
+      response: {
+        statusCode: 400,
+        code: 'catalog_definition_invalid',
+        path: '/profile',
+        details: { reason: 'object_required' },
+      },
+    });
+    await expect(
+      catalog.api.getPlaybook(profilePlaybook.id, { scope: CatalogScope.DRAFT }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(
+      catalog.api.getPipeline(validPipeline.id, { scope: CatalogScope.DRAFT }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(
+      catalog.api.getLaunchProfile(profile.id, { scope: CatalogScope.DRAFT }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
   test('snapshots a published revision and discards Draft-only writes', async () => {
-    const playbook = await catalog.api.createPlaybook(catalog.playbook({ name: 'Published' }));
+    const tree = await catalog.tree();
     const committed = await catalog.api.commitCatalog('Publish catalog');
     const snapshot = await catalog.api.snapshot(committed.revisionId);
     expect(snapshot.isHead).toBe(true);
-    expect(snapshot.tables.playbooks.map(({ id }) => id)).toContain(playbook.id);
+    expect(snapshot.tables.playbooks.map(({ id }) => id)).toContain(tree.playbook.id);
+    expect(snapshot.tables.pipelines).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: tree.pipeline.id, pipeline: tree.pipeline.pipeline }),
+      ]),
+    );
+    expect(snapshot.tables.launch_profiles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: tree.profile.id, profile: tree.profile.profile }),
+      ]),
+    );
 
     await expect(
-      catalog.api.getPlaybook(playbook.id, {
+      catalog.api.getPlaybook(tree.playbook.id, {
         scope: CatalogScope.REVISION,
         revisionId: committed.revisionId,
       }),
-    ).resolves.toMatchObject({ id: playbook.id });
+    ).resolves.toMatchObject({ id: tree.playbook.id });
     await expect(
       catalog.api.listPlaybooks({
         first: 10,
@@ -368,7 +532,7 @@ describe('Playbook Catalog API', () => {
     ).resolves.toEqual(
       expect.objectContaining({
         edges: expect.arrayContaining([
-          expect.objectContaining({ node: expect.objectContaining({ id: playbook.id }) }),
+          expect.objectContaining({ node: expect.objectContaining({ id: tree.playbook.id }) }),
         ]),
       }),
     );

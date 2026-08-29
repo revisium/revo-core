@@ -1,4 +1,4 @@
-import type { CatalogSnapshot } from '../../catalog.types.js';
+import type { CatalogSnapshot } from '../../contracts/catalog.types.js';
 
 export type GetCatalogSnapshotQueryData = {
   readonly revisionId: string;

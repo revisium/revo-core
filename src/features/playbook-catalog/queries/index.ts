@@ -3,8 +3,6 @@ import { GetCatalogStatusHandler } from './handlers/get-catalog-status.handler.j
 import { GetLaunchProfileHandler } from './handlers/get-launch-profile.handler.js';
 import { GetMethodDocumentHandler } from './handlers/get-method-document.handler.js';
 import { GetPipelineRoleHandler } from './handlers/get-pipeline-role.handler.js';
-import { GetPipelineSlotHandler } from './handlers/get-pipeline-slot.handler.js';
-import { GetPipelineSourceHandler } from './handlers/get-pipeline-source.handler.js';
 import { GetPipelineHandler } from './handlers/get-pipeline.handler.js';
 import { GetPlaybookHandler } from './handlers/get-playbook.handler.js';
 import { GetRoleRefHandler } from './handlers/get-role-ref.handler.js';
@@ -16,8 +14,6 @@ import { ListCatalogChangesHandler } from './handlers/list-catalog-changes.handl
 import { ListLaunchProfilesHandler } from './handlers/list-launch-profiles.handler.js';
 import { ListMethodDocumentsHandler } from './handlers/list-method-documents.handler.js';
 import { ListPipelineRolesHandler } from './handlers/list-pipeline-roles.handler.js';
-import { ListPipelineSlotsHandler } from './handlers/list-pipeline-slots.handler.js';
-import { ListPipelineSourcesHandler } from './handlers/list-pipeline-sources.handler.js';
 import { ListPipelinesHandler } from './handlers/list-pipelines.handler.js';
 import { ListPlaybooksHandler } from './handlers/list-playbooks.handler.js';
 import { ListRoleRefsHandler } from './handlers/list-role-refs.handler.js';
@@ -101,26 +97,6 @@ export type {
   ListPipelineRolesQueryData,
   ListPipelineRolesQueryReturnType,
 } from './impl/list-pipeline-roles.query.js';
-export { GetPipelineSourceQuery } from './impl/get-pipeline-source.query.js';
-export type {
-  GetPipelineSourceQueryData,
-  GetPipelineSourceQueryReturnType,
-} from './impl/get-pipeline-source.query.js';
-export { ListPipelineSourcesQuery } from './impl/list-pipeline-sources.query.js';
-export type {
-  ListPipelineSourcesQueryData,
-  ListPipelineSourcesQueryReturnType,
-} from './impl/list-pipeline-sources.query.js';
-export { GetPipelineSlotQuery } from './impl/get-pipeline-slot.query.js';
-export type {
-  GetPipelineSlotQueryData,
-  GetPipelineSlotQueryReturnType,
-} from './impl/get-pipeline-slot.query.js';
-export { ListPipelineSlotsQuery } from './impl/list-pipeline-slots.query.js';
-export type {
-  ListPipelineSlotsQueryData,
-  ListPipelineSlotsQueryReturnType,
-} from './impl/list-pipeline-slots.query.js';
 export { GetLaunchProfileQuery } from './impl/get-launch-profile.query.js';
 export type {
   GetLaunchProfileQueryData,
@@ -163,10 +139,6 @@ export const PLAYBOOK_CATALOG_QUERY_HANDLERS = [
   ListPipelinesHandler,
   GetPipelineRoleHandler,
   ListPipelineRolesHandler,
-  GetPipelineSourceHandler,
-  ListPipelineSourcesHandler,
-  GetPipelineSlotHandler,
-  ListPipelineSlotsHandler,
   GetLaunchProfileHandler,
   ListLaunchProfilesHandler,
   GetCatalogStatusHandler,

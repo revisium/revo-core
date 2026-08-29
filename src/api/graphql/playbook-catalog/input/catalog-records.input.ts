@@ -1,11 +1,12 @@
-import { Field, ID, InputType, Int } from '@nestjs/graphql';
+import { Field, ID, InputType } from '@nestjs/graphql';
+import type { PipelineSourcePackage, RunProfile } from '@revisium/revo-run';
+import { GraphQLJSON } from 'graphql-scalars';
 
 import {
   LaunchProfileStatus,
   MethodDocumentKind,
   PipelineRoleMembership,
-  PipelineStrategy,
-} from '../../../../features/playbook-catalog/constants/catalog.constants.js';
+} from '../../../../features/playbook-catalog/contracts/catalog.enums.js';
 
 @InputType({ isAbstract: true })
 export class CatalogRecordInput {
@@ -81,8 +82,8 @@ export class PipelineInput extends CatalogRecordInput {
   @Field(() => ID)
   playbookId: string;
 
-  @Field()
-  body: string;
+  @Field(() => GraphQLJSON)
+  pipeline: PipelineSourcePackage;
 }
 
 @InputType()
@@ -98,45 +99,6 @@ export class PipelineRoleInput extends CatalogRecordInput {
 }
 
 @InputType()
-export class PipelineSourceInput extends CatalogRecordInput {
-  @Field(() => ID)
-  pipelineId: string;
-
-  @Field()
-  sourceJson: string;
-}
-
-@InputType()
-export class BindingParticipantInput {
-  @Field()
-  bindingKey: string;
-
-  @Field()
-  runnerId: string;
-
-  @Field()
-  modelLevel: string;
-
-  @Field()
-  permissionMode: string;
-
-  @Field(() => Int)
-  timeoutMs: number;
-}
-
-@InputType()
-export class LaunchBindingInput {
-  @Field(() => ID)
-  slotId: string;
-
-  @Field(() => PipelineStrategy)
-  strategy: PipelineStrategy;
-
-  @Field(() => [BindingParticipantInput])
-  participants: BindingParticipantInput[];
-}
-
-@InputType()
 export class LaunchProfileInput extends CatalogRecordInput {
   @Field(() => ID)
   pipelineId: string;
@@ -144,6 +106,6 @@ export class LaunchProfileInput extends CatalogRecordInput {
   @Field(() => LaunchProfileStatus)
   status: LaunchProfileStatus;
 
-  @Field(() => [LaunchBindingInput])
-  bindings: LaunchBindingInput[];
+  @Field(() => GraphQLJSON)
+  profile: RunProfile;
 }

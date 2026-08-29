@@ -2,8 +2,10 @@ import { NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { CatalogDraftService } from '../../catalog-draft.service.js';
-import { CatalogError, CatalogTable } from '../../constants/catalog.constants.js';
+import { CatalogTable } from '../../contracts/catalog-table.js';
+import { CatalogError } from '../../contracts/catalog.errors.js';
+import { toCatalogRecord } from '../../engine/catalog-record.mapper.js';
+import { CatalogRevisionService } from '../../engine/catalog-revision.service.js';
 import {
   UpdateMethodDocumentCommand,
   type UpdateMethodDocumentCommandReturnType,
@@ -15,14 +17,14 @@ export class UpdateMethodDocumentHandler implements ICommandHandler<
   UpdateMethodDocumentCommandReturnType
 > {
   constructor(
-    private readonly drafts: CatalogDraftService,
+    private readonly revisions: CatalogRevisionService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({
     data,
   }: UpdateMethodDocumentCommand): Promise<UpdateMethodDocumentCommandReturnType> {
-    const revisionId = await this.drafts.getDraftRevisionId();
+    const revisionId = await this.revisions.getDraftRevisionId();
     const updated = await this.engine.updateRow({
       revisionId,
       tableId: CatalogTable.methodDocuments,
@@ -38,6 +40,6 @@ export class UpdateMethodDocumentHandler implements ICommandHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(updated.row, revisionId, false, CatalogTable.methodDocuments);
+    return toCatalogRecord(updated.row, revisionId, false);
   }
 }

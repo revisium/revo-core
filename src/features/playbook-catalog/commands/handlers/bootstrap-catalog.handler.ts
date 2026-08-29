@@ -4,8 +4,8 @@ import { BadRequestException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { CatalogDraftService } from '../../catalog-draft.service.js';
-import { CATALOG_BRANCH_NAME, CATALOG_PROJECT_ID } from '../../constants/catalog.constants.js';
+import { CATALOG_BRANCH_NAME, CATALOG_PROJECT_ID } from '../../engine/catalog-engine.constants.js';
+import { CatalogRevisionService } from '../../engine/catalog-revision.service.js';
 import {
   BootstrapCatalogCommand,
   type BootstrapCatalogCommandReturnType,
@@ -24,7 +24,7 @@ export class BootstrapCatalogHandler implements ICommandHandler<
   BootstrapCatalogCommandReturnType
 > {
   constructor(
-    private readonly drafts: CatalogDraftService,
+    private readonly revisions: CatalogRevisionService,
     private readonly engine: EngineApiService,
   ) {}
 
@@ -33,16 +33,15 @@ export class BootstrapCatalogHandler implements ICommandHandler<
       projectId: CATALOG_PROJECT_ID,
       branchName: CATALOG_BRANCH_NAME,
     });
-    const dirty = await this.engine.getTouchedByBranchId(branch.id);
     const draft = await this.engine.getDraftRevision(branch.id);
     const migrations = await this.loadMigrations();
     const pending = await this.hasPendingMigration(draft.id, migrations);
 
-    if (dirty && pending) {
-      await this.commit('Bootstrap Playbook Catalog');
+    if (pending && (await this.hasUserDraftChanges(draft.id))) {
+      throw new BadRequestException('Catalog migration requires a clean Draft.');
     }
 
-    const revisionId = await this.drafts.getDraftRevisionId();
+    const revisionId = await this.revisions.getDraftRevisionId();
     const applied = await this.applyMigrations(revisionId, migrations);
 
     if (applied) {
@@ -50,6 +49,16 @@ export class BootstrapCatalogHandler implements ICommandHandler<
     }
 
     return applied;
+  }
+
+  private async hasUserDraftChanges(revisionId: string): Promise<boolean> {
+    const changes = await this.engine.rowChanges({
+      revisionId,
+      first: 1,
+      filters: { includeSystem: false },
+    });
+
+    return changes.totalCount > 0;
   }
 
   private async hasPendingMigration(

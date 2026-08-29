@@ -1,6 +1,8 @@
-import type { IPaginatedType } from '@revisium/engine';
-
-import type { CatalogReadSelector, CatalogRecord } from '../../catalog.types.js';
+import type {
+  CatalogPage,
+  CatalogReadSelector,
+  CatalogRecord,
+} from '../../contracts/catalog.types.js';
 
 export type ListStackRefsQueryData = CatalogReadSelector & {
   readonly first: number;
@@ -8,7 +10,7 @@ export type ListStackRefsQueryData = CatalogReadSelector & {
   readonly stackId?: string;
 };
 
-export type ListStackRefsQueryReturnType = IPaginatedType<CatalogRecord>;
+export type ListStackRefsQueryReturnType = CatalogPage<CatalogRecord>;
 
 export class ListStackRefsQuery {
   constructor(readonly data: ListStackRefsQueryData) {}

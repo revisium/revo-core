@@ -1,8 +1,9 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { CatalogDraftService } from '../../catalog-draft.service.js';
-import { CatalogTable } from '../../constants/catalog.constants.js';
+import { CatalogTable } from '../../contracts/catalog-table.js';
+import { toCatalogRecord } from '../../engine/catalog-record.mapper.js';
+import { CatalogRevisionService } from '../../engine/catalog-revision.service.js';
 import {
   ListSharedReferencesQuery,
   type ListSharedReferencesQueryReturnType,
@@ -14,12 +15,12 @@ export class ListSharedReferencesHandler implements IQueryHandler<
   ListSharedReferencesQueryReturnType
 > {
   constructor(
-    private readonly drafts: CatalogDraftService,
+    private readonly revisions: CatalogRevisionService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({ data }: ListSharedReferencesQuery): Promise<ListSharedReferencesQueryReturnType> {
-    const { revisionId, isHead } = await this.drafts.resolveRevision(data);
+    const { revisionId, isHead } = await this.revisions.resolveRevision(data);
     const page = await this.engine.getRows({
       revisionId,
       tableId: CatalogTable.sharedReferences,
@@ -34,7 +35,7 @@ export class ListSharedReferencesHandler implements IQueryHandler<
       ...page,
       edges: page.edges.map((edge) => ({
         cursor: edge.cursor,
-        node: this.drafts.toRecord(edge.node, revisionId, isHead, CatalogTable.sharedReferences),
+        node: toCatalogRecord(edge.node, revisionId, isHead),
       })),
     };
   }

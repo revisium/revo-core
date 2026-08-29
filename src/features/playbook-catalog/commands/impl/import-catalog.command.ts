@@ -1,4 +1,4 @@
-import type { CatalogImportResult } from '../../catalog.types.js';
+import type { CatalogImportResult } from '../../contracts/catalog.types.js';
 
 export type ImportCatalogCommandData = {
   readonly payload: unknown;

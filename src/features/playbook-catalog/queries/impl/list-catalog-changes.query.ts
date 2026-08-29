@@ -1,4 +1,4 @@
-import type { CatalogChanges } from '../../catalog.types.js';
+import type { CatalogChanges } from '../../contracts/catalog.types.js';
 
 export type ListCatalogChangesQueryData = {
   readonly first: number;

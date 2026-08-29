@@ -1,14 +1,13 @@
 import { registerEnumType } from '@nestjs/graphql';
 
+import { CatalogTable } from '../../features/playbook-catalog/contracts/catalog-table.js';
 import {
   CatalogChangeType,
   CatalogScope,
-  CatalogTable,
   LaunchProfileStatus,
   MethodDocumentKind,
   PipelineRoleMembership,
-  PipelineStrategy,
-} from '../../features/playbook-catalog/constants/catalog.constants.js';
+} from '../../features/playbook-catalog/contracts/catalog.enums.js';
 import { AdrStatus } from './project/model/adr-status.enum.js';
 import { RequirementStatus } from './project/model/requirement-status.enum.js';
 import { WorkPlanStatus } from './project/model/work-plan-status.enum.js';
@@ -23,5 +22,4 @@ export function initRegisterEnumTypes(): void {
   registerEnumType(MethodDocumentKind, { name: 'MethodDocumentKind' });
   registerEnumType(PipelineRoleMembership, { name: 'PipelineRoleMembership' });
   registerEnumType(LaunchProfileStatus, { name: 'LaunchProfileStatus' });
-  registerEnumType(PipelineStrategy, { name: 'PipelineStrategy' });
 }

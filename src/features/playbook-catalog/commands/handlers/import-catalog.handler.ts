@@ -1,18 +1,19 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService, type InputJsonValue } from '@revisium/engine';
 
-import { CatalogDraftService } from '../../catalog-draft.service.js';
-import type { CatalogImportTableResult } from '../../catalog.types.js';
-import { CATALOG_TABLES, CatalogTable } from '../../constants/catalog.constants.js';
-import {
-  type CatalogImportRecord,
-  type CatalogImportTables,
-  parseCatalogImport,
-} from '../../domain/catalog-import.js';
+import { CATALOG_TABLES, CatalogTable } from '../../contracts/catalog-table.js';
+import type { CatalogImportTableResult } from '../../contracts/catalog.types.js';
+import { encodeCatalogRecordData } from '../../engine/catalog-record.codec.js';
+import { CatalogRevisionService } from '../../engine/catalog-revision.service.js';
 import {
   ImportCatalogCommand,
   type ImportCatalogCommandReturnType,
 } from '../impl/import-catalog.command.js';
+import {
+  type CatalogImportRecord,
+  type CatalogImportTables,
+  parseCatalogImport,
+} from './import-catalog.parser.js';
 
 @CommandHandler(ImportCatalogCommand)
 export class ImportCatalogHandler implements ICommandHandler<
@@ -20,15 +21,31 @@ export class ImportCatalogHandler implements ICommandHandler<
   ImportCatalogCommandReturnType
 > {
   constructor(
-    private readonly drafts: CatalogDraftService,
+    private readonly revisions: CatalogRevisionService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({ data }: ImportCatalogCommand): Promise<ImportCatalogCommandReturnType> {
-    const tables = parseCatalogImport(data.payload);
-    const revisionId = await this.drafts.getDraftRevisionId();
+    const tables = this.encodeTablesForStorage(parseCatalogImport(data.payload));
+    const revisionId = await this.revisions.getDraftRevisionId();
 
     return { tables: await this.upsertTables(revisionId, tables) };
+  }
+
+  private encodeTablesForStorage(tables: CatalogImportTables): CatalogImportTables {
+    const encoded: CatalogImportTables = new Map();
+
+    for (const tableId of CATALOG_TABLES) {
+      encoded.set(
+        tableId,
+        (tables.get(tableId) ?? []).map((row) => ({
+          ...row,
+          data: encodeCatalogRecordData(tableId, row.data),
+        })),
+      );
+    }
+
+    return encoded;
   }
 
   private async upsertTables(
@@ -69,13 +86,14 @@ export class ImportCatalogHandler implements ICommandHandler<
     row: CatalogImportRecord,
   ): Promise<boolean> {
     const existing = await this.engine.getRow({ revisionId, tableId, rowId: row.id });
+    const data = row.data as InputJsonValue;
 
     if (existing === null) {
       await this.engine.createRow({
         revisionId,
         tableId,
         rowId: row.id,
-        data: row.data as InputJsonValue,
+        data,
       });
 
       return true;
@@ -85,7 +103,7 @@ export class ImportCatalogHandler implements ICommandHandler<
       revisionId,
       tableId,
       rowId: row.id,
-      data: row.data as InputJsonValue,
+      data,
     });
 
     return false;

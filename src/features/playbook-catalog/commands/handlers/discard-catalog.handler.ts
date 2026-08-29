@@ -1,7 +1,7 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { CATALOG_BRANCH_NAME, CATALOG_PROJECT_ID } from '../../constants/catalog.constants.js';
+import { CATALOG_BRANCH_NAME, CATALOG_PROJECT_ID } from '../../engine/catalog-engine.constants.js';
 import {
   DiscardCatalogCommand,
   type DiscardCatalogCommandReturnType,

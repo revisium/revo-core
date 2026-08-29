@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import type { PipelineSourcePackage, RunProfile } from '@revisium/revo-run';
 
 export class CatalogRecordResponse {
   @ApiProperty()
@@ -56,10 +57,8 @@ export class MethodDocumentResponse extends CatalogRecordResponse {
 export class PipelineResponse extends CatalogRecordResponse {
   @ApiProperty()
   playbookId: string;
-  @ApiProperty()
-  body: string;
-  @ApiProperty({ example: 'Not launchable' })
-  launchability: string;
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  pipeline: PipelineSourcePackage;
 }
 export class PipelineRoleResponse extends CatalogRecordResponse {
   @ApiProperty()
@@ -69,51 +68,13 @@ export class PipelineRoleResponse extends CatalogRecordResponse {
   @ApiProperty({ enum: ['required', 'optional', 'alternative'] })
   membership: 'required' | 'optional' | 'alternative';
 }
-export class PipelineSourceResponse extends CatalogRecordResponse {
-  @ApiProperty()
-  pipelineId: string;
-  @ApiProperty()
-  sourceJson: string;
-}
-export class PipelineSlotResponse extends CatalogRecordResponse {
-  @ApiProperty()
-  pipelineId: string;
-  @ApiProperty()
-  sourceId: string;
-  @ApiProperty()
-  slotKey: string;
-  @ApiProperty()
-  sourcePath: string;
-  @ApiProperty({ enum: ['single', 'consensus'], isArray: true })
-  strategies: Array<'single' | 'consensus'>;
-}
-export class BindingParticipantResponse {
-  @ApiProperty()
-  bindingKey: string;
-  @ApiProperty()
-  runnerId: string;
-  @ApiProperty()
-  modelLevel: string;
-  @ApiProperty()
-  permissionMode: string;
-  @ApiProperty()
-  timeoutMs: number;
-}
-export class LaunchBindingResponse {
-  @ApiProperty()
-  slotId: string;
-  @ApiProperty({ enum: ['single', 'consensus'] })
-  strategy: 'single' | 'consensus';
-  @ApiProperty({ type: [BindingParticipantResponse] })
-  participants: BindingParticipantResponse[];
-}
 export class LaunchProfileResponse extends CatalogRecordResponse {
   @ApiProperty()
   pipelineId: string;
   @ApiProperty({ enum: ['active', 'deprecated'] })
   status: 'active' | 'deprecated';
-  @ApiProperty({ type: [LaunchBindingResponse] })
-  bindings: LaunchBindingResponse[];
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  profile: RunProfile;
 }
 
 export class CatalogPageInfoResponse {
@@ -171,14 +132,6 @@ export const PipelineRoleConnectionResponse = catalogConnection(
   PipelineRoleResponse,
   'PipelineRole',
 );
-export const PipelineSourceConnectionResponse = catalogConnection(
-  PipelineSourceResponse,
-  'PipelineSource',
-);
-export const PipelineSlotConnectionResponse = catalogConnection(
-  PipelineSlotResponse,
-  'PipelineSlot',
-);
 export const LaunchProfileConnectionResponse = catalogConnection(
   LaunchProfileResponse,
   'LaunchProfile',
@@ -209,8 +162,6 @@ export class CatalogChangeEntryResponse {
       'role_refs',
       'stack_refs',
       'pipeline_roles',
-      'pipeline_sources',
-      'pipeline_slots',
       'launch_profiles',
     ],
   })
@@ -276,10 +227,6 @@ export class CatalogSnapshotTablesResponse {
   stack_refs: StackRefResponse[];
   @ApiProperty({ type: [PipelineRoleResponse] })
   pipeline_roles: PipelineRoleResponse[];
-  @ApiProperty({ type: [PipelineSourceResponse] })
-  pipeline_sources: PipelineSourceResponse[];
-  @ApiProperty({ type: [PipelineSlotResponse] })
-  pipeline_slots: PipelineSlotResponse[];
   @ApiProperty({ type: [LaunchProfileResponse] })
   launch_profiles: LaunchProfileResponse[];
 }

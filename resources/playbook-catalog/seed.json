@@ -15,8 +15,6 @@
     "role_refs": [],
     "stack_refs": [],
     "pipeline_roles": [],
-    "pipeline_sources": [],
-    "pipeline_slots": [],
     "launch_profiles": []
   }
 }

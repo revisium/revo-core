@@ -1,13 +1,14 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import type { PipelineSourcePackage, RunProfile } from '@revisium/revo-run';
+import { GraphQLJSON } from 'graphql-scalars';
 
+import { CatalogTable } from '../../../../features/playbook-catalog/contracts/catalog-table.js';
 import {
   CatalogChangeType,
-  CatalogTable,
   LaunchProfileStatus,
   MethodDocumentKind,
   PipelineRoleMembership,
-  PipelineStrategy,
-} from '../../../../features/playbook-catalog/constants/catalog.constants.js';
+} from '../../../../features/playbook-catalog/contracts/catalog.enums.js';
 import { Paginated } from '../../share/paginated.js';
 
 @ObjectType({ isAbstract: true })
@@ -90,11 +91,8 @@ export class PipelineModel extends CatalogRecordModel {
   @Field(() => ID)
   playbookId: string;
 
-  @Field()
-  body: string;
-
-  @Field()
-  launchability: string;
+  @Field(() => GraphQLJSON)
+  pipeline: PipelineSourcePackage;
 }
 
 @ObjectType()
@@ -110,63 +108,6 @@ export class PipelineRoleModel extends CatalogRecordModel {
 }
 
 @ObjectType()
-export class PipelineSourceModel extends CatalogRecordModel {
-  @Field(() => ID)
-  pipelineId: string;
-
-  @Field()
-  sourceJson: string;
-}
-
-@ObjectType()
-export class PipelineSlotModel extends CatalogRecordModel {
-  @Field(() => ID)
-  pipelineId: string;
-
-  @Field(() => ID)
-  sourceId: string;
-
-  @Field()
-  slotKey: string;
-
-  @Field()
-  sourcePath: string;
-
-  @Field(() => [PipelineStrategy])
-  strategies: PipelineStrategy[];
-}
-
-@ObjectType()
-export class BindingParticipantModel {
-  @Field()
-  bindingKey: string;
-
-  @Field()
-  runnerId: string;
-
-  @Field()
-  modelLevel: string;
-
-  @Field()
-  permissionMode: string;
-
-  @Field(() => Int)
-  timeoutMs: number;
-}
-
-@ObjectType()
-export class LaunchBindingModel {
-  @Field(() => ID)
-  slotId: string;
-
-  @Field(() => PipelineStrategy)
-  strategy: PipelineStrategy;
-
-  @Field(() => [BindingParticipantModel])
-  participants: BindingParticipantModel[];
-}
-
-@ObjectType()
 export class LaunchProfileModel extends CatalogRecordModel {
   @Field(() => ID)
   pipelineId: string;
@@ -174,8 +115,8 @@ export class LaunchProfileModel extends CatalogRecordModel {
   @Field(() => LaunchProfileStatus)
   status: LaunchProfileStatus;
 
-  @Field(() => [LaunchBindingModel])
-  bindings: LaunchBindingModel[];
+  @Field(() => GraphQLJSON)
+  profile: RunProfile;
 }
 
 @ObjectType()
@@ -223,8 +164,6 @@ export const StackRefConnectionModel = Paginated(StackRefModel);
 export const MethodDocumentConnectionModel = Paginated(MethodDocumentModel);
 export const PipelineConnectionModel = Paginated(PipelineModel);
 export const PipelineRoleConnectionModel = Paginated(PipelineRoleModel);
-export const PipelineSourceConnectionModel = Paginated(PipelineSourceModel);
-export const PipelineSlotConnectionModel = Paginated(PipelineSlotModel);
 export const LaunchProfileConnectionModel = Paginated(LaunchProfileModel);
 export const CatalogChangeConnectionModel = Paginated(CatalogChangeEntryModel);
 
@@ -298,12 +237,6 @@ export class CatalogSnapshotModel {
 
   @Field(() => [PipelineRoleModel])
   pipelineRoles: PipelineRoleModel[];
-
-  @Field(() => [PipelineSourceModel])
-  pipelineSources: PipelineSourceModel[];
-
-  @Field(() => [PipelineSlotModel])
-  pipelineSlots: PipelineSlotModel[];
 
   @Field(() => [LaunchProfileModel])
   launchProfiles: LaunchProfileModel[];
