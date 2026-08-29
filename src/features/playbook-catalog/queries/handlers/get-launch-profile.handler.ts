@@ -2,8 +2,11 @@ import { NotFoundException } from '@nestjs/common';
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { CatalogDraftService } from '../../catalog-draft.service.js';
-import { CatalogError, CatalogTable } from '../../constants/catalog.constants.js';
+import { CatalogTable } from '../../contracts/catalog-table.js';
+import { CatalogError } from '../../contracts/catalog.errors.js';
+import { decodeLaunchProfileRecordData } from '../../engine/catalog-record.codec.js';
+import { toCatalogRecord } from '../../engine/catalog-record.mapper.js';
+import { CatalogRevisionService } from '../../engine/catalog-revision.service.js';
 import {
   GetLaunchProfileQuery,
   type GetLaunchProfileQueryReturnType,
@@ -15,12 +18,12 @@ export class GetLaunchProfileHandler implements IQueryHandler<
   GetLaunchProfileQueryReturnType
 > {
   constructor(
-    private readonly drafts: CatalogDraftService,
+    private readonly revisions: CatalogRevisionService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({ data }: GetLaunchProfileQuery): Promise<GetLaunchProfileQueryReturnType> {
-    const { revisionId, isHead } = await this.drafts.resolveRevision(data);
+    const { revisionId, isHead } = await this.revisions.resolveRevision(data);
     const row = await this.engine.getRow({
       revisionId,
       tableId: CatalogTable.launchProfiles,
@@ -31,6 +34,6 @@ export class GetLaunchProfileHandler implements IQueryHandler<
       throw new NotFoundException(CatalogError.recordUnavailable);
     }
 
-    return this.drafts.toRecord(row, revisionId, isHead);
+    return toCatalogRecord(row, revisionId, isHead, decodeLaunchProfileRecordData(row.data));
   }
 }

@@ -1,4 +1,4 @@
-import type { CatalogReadSelector, CatalogRecord } from '../../catalog.types.js';
+import type { CatalogReadSelector, CatalogRecord } from '../../contracts/catalog.types.js';
 
 export type GetSharedReferenceQueryData = CatalogReadSelector & {
   readonly id: string;

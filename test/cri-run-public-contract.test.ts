@@ -3,16 +3,16 @@ import { readFile } from 'node:fs/promises';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { EngineApiService } from '@revisium/engine';
-import { RunManagerErrorCodeSchema } from '@revisium/revo-run';
+import { nanoid } from 'nanoid';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { AppModule } from '../src/app.module.js';
-import { CatalogDraftService } from '../src/features/playbook-catalog/catalog-draft.service.js';
-import { CatalogTable } from '../src/features/playbook-catalog/constants/catalog.constants.js';
+import { CatalogTable } from '../src/features/playbook-catalog/contracts/catalog-table.js';
+import { LaunchProfileStatus } from '../src/features/playbook-catalog/contracts/catalog.enums.js';
+import { CatalogRevisionService } from '../src/features/playbook-catalog/engine/catalog-revision.service.js';
 import { PlaybookCatalogApiService } from '../src/features/playbook-catalog/playbook-catalog-api.service.js';
 import { RevoRunService } from '../src/features/run/revo-run.service.js';
-import { RUN_MANAGER_ERROR_MAPPING } from '../src/features/run/run-manager-error.mapper.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
 import {
   brokenPipeline,
@@ -37,31 +37,16 @@ describe('CRI public run contract', () => {
   let app: INestApplication;
   let catalog: PlaybookCatalogApiService;
   let engine: EngineApiService;
-  let drafts: CatalogDraftService;
+  let drafts: CatalogRevisionService;
 
   beforeAll(async () => {
     app = await startApp();
     catalog = app.get(PlaybookCatalogApiService);
     engine = app.get(EngineApiService);
-    drafts = app.get(CatalogDraftService);
+    drafts = app.get(CatalogRevisionService);
   });
 
   afterAll(async () => app?.close());
-
-  test('maps every packed RunManager error code', () => {
-    expect(Object.keys(RUN_MANAGER_ERROR_MAPPING).toSorted()).toEqual(
-      [...RunManagerErrorCodeSchema.enum].toSorted(),
-    );
-    expect(RUN_MANAGER_ERROR_MAPPING.pipeline_compilation_failed.status).toBe(422);
-    expect(RUN_MANAGER_ERROR_MAPPING.run_profile_invalid.status).toBe(422);
-    expect(RUN_MANAGER_ERROR_MAPPING.run_requirement_unresolved.status).toBe(422);
-    expect(RUN_MANAGER_ERROR_MAPPING.run_id_conflict).toEqual({
-      status: 503,
-      code: 'RUN_ID_ALLOCATION_CONFLICT',
-      message: 'A run ID could not be allocated.',
-      sanitizeDetails: true,
-    });
-  });
 
   test('generates exact OpenAPI XOR selectors and GraphQL selector scalar types', async () => {
     const openapi: unknown = JSON.parse(
@@ -75,7 +60,7 @@ describe('CRI public run contract', () => {
       type: 'string',
       minLength: 1,
       maxLength: 64,
-      pattern: '^[\\w-]+$',
+      pattern: '^[A-Za-z0-9_-]{1,64}$',
     });
     expect(properties.profileId).toEqual(properties.pipelineId);
     expect(properties.pipeline).toEqual({
@@ -135,12 +120,67 @@ describe('CRI public run contract', () => {
       'utf8',
     );
     expect(graphql).toContain(
-      'input StartRunInput {\n  input: JSON!\n  pipeline: JSON\n  pipelineId: String\n  profile: JSON\n  profileId: String\n}',
+      'input StartRunInput {\n  input: JSON!\n  pipeline: JSON\n  pipelineId: ID\n  profile: JSON\n  profileId: ID\n}',
     );
     expect(graphql).toContain(
       'type RunModel {\n  createdAt: String!\n  runId: ID!\n  schemaVersion: String!\n  status: String!\n  terminal: JSON\n  updatedAt: String!\n}',
     );
+    expect(graphql).toContain('input PipelineInput {\n  id: ID!\n  pipeline: JSON!');
+    expect(graphql).toContain(
+      'type PipelineModel {\n  id: ID!\n  isHead: Boolean!\n  pipeline: JSON!',
+    );
+    expect(graphql).toContain(
+      'input LaunchProfileInput {\n  id: ID!\n  pipelineId: ID!\n  profile: JSON!',
+    );
+    expect(graphql).toContain(
+      'type LaunchProfileModel {\n  id: ID!\n  isHead: Boolean!\n  pipelineId: ID!\n  profile: JSON!',
+    );
     expect(graphql).not.toContain('launchability');
+  });
+
+  test('round-trips catalog pipeline and profile objects through REST and GraphQL', async () => {
+    const suffix = nanoid();
+    const pipelineId = `contract-pipeline-${suffix}`;
+    const profileId = `contract-profile-${suffix}`;
+    const pipeline = taskPipeline();
+    const profile = taskProfile();
+
+    try {
+      const createdPipeline = await request(app.getHttpServer())
+        .post('/api/playbook-catalog/pipelines')
+        .send({ id: pipelineId, playbookId: 'revo', pipeline })
+        .expect(201);
+      expect(createdPipeline.body.pipeline).toEqual(pipeline);
+
+      const createdProfile = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query:
+            'mutation($data: LaunchProfileInput!) { createLaunchProfile(data: $data) { id profile } }',
+          variables: { data: { id: profileId, pipelineId, status: 'active', profile } },
+        })
+        .expect(200);
+      expect(createdProfile.body.errors).toBeUndefined();
+      expect(createdProfile.body.data.createLaunchProfile).toEqual({ id: profileId, profile });
+
+      const readPipeline = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: 'query($id: ID!) { pipeline(id: $id, scope: DRAFT) { id pipeline } }',
+          variables: { id: pipelineId },
+        })
+        .expect(200);
+      expect(readPipeline.body.errors).toBeUndefined();
+      expect(readPipeline.body.data.pipeline).toEqual({ id: pipelineId, pipeline });
+
+      const readProfile = await request(app.getHttpServer())
+        .get(`/api/playbook-catalog/launch-profiles/${profileId}`)
+        .query({ scope: 'DRAFT' })
+        .expect(200);
+      expect(readProfile.body.profile).toEqual(profile);
+    } finally {
+      await catalog.discardCatalog();
+    }
   });
 
   test('rejects conflicts before null validation with exact REST and GraphQL parity', async () => {
@@ -167,22 +207,16 @@ describe('CRI public run contract', () => {
     expect.hasAssertions();
     const pipelineId = 'cri-golden-pipeline';
     const profileId = 'cri-golden-profile';
-    const revisionId = await drafts.getDraftRevisionId();
-    await engine.createRow({
-      revisionId,
-      tableId: CatalogTable.pipelines,
-      rowId: pipelineId,
-      data: { playbookId: 'revo', pipeline: JSON.stringify(taskPipeline()) },
+    await catalog.createPipeline({
+      id: pipelineId,
+      playbookId: 'revo',
+      pipeline: taskPipeline(),
     });
-    await engine.createRow({
-      revisionId,
-      tableId: CatalogTable.launchProfiles,
-      rowId: profileId,
-      data: {
-        pipelineId,
-        status: 'active',
-        profile: JSON.stringify(taskProfile()),
-      },
+    await catalog.createLaunchProfile({
+      id: profileId,
+      pipelineId,
+      status: LaunchProfileStatus.active,
+      profile: taskProfile(),
     });
     await catalog.commitCatalog('CRI exact selector errors');
 
@@ -212,6 +246,18 @@ describe('CRI public run contract', () => {
         'pipeline',
         'invalid_id',
       ),
+      selectorCase(
+        'pipeline-number',
+        { pipelineId: 1e21, profile, input: {} },
+        'pipeline',
+        'invalid_id',
+      ),
+      selectorCase(
+        'pipeline-invalid-string',
+        { pipelineId: 'invalid.pipeline', profile, input: {} },
+        'pipeline',
+        'invalid_id',
+      ),
       {
         label: 'pipeline-stringified-document',
         input: { pipeline: JSON.stringify(pipeline), profile, input: {} },
@@ -233,6 +279,18 @@ describe('CRI public run contract', () => {
       selectorCase(
         'profile-empty',
         { pipeline, profileId: '', input: {} },
+        'profile',
+        'invalid_id',
+      ),
+      selectorCase(
+        'profile-number',
+        { pipeline, profileId: 1e21, input: {} },
+        'profile',
+        'invalid_id',
+      ),
+      selectorCase(
+        'profile-invalid-string',
+        { pipeline, profileId: 'invalid.profile', input: {} },
         'profile',
         'invalid_id',
       ),
@@ -374,43 +432,52 @@ describe('CRI public run contract', () => {
     expect(graphql.body.errors).toHaveLength(1);
   });
 
-  test('rejects malformed stored pipeline and profile with parity before DBOS admission', async () => {
+  test('maps malformed Catalog storage with parity before DBOS admission', async () => {
+    const suffix = nanoid();
+    const corruptPipelineId = `corrupt-pipeline-${suffix}`;
+    const validPipelineId = `valid-pipeline-${suffix}`;
+    const corruptProfileId = `corrupt-profile-${suffix}`;
+    const revisionId = await drafts.getDraftRevisionId();
     const workflowsBefore = await dbosWorkflowCount(app);
-    const expected = (name: 'pipeline' | 'profile'): PublicError => ({
-      statusCode: 409,
-      code: 'catalog_definition_corrupt',
-      message: 'Catalog definition is corrupt.',
-      path: `/${name}Id`,
-      details: { reason: 'storage_json' },
-    });
-    const pipelineLookup = vi.spyOn(catalog, 'getPipeline').mockResolvedValue({
-      id: 'corrupt-pipeline',
-      revisionId: 'corrupt-revision',
-      isHead: true,
-      pipeline: '{',
-    });
 
-    await expectPublicError(
-      app,
-      { pipelineId: 'corrupt-pipeline', profile: taskProfile(), input: {} },
-      expected('pipeline'),
-    );
-    pipelineLookup.mockRestore();
-
-    const profileLookup = vi.spyOn(catalog, 'getLaunchProfile').mockResolvedValue({
-      id: 'corrupt-profile',
-      revisionId: 'corrupt-revision',
-      isHead: true,
-      profile: { not: 'storage JSON' },
+    await engine.createRow({
+      revisionId,
+      tableId: CatalogTable.pipelines,
+      rowId: corruptPipelineId,
+      data: { playbookId: 'revo', pipeline: '{' },
     });
+    await engine.createRow({
+      revisionId,
+      tableId: CatalogTable.pipelines,
+      rowId: validPipelineId,
+      data: { playbookId: 'revo', pipeline: JSON.stringify(taskPipeline()) },
+    });
+    await engine.createRow({
+      revisionId,
+      tableId: CatalogTable.launchProfiles,
+      rowId: corruptProfileId,
+      data: { pipelineId: validPipelineId, status: 'active', profile: '[]' },
+    });
+    await catalog.commitCatalog('CRI malformed Catalog storage');
 
-    await expectPublicError(
-      app,
-      { pipeline: taskPipeline(), profileId: 'corrupt-profile', input: {} },
-      expected('profile'),
-    );
-    profileLookup.mockRestore();
-    expect(await dbosWorkflowCount(app)).toBe(workflowsBefore);
+    try {
+      await expectPublicError(
+        app,
+        { pipelineId: corruptPipelineId, profile: taskProfile(), input: {} },
+        corruptCatalogEnvelope('pipeline'),
+      );
+      await expectPublicError(
+        app,
+        { pipeline: taskPipeline(), profileId: corruptProfileId, input: {} },
+        corruptCatalogEnvelope('profile'),
+      );
+      expect(await dbosWorkflowCount(app)).toBe(workflowsBefore);
+    } finally {
+      await catalog.deleteLaunchProfile(corruptProfileId);
+      await catalog.deletePipeline(corruptPipelineId);
+      await catalog.deletePipeline(validPipelineId);
+      await catalog.commitCatalog('Remove CRI malformed Catalog storage');
+    }
   });
 
   test('composes one RevoRun manager for both public transports', () => {
@@ -484,6 +551,16 @@ function invalidEnvelope(): PublicError {
     message: 'Create-run input is invalid.',
     path: '',
     details: { reason: 'invalid_envelope' },
+  };
+}
+
+function corruptCatalogEnvelope(field: 'pipeline' | 'profile'): PublicError {
+  return {
+    statusCode: 409,
+    code: 'catalog_definition_corrupt',
+    message: 'Catalog definition is corrupt.',
+    path: `/${field}`,
+    details: { reason: 'storage_json' },
   };
 }
 

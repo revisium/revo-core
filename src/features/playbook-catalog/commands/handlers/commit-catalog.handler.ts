@@ -2,11 +2,8 @@ import { BadRequestException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import {
-  CATALOG_BRANCH_NAME,
-  CATALOG_PROJECT_ID,
-  CatalogError,
-} from '../../constants/catalog.constants.js';
+import { CatalogError } from '../../contracts/catalog.errors.js';
+import { CATALOG_BRANCH_NAME, CATALOG_PROJECT_ID } from '../../engine/catalog-engine.constants.js';
 import {
   CommitCatalogCommand,
   type CommitCatalogCommandReturnType,

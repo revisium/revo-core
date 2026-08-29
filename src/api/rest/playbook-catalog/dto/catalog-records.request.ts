@@ -1,6 +1,9 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
+import type { PipelineSourcePackage, RunProfile } from '@revisium/revo-run';
 import { Type } from 'class-transformer';
-import { IsIn, IsNumber, IsString, ValidateNested } from 'class-validator';
+import { IsIn, IsNumber, IsObject, IsString, ValidateNested } from 'class-validator';
+
+import { type LaunchProfileStatus } from '../../../../features/playbook-catalog/contracts/catalog.enums.js';
 
 export class PlaybookRequest {
   @ApiProperty()
@@ -118,9 +121,9 @@ export class PipelineRequest {
   @IsString()
   playbookId: string;
 
-  @ApiProperty()
-  @IsString()
-  pipeline: string;
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  @IsObject()
+  pipeline: PipelineSourcePackage;
 }
 export class PipelineUpdateRequest extends OmitType(PipelineRequest, ['id'] as const) {}
 
@@ -153,11 +156,11 @@ export class LaunchProfileRequest {
 
   @ApiProperty({ enum: ['active', 'deprecated'] })
   @IsIn(['active', 'deprecated'])
-  status: 'active' | 'deprecated';
+  status: LaunchProfileStatus;
 
-  @ApiProperty()
-  @IsString()
-  profile: string;
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  @IsObject()
+  profile: RunProfile;
 }
 export class LaunchProfileUpdateRequest extends OmitType(LaunchProfileRequest, ['id'] as const) {}
 

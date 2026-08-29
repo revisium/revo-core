@@ -3396,7 +3396,8 @@
             "type": "string"
           },
           "pipeline": {
-            "type": "string"
+            "type": "object",
+            "additionalProperties": true
           }
         },
         "required": ["id", "revisionId", "isHead", "playbookId", "pipeline"]
@@ -3488,7 +3489,8 @@
             "enum": ["active", "deprecated"]
           },
           "profile": {
-            "type": "string"
+            "type": "object",
+            "additionalProperties": true
           }
         },
         "required": ["id", "revisionId", "isHead", "pipelineId", "status", "profile"]
@@ -3704,7 +3706,8 @@
             "type": "string"
           },
           "pipeline": {
-            "type": "string"
+            "type": "object",
+            "additionalProperties": true
           }
         },
         "required": ["id", "playbookId", "pipeline"]
@@ -3772,7 +3775,8 @@
             "enum": ["active", "deprecated"]
           },
           "profile": {
-            "type": "string"
+            "type": "object",
+            "additionalProperties": true
           }
         },
         "required": ["id", "pipelineId", "status", "profile"]
@@ -4214,7 +4218,8 @@
             "type": "string"
           },
           "pipeline": {
-            "type": "string"
+            "type": "object",
+            "additionalProperties": true
           }
         },
         "required": ["playbookId", "pipeline"]
@@ -4290,7 +4295,8 @@
             "enum": ["active", "deprecated"]
           },
           "profile": {
-            "type": "string"
+            "type": "object",
+            "additionalProperties": true
           }
         },
         "required": ["pipelineId", "status", "profile"]
@@ -4999,7 +5005,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 64,
-            "pattern": "^[\\w-]+$"
+            "pattern": "^[A-Za-z0-9_-]{1,64}$"
           },
           "pipeline": {
             "type": "object",
@@ -5009,7 +5015,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 64,
-            "pattern": "^[\\w-]+$"
+            "pattern": "^[A-Za-z0-9_-]{1,64}$"
           },
           "profile": {
             "type": "object",

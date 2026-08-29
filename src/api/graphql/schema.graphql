@@ -160,7 +160,7 @@ type LaunchProfileEdge {
 input LaunchProfileInput {
   id: ID!
   pipelineId: ID!
-  profile: String!
+  profile: JSON!
   status: LaunchProfileStatus!
 }
 
@@ -168,7 +168,7 @@ type LaunchProfileModel {
   id: ID!
   isHead: Boolean!
   pipelineId: ID!
-  profile: String!
+  profile: JSON!
   revisionId: ID!
   status: LaunchProfileStatus!
 }
@@ -282,14 +282,14 @@ type PipelineEdge {
 
 input PipelineInput {
   id: ID!
-  pipeline: String!
+  pipeline: JSON!
   playbookId: ID!
 }
 
 type PipelineModel {
   id: ID!
   isHead: Boolean!
-  pipeline: String!
+  pipeline: JSON!
   playbookId: ID!
   revisionId: ID!
 }
@@ -597,9 +597,9 @@ type StackRefModel {
 input StartRunInput {
   input: JSON!
   pipeline: JSON
-  pipelineId: String
+  pipelineId: ID
   profile: JSON
-  profileId: String
+  profileId: ID
 }
 
 type StartRunResultModel {

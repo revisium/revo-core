@@ -52,21 +52,10 @@ Both return:
 }
 ```
 
-Runs accept independent selectors: exactly one of `pipelineId` or `pipeline`, and exactly one of
-`profileId` or `profile`:
+## Runs
 
-```http
-POST /api/runs
-GET /api/runs/:runId
-```
-
-The `startRun` mutation and `run` query expose the same contract in GraphQL. ID selectors read the
-current Catalog HEAD through the exported `PlaybookCatalogModule` API. Direct documents bypass the
-Catalog. `@revisium/revo-run` owns document validation, pipeline compilation, admission, and durable
-execution.
-
-Feature modules expose transport-agnostic API services; transports and other features consume those
-services instead of feature internals. See [REVIEW.md](REVIEW.md) for the detailed module rules.
+Run APIs are available through REST and GraphQL. The generated OpenAPI and GraphQL schemas are the
+current contracts.
 
 ## GraphQL subscriptions
 

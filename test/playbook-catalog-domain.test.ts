@@ -1,16 +1,14 @@
 import { describe, expect, test } from 'vitest';
 
-import {
-  CatalogError,
-  CatalogTable,
-} from '../src/features/playbook-catalog/constants/catalog.constants.js';
+import { parseCatalogImport } from '../src/features/playbook-catalog/commands/handlers/import-catalog.parser.js';
+import { CatalogTable } from '../src/features/playbook-catalog/contracts/catalog-table.js';
+import { CatalogError } from '../src/features/playbook-catalog/contracts/catalog.errors.js';
 import {
   toCatalogChange,
   toCatalogChanges,
-} from '../src/features/playbook-catalog/domain/catalog-change.js';
-import { parseCatalogImport } from '../src/features/playbook-catalog/domain/catalog-import.js';
+} from '../src/features/playbook-catalog/engine/catalog-change.mapper.js';
 
-describe('Playbook Catalog domain rules', () => {
+describe('Playbook Catalog boundaries', () => {
   test('parses a catalog import and rejects malformed payloads', () => {
     expect(() => parseCatalogImport(null)).toThrow(CatalogError.invalidImport);
     expect(() => parseCatalogImport({ version: 1 })).toThrow(CatalogError.invalidImport);
@@ -29,6 +27,11 @@ describe('Playbook Catalog domain rules', () => {
     expect(() => parseCatalogImport({ version: 1, tables: { playbooks: [{ id: '' }] } })).toThrow(
       CatalogError.invalidImport,
     );
+    for (const id of [null, 123, 'invalid.record', 'a'.repeat(65)]) {
+      expect(() => parseCatalogImport({ version: 1, tables: { playbooks: [{ id }] } })).toThrow(
+        CatalogError.invalidImport,
+      );
+    }
     expect(() =>
       parseCatalogImport({
         version: 1,

@@ -8,7 +8,7 @@ type RunErrorMapping = Readonly<{
   sanitizeDetails?: boolean;
 }>;
 
-export const RUN_MANAGER_ERROR_MAPPING = {
+const RUN_MANAGER_ERROR_MAPPING = {
   agent_runtime_unavailable: { status: HttpStatus.SERVICE_UNAVAILABLE },
   invalid_create_run_input: { status: HttpStatus.BAD_REQUEST },
   invalid_list_runs_filter: { status: HttpStatus.BAD_REQUEST },

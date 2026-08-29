@@ -1,4 +1,4 @@
-import type { CatalogMutationResult } from '../../catalog.types.js';
+import type { CatalogMutationResult } from '../../contracts/catalog.types.js';
 
 export type DiscardCatalogCommandReturnType = CatalogMutationResult;
 

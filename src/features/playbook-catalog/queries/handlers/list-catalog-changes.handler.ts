@@ -1,8 +1,8 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { CatalogDraftService } from '../../catalog-draft.service.js';
-import { toCatalogChanges } from '../../domain/catalog-change.js';
+import { toCatalogChanges } from '../../engine/catalog-change.mapper.js';
+import { CatalogRevisionService } from '../../engine/catalog-revision.service.js';
 import {
   ListCatalogChangesQuery,
   type ListCatalogChangesQueryReturnType,
@@ -14,12 +14,12 @@ export class ListCatalogChangesHandler implements IQueryHandler<
   ListCatalogChangesQueryReturnType
 > {
   constructor(
-    private readonly drafts: CatalogDraftService,
+    private readonly revisions: CatalogRevisionService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({ data }: ListCatalogChangesQuery): Promise<ListCatalogChangesQueryReturnType> {
-    const revisionId = await this.drafts.getDraftRevisionId();
+    const revisionId = await this.revisions.getDraftRevisionId();
     const page = await this.engine.rowChanges({
       revisionId,
       first: data.first,

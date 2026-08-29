@@ -4,12 +4,13 @@ import { HashService } from '@revisium/engine';
 import { describe, expect, test } from 'vitest';
 
 import {
+  CATALOG_RECORD_ID_PATTERN,
+  isCatalogRecordId,
+} from '../src/features/playbook-catalog/contracts/catalog-record-id.js';
+import {
   CATALOG_TABLES,
   CatalogTable,
-  canCreateCatalogTable,
-  canDeleteCatalogTable,
-  canUpdateCatalogTable,
-} from '../src/features/playbook-catalog/constants/catalog.constants.js';
+} from '../src/features/playbook-catalog/contracts/catalog-table.js';
 
 type Migration = {
   id: string;
@@ -24,6 +25,15 @@ const schemaUrl = new URL('../src/api/graphql/schema.graphql', import.meta.url);
 const openApiUrl = new URL('../src/api/rest/openapi.json', import.meta.url);
 
 describe('Playbook Catalog contracts', () => {
+  test('defines the public catalog record id contract once', () => {
+    expect(CATALOG_RECORD_ID_PATTERN.source).toBe('^[A-Za-z0-9_-]{1,64}$');
+    expect(isCatalogRecordId('A_record-09')).toBe(true);
+    expect(isCatalogRecordId(null)).toBe(false);
+    expect(isCatalogRecordId(123)).toBe(false);
+    expect(isCatalogRecordId('invalid.record')).toBe(false);
+    expect(isCatalogRecordId('a'.repeat(65))).toBe(false);
+  });
+
   test('keeps the shipped migrations and hash-pins every catalog init schema', async () => {
     const migrations = JSON.parse(await readFile(migrationsUrl, 'utf8')) as Migration[];
     expect(migrations.map(({ changeType, tableId }) => ({ changeType, tableId }))).toEqual(
@@ -119,6 +129,30 @@ describe('Playbook Catalog contracts', () => {
     expect(schema).not.toMatch(/createRow|updateRow|deleteRow/);
   });
 
+  test('publishes pipeline and profile documents as JSON objects', async () => {
+    const schema = await readFile(schemaUrl, 'utf8');
+    expect(schema).toContain('input PipelineInput {\n  id: ID!\n  pipeline: JSON!');
+    expect(schema).toContain(
+      'type PipelineModel {\n  id: ID!\n  isHead: Boolean!\n  pipeline: JSON!',
+    );
+    expect(schema).toContain(
+      'input LaunchProfileInput {\n  id: ID!\n  pipelineId: ID!\n  profile: JSON!',
+    );
+    expect(schema).toContain(
+      'type LaunchProfileModel {\n  id: ID!\n  isHead: Boolean!\n  pipelineId: ID!\n  profile: JSON!',
+    );
+
+    const document = JSON.parse(await readFile(openApiUrl, 'utf8')) as {
+      components: { schemas: Record<string, { properties?: Record<string, unknown> }> };
+    };
+    const schemas = document.components.schemas;
+    const objectSchema = { type: 'object', additionalProperties: true };
+    expect(schemas.PipelineRequest?.properties?.pipeline).toEqual(objectSchema);
+    expect(schemas.PipelineResponse?.properties?.pipeline).toEqual(objectSchema);
+    expect(schemas.LaunchProfileRequest?.properties?.profile).toEqual(objectSchema);
+    expect(schemas.LaunchProfileResponse?.properties?.profile).toEqual(objectSchema);
+  });
+
   test('keeps every canonical REST list cursor-paginated', async () => {
     const document = JSON.parse(await readFile(openApiUrl, 'utf8')) as {
       paths: Record<
@@ -177,9 +211,5 @@ describe('Playbook Catalog contracts', () => {
         CatalogTable.launchProfiles,
       ]),
     );
-    expect(canCreateCatalogTable(CatalogTable.playbooks)).toBe(true);
-    expect(canUpdateCatalogTable(CatalogTable.playbooks)).toBe(true);
-    expect(canUpdateCatalogTable(CatalogTable.pipelineRoles)).toBe(false);
-    expect(canDeleteCatalogTable(CatalogTable.playbooks)).toBe(true);
   });
 });

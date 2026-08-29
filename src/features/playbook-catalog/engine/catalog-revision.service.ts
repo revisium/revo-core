@@ -1,17 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { EngineApiService, type Row } from '@revisium/engine';
+import { EngineApiService } from '@revisium/engine';
 
-import type { CatalogReadSelector, CatalogRecord } from './catalog.types.js';
-import {
-  CATALOG_BRANCH_NAME,
-  CATALOG_PROJECT_ID,
-  CatalogError,
-  CatalogScope,
-} from './constants/catalog.constants.js';
-import { asCatalogData } from './domain/catalog-record.js';
+import { CatalogScope } from '../contracts/catalog.enums.js';
+import { CatalogError } from '../contracts/catalog.errors.js';
+import type { CatalogReadSelector } from '../contracts/catalog.types.js';
+import { CATALOG_BRANCH_NAME, CATALOG_PROJECT_ID } from './catalog-engine.constants.js';
 
 @Injectable()
-export class CatalogDraftService {
+export class CatalogRevisionService {
   constructor(private readonly engine: EngineApiService) {}
 
   async getDraftRevisionId(): Promise<string> {
@@ -69,16 +65,5 @@ export class CatalogDraftService {
     }
 
     return { revisionId: selector.revisionId, isHead: selector.revisionId === head.id };
-  }
-
-  toRecord(row: Pick<Row, 'id' | 'data'>, revisionId: string, isHead: boolean): CatalogRecord {
-    const record: CatalogRecord = {
-      id: row.id,
-      ...asCatalogData(row.data),
-      revisionId,
-      isHead,
-    };
-
-    return record;
   }
 }

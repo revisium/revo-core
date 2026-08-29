@@ -1,8 +1,9 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { CatalogDraftService } from '../../catalog-draft.service.js';
-import { CatalogTable } from '../../constants/catalog.constants.js';
+import { CatalogTable } from '../../contracts/catalog-table.js';
+import { toCatalogRecord } from '../../engine/catalog-record.mapper.js';
+import { CatalogRevisionService } from '../../engine/catalog-revision.service.js';
 import {
   CreateSharedReferenceCommand,
   type CreateSharedReferenceCommandReturnType,
@@ -14,14 +15,14 @@ export class CreateSharedReferenceHandler implements ICommandHandler<
   CreateSharedReferenceCommandReturnType
 > {
   constructor(
-    private readonly drafts: CatalogDraftService,
+    private readonly revisions: CatalogRevisionService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({
     data,
   }: CreateSharedReferenceCommand): Promise<CreateSharedReferenceCommandReturnType> {
-    const revisionId = await this.drafts.getDraftRevisionId();
+    const revisionId = await this.revisions.getDraftRevisionId();
     const created = await this.engine.createRow({
       revisionId,
       tableId: CatalogTable.sharedReferences,
@@ -29,6 +30,6 @@ export class CreateSharedReferenceHandler implements ICommandHandler<
       data: { playbookId: data.playbookId, body: data.body },
     });
 
-    return this.drafts.toRecord(created.row, revisionId, false);
+    return toCatalogRecord(created.row, revisionId, false);
   }
 }

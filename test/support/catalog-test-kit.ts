@@ -5,7 +5,6 @@ import { EngineModule } from '@revisium/engine';
 import { nanoid } from 'nanoid';
 
 import { databaseConfig } from '../../src/config/database.config.js';
-import type { CatalogRecord } from '../../src/features/playbook-catalog/catalog.types.js';
 import type {
   CreateLaunchProfileCommandData,
   CreateMethodDocumentCommandData,
@@ -18,6 +17,12 @@ import type {
   CreateStackCommandData,
   CreateStackRefCommandData,
 } from '../../src/features/playbook-catalog/commands/index.js';
+import { LaunchProfileStatus } from '../../src/features/playbook-catalog/contracts/catalog.enums.js';
+import type {
+  CatalogRecord,
+  LaunchProfileRecord,
+  PipelineRecord,
+} from '../../src/features/playbook-catalog/contracts/catalog.types.js';
 import { PlaybookCatalogApiService } from '../../src/features/playbook-catalog/playbook-catalog-api.service.js';
 import { PlaybookCatalogModule } from '../../src/features/playbook-catalog/playbook-catalog.module.js';
 import { ProjectModule } from '../../src/features/project/project.module.js';
@@ -32,9 +37,9 @@ export type CatalogTree = {
   stack: CatalogRecord;
   stackRef: CatalogRecord;
   methodDocument: CatalogRecord;
-  pipeline: CatalogRecord;
+  pipeline: PipelineRecord;
   pipelineRole: CatalogRecord;
-  profile: CatalogRecord;
+  profile: LaunchProfileRecord;
 };
 
 export class CatalogTestKit {
@@ -134,7 +139,7 @@ export class CatalogTestKit {
     return {
       id: input.id ?? this.id('pipeline'),
       playbookId,
-      pipeline: input.pipeline ?? JSON.stringify(taskPipeline()),
+      pipeline: input.pipeline ?? taskPipeline(),
     };
   }
 
@@ -158,8 +163,8 @@ export class CatalogTestKit {
     return {
       id: input.id ?? this.id('profile'),
       pipelineId,
-      status: input.status ?? 'active',
-      profile: input.profile ?? JSON.stringify(taskProfile()),
+      status: input.status ?? LaunchProfileStatus.active,
+      profile: input.profile ?? taskProfile(),
     };
   }
 

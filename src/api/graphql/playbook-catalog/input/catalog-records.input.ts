@@ -1,10 +1,12 @@
 import { Field, ID, InputType } from '@nestjs/graphql';
+import type { PipelineSourcePackage, RunProfile } from '@revisium/revo-run';
+import { GraphQLJSON } from 'graphql-scalars';
 
 import {
   LaunchProfileStatus,
   MethodDocumentKind,
   PipelineRoleMembership,
-} from '../../../../features/playbook-catalog/constants/catalog.constants.js';
+} from '../../../../features/playbook-catalog/contracts/catalog.enums.js';
 
 @InputType({ isAbstract: true })
 export class CatalogRecordInput {
@@ -80,8 +82,8 @@ export class PipelineInput extends CatalogRecordInput {
   @Field(() => ID)
   playbookId: string;
 
-  @Field()
-  pipeline: string;
+  @Field(() => GraphQLJSON)
+  pipeline: PipelineSourcePackage;
 }
 
 @InputType()
@@ -104,6 +106,6 @@ export class LaunchProfileInput extends CatalogRecordInput {
   @Field(() => LaunchProfileStatus)
   status: LaunchProfileStatus;
 
-  @Field()
-  profile: string;
+  @Field(() => GraphQLJSON)
+  profile: RunProfile;
 }

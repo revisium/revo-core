@@ -1,6 +1,8 @@
-import type { IPaginatedType } from '@revisium/engine';
-
-import type { CatalogReadSelector, CatalogRecord } from '../../catalog.types.js';
+import type {
+  CatalogPage,
+  CatalogReadSelector,
+  LaunchProfileRecord,
+} from '../../contracts/catalog.types.js';
 
 export type ListLaunchProfilesQueryData = CatalogReadSelector & {
   readonly first: number;
@@ -8,7 +10,7 @@ export type ListLaunchProfilesQueryData = CatalogReadSelector & {
   readonly pipelineId?: string;
 };
 
-export type ListLaunchProfilesQueryReturnType = IPaginatedType<CatalogRecord>;
+export type ListLaunchProfilesQueryReturnType = CatalogPage<LaunchProfileRecord>;
 
 export class ListLaunchProfilesQuery {
   constructor(readonly data: ListLaunchProfilesQueryData) {}

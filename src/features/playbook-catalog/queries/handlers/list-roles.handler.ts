@@ -1,19 +1,20 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { CatalogDraftService } from '../../catalog-draft.service.js';
-import { CatalogTable } from '../../constants/catalog.constants.js';
+import { CatalogTable } from '../../contracts/catalog-table.js';
+import { toCatalogRecord } from '../../engine/catalog-record.mapper.js';
+import { CatalogRevisionService } from '../../engine/catalog-revision.service.js';
 import { ListRolesQuery, type ListRolesQueryReturnType } from '../impl/list-roles.query.js';
 
 @QueryHandler(ListRolesQuery)
 export class ListRolesHandler implements IQueryHandler<ListRolesQuery, ListRolesQueryReturnType> {
   constructor(
-    private readonly drafts: CatalogDraftService,
+    private readonly revisions: CatalogRevisionService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({ data }: ListRolesQuery): Promise<ListRolesQueryReturnType> {
-    const { revisionId, isHead } = await this.drafts.resolveRevision(data);
+    const { revisionId, isHead } = await this.revisions.resolveRevision(data);
     const page = await this.engine.getRows({
       revisionId,
       tableId: CatalogTable.roles,
@@ -28,7 +29,7 @@ export class ListRolesHandler implements IQueryHandler<ListRolesQuery, ListRoles
       ...page,
       edges: page.edges.map((edge) => ({
         cursor: edge.cursor,
-        node: this.drafts.toRecord(edge.node, revisionId, isHead),
+        node: toCatalogRecord(edge.node, revisionId, isHead),
       })),
     };
   }

@@ -1,13 +1,16 @@
-import type { CatalogRecord } from '../../catalog.types.js';
+import type { RunProfile } from '@revisium/revo-run';
+
+import { type LaunchProfileStatus } from '../../contracts/catalog.enums.js';
+import type { LaunchProfileRecord } from '../../contracts/catalog.types.js';
 
 export type CreateLaunchProfileCommandData = {
   readonly id: string;
   readonly pipelineId: string;
-  readonly status: string;
-  readonly profile: string;
+  readonly status: LaunchProfileStatus;
+  readonly profile: RunProfile;
 };
 
-export type CreateLaunchProfileCommandReturnType = CatalogRecord;
+export type CreateLaunchProfileCommandReturnType = LaunchProfileRecord;
 
 export class CreateLaunchProfileCommand {
   constructor(readonly data: CreateLaunchProfileCommandData) {}

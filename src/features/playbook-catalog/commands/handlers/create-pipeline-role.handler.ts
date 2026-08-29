@@ -2,9 +2,10 @@ import { BadRequestException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { CatalogDraftService } from '../../catalog-draft.service.js';
-import { CatalogError, CatalogTable } from '../../constants/catalog.constants.js';
-import { asCatalogData } from '../../domain/catalog-record.js';
+import { CatalogTable } from '../../contracts/catalog-table.js';
+import { CatalogError } from '../../contracts/catalog.errors.js';
+import { asCatalogData, toCatalogRecord } from '../../engine/catalog-record.mapper.js';
+import { CatalogRevisionService } from '../../engine/catalog-revision.service.js';
 import {
   CreatePipelineRoleCommand,
   type CreatePipelineRoleCommandReturnType,
@@ -16,12 +17,12 @@ export class CreatePipelineRoleHandler implements ICommandHandler<
   CreatePipelineRoleCommandReturnType
 > {
   constructor(
-    private readonly drafts: CatalogDraftService,
+    private readonly revisions: CatalogRevisionService,
     private readonly engine: EngineApiService,
   ) {}
 
   async execute({ data }: CreatePipelineRoleCommand): Promise<CreatePipelineRoleCommandReturnType> {
-    const revisionId = await this.drafts.getDraftRevisionId();
+    const revisionId = await this.revisions.getDraftRevisionId();
     await this.assertSamePlaybook(revisionId, data.pipelineId, data.roleId);
     const created = await this.engine.createRow({
       revisionId,
@@ -34,7 +35,7 @@ export class CreatePipelineRoleHandler implements ICommandHandler<
       },
     });
 
-    return this.drafts.toRecord(created.row, revisionId, false);
+    return toCatalogRecord(created.row, revisionId, false);
   }
 
   private async assertSamePlaybook(

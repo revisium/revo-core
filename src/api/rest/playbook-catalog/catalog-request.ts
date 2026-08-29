@@ -1,10 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
 
+import { CatalogScope } from '../../../features/playbook-catalog/contracts/catalog.enums.js';
 import type {
   CatalogPageData,
   CatalogReadSelector,
-} from '../../../features/playbook-catalog/catalog.types.js';
-import { CatalogScope } from '../../../features/playbook-catalog/constants/catalog.constants.js';
+} from '../../../features/playbook-catalog/contracts/catalog.types.js';
 
 export function catalogSelector(scope?: string, revisionId?: string): CatalogReadSelector {
   const selectedScope = parseScope(scope);

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
-import type { CatalogPageData, CatalogReadSelector } from './catalog.types.js';
 import {
   BootstrapCatalogCommand,
   type BootstrapCatalogCommandReturnType,
@@ -89,6 +88,7 @@ import {
   type UpdateStackRefCommandData,
   type UpdateStackRefCommandReturnType,
 } from './commands/index.js';
+import type { CatalogPageData, CatalogReadSelector } from './contracts/catalog.types.js';
 import {
   GetCatalogSnapshotQuery,
   type GetCatalogSnapshotQueryReturnType,

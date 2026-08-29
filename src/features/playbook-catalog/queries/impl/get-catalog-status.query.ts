@@ -1,4 +1,4 @@
-import type { CatalogStatus } from '../../catalog.types.js';
+import type { CatalogStatus } from '../../contracts/catalog.types.js';
 
 export type GetCatalogStatusQueryReturnType = CatalogStatus;
 

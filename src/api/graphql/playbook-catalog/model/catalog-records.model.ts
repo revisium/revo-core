@@ -1,12 +1,14 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import type { PipelineSourcePackage, RunProfile } from '@revisium/revo-run';
+import { GraphQLJSON } from 'graphql-scalars';
 
+import { CatalogTable } from '../../../../features/playbook-catalog/contracts/catalog-table.js';
 import {
   CatalogChangeType,
-  CatalogTable,
   LaunchProfileStatus,
   MethodDocumentKind,
   PipelineRoleMembership,
-} from '../../../../features/playbook-catalog/constants/catalog.constants.js';
+} from '../../../../features/playbook-catalog/contracts/catalog.enums.js';
 import { Paginated } from '../../share/paginated.js';
 
 @ObjectType({ isAbstract: true })
@@ -89,8 +91,8 @@ export class PipelineModel extends CatalogRecordModel {
   @Field(() => ID)
   playbookId: string;
 
-  @Field()
-  pipeline: string;
+  @Field(() => GraphQLJSON)
+  pipeline: PipelineSourcePackage;
 }
 
 @ObjectType()
@@ -113,8 +115,8 @@ export class LaunchProfileModel extends CatalogRecordModel {
   @Field(() => LaunchProfileStatus)
   status: LaunchProfileStatus;
 
-  @Field()
-  profile: string;
+  @Field(() => GraphQLJSON)
+  profile: RunProfile;
 }
 
 @ObjectType()

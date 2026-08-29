@@ -1,4 +1,4 @@
-import type { CatalogRecord } from '../../catalog.types.js';
+import type { CatalogRecord } from '../../contracts/catalog.types.js';
 
 export type UpdatePlaybookCommandData = {
   readonly id: string;

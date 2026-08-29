@@ -1,12 +1,10 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { EngineApiService } from '@revisium/engine';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
 import { AppModule } from '../src/app.module.js';
-import { CatalogDraftService } from '../src/features/playbook-catalog/catalog-draft.service.js';
-import { CatalogTable } from '../src/features/playbook-catalog/constants/catalog.constants.js';
+import { LaunchProfileStatus } from '../src/features/playbook-catalog/contracts/catalog.enums.js';
 import { PlaybookCatalogApiService } from '../src/features/playbook-catalog/playbook-catalog-api.service.js';
 import { taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
 
@@ -20,29 +18,18 @@ describe('CRI selector matrix', () => {
 
   beforeAll(async () => {
     app = await startApp();
-    const engine = app.get(EngineApiService);
-    const drafts = app.get(CatalogDraftService);
     const catalog = app.get(PlaybookCatalogApiService);
-    const revisionId = await drafts.getDraftRevisionId();
 
-    await engine.createRow({
-      revisionId,
-      tableId: CatalogTable.pipelines,
-      rowId: PIPELINE_ID,
-      data: {
-        playbookId: 'revo',
-        pipeline: JSON.stringify(taskPipeline()),
-      },
+    await catalog.createPipeline({
+      id: PIPELINE_ID,
+      playbookId: 'revo',
+      pipeline: taskPipeline(),
     });
-    await engine.createRow({
-      revisionId,
-      tableId: CatalogTable.launchProfiles,
-      rowId: PROFILE_ID,
-      data: {
-        pipelineId: PIPELINE_ID,
-        status: 'active',
-        profile: JSON.stringify(taskProfile()),
-      },
+    await catalog.createLaunchProfile({
+      id: PROFILE_ID,
+      pipelineId: PIPELINE_ID,
+      status: LaunchProfileStatus.active,
+      profile: taskProfile(),
     });
     await catalog.commitCatalog('CRI selector matrix fixtures');
   });

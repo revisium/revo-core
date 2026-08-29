@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import type { PipelineSourcePackage, RunProfile } from '@revisium/revo-run';
 
 export class CatalogRecordResponse {
   @ApiProperty()
@@ -56,8 +57,8 @@ export class MethodDocumentResponse extends CatalogRecordResponse {
 export class PipelineResponse extends CatalogRecordResponse {
   @ApiProperty()
   playbookId: string;
-  @ApiProperty()
-  pipeline: string;
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  pipeline: PipelineSourcePackage;
 }
 export class PipelineRoleResponse extends CatalogRecordResponse {
   @ApiProperty()
@@ -72,8 +73,8 @@ export class LaunchProfileResponse extends CatalogRecordResponse {
   pipelineId: string;
   @ApiProperty({ enum: ['active', 'deprecated'] })
   status: 'active' | 'deprecated';
-  @ApiProperty()
-  profile: string;
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  profile: RunProfile;
 }
 
 export class CatalogPageInfoResponse {

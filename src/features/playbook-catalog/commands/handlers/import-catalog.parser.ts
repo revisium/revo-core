@@ -1,7 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
 
-import type { CatalogRecordData } from '../catalog.types.js';
-import { CATALOG_TABLES, CatalogError, CatalogTable } from '../constants/catalog.constants.js';
+import { isCatalogRecordId } from '../../contracts/catalog-record-id.js';
+import { CATALOG_TABLES, CatalogTable } from '../../contracts/catalog-table.js';
+import { CatalogError } from '../../contracts/catalog.errors.js';
+import type { CatalogRecordData } from '../../contracts/catalog.types.js';
 
 export type CatalogImportRecord = {
   id: string;
@@ -51,7 +53,7 @@ function parseTable(value: unknown): CatalogImportRecord[] {
   const ids = new Set<string>();
 
   return value.map((record) => {
-    if (!isObject(record) || typeof record.id !== 'string' || !/^[\w-]{1,64}$/.test(record.id)) {
+    if (!isObject(record) || !isCatalogRecordId(record.id)) {
       throw new BadRequestException(CatalogError.invalidImport);
     }
 
