@@ -14,8 +14,6 @@ import {
   type DeleteUserProjectCommandReturnType,
 } from '../impl/delete-user-project.command.js';
 
-const DEFAULT_BRANCH_NAME = 'master';
-
 @CommandHandler(DeleteUserProjectCommand)
 export class DeleteUserProjectHandler implements ICommandHandler<
   DeleteUserProjectCommand,
@@ -48,14 +46,7 @@ export class DeleteUserProjectHandler implements ICommandHandler<
       throw new NotFoundException(ProjectError.notFound);
     }
 
-    await this.transaction.branch.delete({
-      where: {
-        name_projectId: {
-          name: DEFAULT_BRANCH_NAME,
-          projectId,
-        },
-      },
-    });
+    await this.transaction.branch.deleteMany({ where: { projectId } });
     await this.transaction.project.delete({
       where: { id: projectId },
     });
