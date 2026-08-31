@@ -1,4 +1,4 @@
-import { BadRequestException, Logger } from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { CommandBus, CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { IdService } from '@revisium/engine';
 import { nanoid } from 'nanoid';
@@ -51,9 +51,14 @@ export class CreateUserProjectHandler implements ICommandHandler<
     );
 
     try {
-      await this.commands.execute<ApplyContentModelCommand, ApplyContentModelCommandReturnType>(
-        new ApplyContentModelCommand({ projectId }),
-      );
+      const published = await this.commands.execute<
+        ApplyContentModelCommand,
+        ApplyContentModelCommandReturnType
+      >(new ApplyContentModelCommand({ projectId }));
+
+      if (!published) {
+        throw new InternalServerErrorException(ProjectError.initCommitMissing);
+      }
     } catch (error) {
       await this.removeCreatedProject(projectId);
       throw error;
