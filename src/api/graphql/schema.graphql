@@ -220,7 +220,7 @@ type Mutation {
   createPipeline(data: PipelineInput!): PipelineModel!
   createPipelineRole(data: PipelineRoleInput!): PipelineRoleModel!
   createPlaybook(data: PlaybookInput!): PlaybookModel!
-  createProject(data: ProjectCreateInput!): ProjectModel!
+  createProject(data: ProjectCreateInput!): ProjectCreatedModel!
   createRequirement(data: RequirementInput!): RequirementModel!
   createRole(data: RoleInput!): RoleModel!
   createRoleRef(data: RoleRefInput!): RoleRefModel!
@@ -357,7 +357,12 @@ type ProjectConnectionModel {
 }
 
 input ProjectCreateInput {
+  description: String
   name: String!
+}
+
+type ProjectCreatedModel {
+  projectId: ID!
 }
 
 type ProjectEdgeModel {
@@ -373,14 +378,21 @@ input ProjectListInput {
 type ProjectModel {
   adr(id: ID!): AdrModel
   adrs(data: RecordListInput!): AdrConnectionModel!
+  description: String!
   id: ID!
   name: String!
   requirement(id: ID!): RequirementModel
   requirements(data: RecordListInput!): RequirementConnectionModel!
+  status: ProjectStatus!
   workItem(id: ID!): WorkItemModel
   workItems(data: RecordListInput!): WorkItemConnectionModel!
   workPlan(id: ID!): WorkPlanModel
   workPlans(data: RecordListInput!): WorkPlanConnectionModel!
+}
+
+enum ProjectStatus {
+  active
+  archived
 }
 
 type Query {

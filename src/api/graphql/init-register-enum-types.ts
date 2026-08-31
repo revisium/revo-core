@@ -8,11 +8,13 @@ import {
   MethodDocumentKind,
   PipelineRoleMembership,
 } from '../../features/playbook-catalog/contracts/catalog.enums.js';
+import { PublicProjectStatus } from '../../features/project/contracts/project.enums.js';
 import { AdrStatus } from './project/model/adr-status.enum.js';
 import { RequirementStatus } from './project/model/requirement-status.enum.js';
 import { WorkPlanStatus } from './project/model/work-plan-status.enum.js';
 
 export function initRegisterEnumTypes(): void {
+  registerEnumType(PublicProjectStatus, { name: 'ProjectStatus' });
   registerEnumType(AdrStatus, { name: 'AdrStatus' });
   registerEnumType(RequirementStatus, { name: 'RequirementStatus' });
   registerEnumType(WorkPlanStatus, { name: 'WorkPlanStatus' });

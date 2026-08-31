@@ -99,28 +99,27 @@ describe('GraphQL API', () => {
   test('creates, lists, gets, and deletes a USER project', async () => {
     const created = await graphql(app, CREATE_PROJECT, { data: { name: '  Alpha  ' } });
     expect(created.body.errors).toBeUndefined();
-    const project = created.body.data.createProject as { id: string; name: string };
-    createdProjectIds.push(project.id);
-    expect(project.name).toBe('Alpha');
+    const { projectId } = created.body.data.createProject as { projectId: string };
+    createdProjectIds.push(projectId);
 
     const listed = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
     expect(listed.body.errors).toBeUndefined();
     const ids = listed.body.data.projects.edges.map(
       (edge: { node: { id: string } }) => edge.node.id,
     );
-    expect(ids).toContain(project.id);
+    expect(ids).toContain(projectId);
     expect(ids).not.toContain(SYSTEM_PLAYBOOKS_PROJECT.id);
 
-    const fetched = await graphql(app, GET_PROJECT, { id: project.id });
+    const fetched = await graphql(app, GET_PROJECT, { id: projectId });
     expect(fetched.body).toMatchObject({
-      data: { project: { id: project.id, name: 'Alpha' } },
+      data: { project: { id: projectId, name: 'Alpha' } },
     });
 
-    const deleted = await graphql(app, DELETE_PROJECT, { id: project.id });
+    const deleted = await graphql(app, DELETE_PROJECT, { id: projectId });
     expect(deleted.body).toEqual({ data: { deleteProject: true } });
     createdProjectIds.pop();
 
-    const missing = await graphql(app, GET_PROJECT, { id: project.id });
+    const missing = await graphql(app, GET_PROJECT, { id: projectId });
     expect(missing.body).toEqual({ data: { project: null } });
   });
 
@@ -139,12 +138,10 @@ describe('GraphQL API', () => {
   test('creates a project without a description as active and empty', async () => {
     const created = await graphql(app, CREATE_PROJECT, { data: { name: 'No description' } });
     expect(created.body.errors).toBeUndefined();
-    const project = created.body.data.createProject as { id: string };
-    createdProjectIds.push(project.id);
+    const { projectId } = created.body.data.createProject as { projectId: string };
+    createdProjectIds.push(projectId);
 
-    expect(created.body.data.createProject).toMatchObject({ description: '', status: 'active' });
-
-    const fetched = await graphql(app, GET_PROJECT, { id: project.id });
+    const fetched = await graphql(app, GET_PROJECT, { id: projectId });
     expect(fetched.body.data.project).toMatchObject({ description: '', status: 'active' });
   });
 
@@ -154,10 +151,10 @@ describe('GraphQL API', () => {
       data: { name: 'With description', description },
     });
     expect(created.body.errors).toBeUndefined();
-    const project = created.body.data.createProject as { id: string };
-    createdProjectIds.push(project.id);
+    const { projectId } = created.body.data.createProject as { projectId: string };
+    createdProjectIds.push(projectId);
 
-    const fetched = await graphql(app, GET_PROJECT, { id: project.id });
+    const fetched = await graphql(app, GET_PROJECT, { id: projectId });
     expect(fetched.body.data.project).toMatchObject({ description, status: 'active' });
   });
 
@@ -573,7 +570,7 @@ describe('GraphQL API', () => {
 
 const CREATE_PROJECT = `
   mutation CreateProject($data: ProjectCreateInput!) {
-    createProject(data: $data) { id name description status }
+    createProject(data: $data) { projectId }
   }
 `;
 
@@ -757,9 +754,9 @@ async function createProject(
 ): Promise<{ id: string; name: string }> {
   const response = await graphql(app, CREATE_PROJECT, { data: { name } });
   expect(response.body.errors).toBeUndefined();
-  const project = response.body.data.createProject as { id: string; name: string };
-  createdProjectIds.push(project.id);
-  return project;
+  const { projectId } = response.body.data.createProject as { projectId: string };
+  createdProjectIds.push(projectId);
+  return { id: projectId, name };
 }
 
 function adrInput(projectId: string, id: string, title: string) {

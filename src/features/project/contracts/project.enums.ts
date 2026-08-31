@@ -1,17 +1,17 @@
-import { ProjectStatus as StoredProjectStatus } from '../../../__generated__/client/enums.js';
+import { ProjectStatus } from '../../../__generated__/client/enums.js';
 
-export enum ProjectStatus {
+export enum PublicProjectStatus {
   active = 'active',
   archived = 'archived',
 }
 
-export function toPublicProjectStatus(status: StoredProjectStatus): ProjectStatus {
+export function toPublicProjectStatus(status: ProjectStatus): PublicProjectStatus {
   switch (status) {
-    case StoredProjectStatus.ACTIVE:
-      return ProjectStatus.active;
-    case StoredProjectStatus.ARCHIVED:
-      return ProjectStatus.archived;
-    case StoredProjectStatus.CREATING:
+    case ProjectStatus.ACTIVE:
+      return PublicProjectStatus.active;
+    case ProjectStatus.ARCHIVED:
+      return PublicProjectStatus.archived;
+    case ProjectStatus.CREATING:
     default:
       throw new Error('A project that is still being created has no public status.');
   }

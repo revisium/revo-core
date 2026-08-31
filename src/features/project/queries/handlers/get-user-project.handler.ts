@@ -1,9 +1,6 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
-import {
-  ProjectKind,
-  ProjectStatus as StoredProjectStatus,
-} from '../../../../__generated__/client/enums.js';
+import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
 import { toPublicProjectStatus } from '../../contracts/project.enums.js';
 import {
@@ -23,7 +20,7 @@ export class GetUserProjectHandler implements IQueryHandler<
       where: {
         id: data.id,
         kind: ProjectKind.USER,
-        status: { not: StoredProjectStatus.CREATING },
+        status: { not: ProjectStatus.CREATING },
       },
       select: { id: true, name: true, description: true, status: true },
     });

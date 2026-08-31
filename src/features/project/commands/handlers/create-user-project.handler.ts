@@ -4,12 +4,8 @@ import { IdService } from '@revisium/engine';
 import { nanoid } from 'nanoid';
 
 import type { Prisma } from '../../../../__generated__/client/client.js';
-import {
-  ProjectKind,
-  ProjectStatus as StoredProjectStatus,
-} from '../../../../__generated__/client/enums.js';
+import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
-import { ProjectStatus } from '../../contracts/project.enums.js';
 import { ProjectError } from '../../contracts/project.errors.js';
 import {
   ApplyContentModelCommand,
@@ -124,12 +120,12 @@ export class CreateUserProjectHandler implements ICommandHandler<
     const project = await this.transactions.runSerializable(() =>
       this.transaction.project.update({
         where: { id: projectId },
-        data: { status: StoredProjectStatus.ACTIVE },
-        select: { id: true, name: true, description: true },
+        data: { status: ProjectStatus.ACTIVE },
+        select: { id: true },
       }),
     );
 
-    return { ...project, status: ProjectStatus.active };
+    return { projectId: project.id };
   }
 
   private async removeCreatedProject(projectId: string): Promise<void> {

@@ -2094,7 +2094,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProjectResponse"
+                  "$ref": "#/components/schemas/ProjectCreatedResponse"
                 }
               }
             }
@@ -4306,9 +4306,25 @@
         "properties": {
           "name": {
             "type": "string"
+          },
+          "description": {
+            "type": "string"
           }
         },
         "required": ["name"]
+      },
+      "ProjectCreatedResponse": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string"
+          }
+        },
+        "required": ["projectId"]
+      },
+      "ProjectStatus": {
+        "type": "string",
+        "enum": ["active", "archived"]
       },
       "ProjectResponse": {
         "type": "object",
@@ -4318,9 +4334,19 @@
           },
           "name": {
             "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProjectStatus"
+              }
+            ]
           }
         },
-        "required": ["id", "name"]
+        "required": ["id", "name", "description", "status"]
       },
       "ProjectEdgeResponse": {
         "type": "object",
