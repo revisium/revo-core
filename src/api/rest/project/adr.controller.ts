@@ -7,6 +7,7 @@ import {
   HttpStatus,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -54,7 +55,7 @@ export class AdrController {
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   listAdrs(
     @Param('projectId') projectId: string,
-    @Query('first') first?: string,
+    @Query('first', new ParseIntPipe({ optional: true })) first?: number,
     @Query('after') after?: string,
   ) {
     return this.projects.listAdrs(projectId, recordListQuery(first, after));

@@ -144,6 +144,39 @@ describe('REST API', () => {
     expect(response.body.message).toContain('Record id is required.');
   });
 
+  test('separates a malformed page size from an unsupported one', async () => {
+    const project = await createProject(app, createdProjectIds, 'Page size guard');
+
+    const malformed = await request(app.getHttpServer()).get('/api/projects?first=abc').expect(400);
+    expect(malformed.body.message).toContain('numeric string is expected');
+
+    const outOfRange = await request(app.getHttpServer())
+      .get('/api/projects?first=101')
+      .expect(400);
+    expect(outOfRange.body).toMatchObject({
+      message: 'The "first" parameter must be an integer between 1 and 100.',
+    });
+
+    const records = await request(app.getHttpServer())
+      .get(`/api/projects/${project.id}/work-items?first=abc`)
+      .expect(400);
+    expect(records.body.message).toContain('numeric string is expected');
+  });
+
+  test('rejects a non-boolean includeArchived flag', async () => {
+    const numeric = await request(app.getHttpServer())
+      .get('/api/projects?includeArchived=1')
+      .expect(400);
+    expect(numeric.body.message).toContain('boolean string is expected');
+
+    await request(app.getHttpServer()).get('/api/projects?includeArchived=yes').expect(400);
+
+    const accepted = await request(app.getHttpServer())
+      .get('/api/projects?includeArchived=false')
+      .expect(200);
+    expect(accepted.body.edges).toEqual(expect.any(Array));
+  });
+
   test('filters the project list by status and name', async () => {
     const active = await createProject(app, createdProjectIds, 'REST active filter');
     const archived = await createProject(app, createdProjectIds, 'REST archived filter');

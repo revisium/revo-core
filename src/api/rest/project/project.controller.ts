@@ -7,6 +7,8 @@ import {
   HttpStatus,
   NotFoundException,
   Param,
+  ParseBoolPipe,
+  ParseIntPipe,
   Post,
   Query,
   UsePipes,
@@ -51,9 +53,9 @@ export class ProjectController {
   @ApiQuery({ name: 'query', type: String, required: false })
   @ApiOkResponse({ type: ProjectConnectionResponse })
   listProjects(
-    @Query('first') first?: string,
+    @Query('first', new ParseIntPipe({ optional: true })) first?: number,
     @Query('after') after?: string,
-    @Query('includeArchived') includeArchived?: string,
+    @Query('includeArchived', new ParseBoolPipe({ optional: true })) includeArchived?: boolean,
     @Query('query') query?: string,
   ) {
     return this.projects.listUserProjects(

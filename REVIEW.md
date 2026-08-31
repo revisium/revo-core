@@ -41,6 +41,8 @@ List reads use cursor pagination. Do not invent a second paging model.
 - GraphQL list fields return a `Paginated(Model)` connection and take optional `first` plus optional `after`.
 - REST list endpoints take `first` and `after` as query parameters and return the same connection body.
 - One page-size rule covers every list: `first` defaults to 100 and must be an integer between 1 and 100. It lives in the shared pagination helper; features and transports do not restate it.
+- Transports check the representation, the rule checks the value: GraphQL rejects a non-`Int` `first` through its schema, REST through `ParseIntPipe`, and only then does the shared rule answer for the range.
+- `after` is opaque. Clients store and pass it back; they do not parse or compute it. Its current encoding is an offset, which is an implementation detail and may change.
 - Paginate list reads only. Get-one and single-resource writes are not paginated.
 
 Promote repeated objective review findings to Oxlint, Oxfmt, or focused contract tests.
