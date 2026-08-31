@@ -24,7 +24,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ProjectError } from '../../../features/project/constants/project.constants.js';
+import { ProjectError } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { AdrUpdateRequest } from './dto/adr-update.request.js';
 import { AdrRequest } from './dto/adr.request.js';

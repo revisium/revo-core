@@ -23,7 +23,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ProjectError } from '../../../features/project/constants/project.constants.js';
+import { ProjectError } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { ProjectCreateRequest } from './dto/project-create.request.js';
 import { ProjectConnectionResponse } from './model/project-connection.response.js';

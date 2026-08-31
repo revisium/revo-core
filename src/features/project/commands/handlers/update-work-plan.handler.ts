@@ -2,7 +2,8 @@ import { NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { ProjectError, ProjectTable } from '../../constants/project.constants.js';
+import { ProjectTable } from '../../contracts/project-table.js';
+import { ProjectError } from '../../contracts/project.errors.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import {
   UpdateWorkPlanCommand,

@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid';
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind } from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
-import { ProjectError } from '../../constants/project.constants.js';
+import { ProjectError } from '../../contracts/project.errors.js';
 import {
   ApplyContentModelCommand,
   type ApplyContentModelCommandReturnType,

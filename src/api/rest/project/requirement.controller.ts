@@ -24,7 +24,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ProjectError } from '../../../features/project/constants/project.constants.js';
+import { ProjectError } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { RequirementUpdateRequest } from './dto/requirement-update.request.js';
 import { RequirementRequest } from './dto/requirement.request.js';

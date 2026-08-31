@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsIn, IsString, ValidateNested } from 'class-validator';
 
-import { ProjectError } from '../../../../features/project/constants/project.constants.js';
+import { ProjectError } from '../../../../features/project/contracts/project.errors.js';
 import { AdrAlternativeResponse } from '../model/adr-alternative.response.js';
 
 export class AdrRequest {
