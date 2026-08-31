@@ -4,8 +4,12 @@ import { IdService } from '@revisium/engine';
 import { nanoid } from 'nanoid';
 
 import type { Prisma } from '../../../../__generated__/client/client.js';
-import { ProjectKind } from '../../../../__generated__/client/enums.js';
+import {
+  ProjectKind,
+  ProjectStatus as StoredProjectStatus,
+} from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
+import { ProjectStatus } from '../../contracts/project.enums.js';
 import { ProjectError } from '../../contracts/project.errors.js';
 import {
   ApplyContentModelCommand,
@@ -13,6 +17,7 @@ import {
 } from '../impl/apply-content-model.command.js';
 import {
   CreateUserProjectCommand,
+  type CreateUserProjectCommandData,
   type CreateUserProjectCommandReturnType,
 } from '../impl/create-user-project.command.js';
 import {
@@ -44,22 +49,36 @@ export class CreateUserProjectHandler implements ICommandHandler<
       throw new BadRequestException(ProjectError.nameRequired);
     }
 
-    const project = await this.transactions.runSerializable(() =>
-      this.createProject(data.name.trim()),
+    const description = this.readDescription(data);
+    const projectId = await this.transactions.runSerializable(() =>
+      this.createProject(data.name.trim(), description),
     );
+
     try {
       await this.commands.execute<ApplyContentModelCommand, ApplyContentModelCommandReturnType>(
-        new ApplyContentModelCommand({ projectId: project.id }),
+        new ApplyContentModelCommand({ projectId }),
       );
     } catch (error) {
-      await this.removeCreatedProject(project.id);
+      await this.removeCreatedProject(projectId);
       throw error;
     }
 
-    return project;
+    return this.activateProject(projectId);
   }
 
-  private async createProject(name: string): Promise<CreateUserProjectCommandReturnType> {
+  private readDescription(data: CreateUserProjectCommandData): string {
+    if (data.description === undefined) {
+      return '';
+    }
+
+    if (typeof data.description !== 'string') {
+      throw new BadRequestException(ProjectError.descriptionInvalid);
+    }
+
+    return data.description;
+  }
+
+  private async createProject(name: string, description: string): Promise<string> {
     const projectId = nanoid();
     const branchId = this.ids.generate();
     const headRevisionId = this.ids.generate();
@@ -69,6 +88,7 @@ export class CreateUserProjectHandler implements ICommandHandler<
       data: {
         id: projectId,
         name,
+        description,
         kind: ProjectKind.USER,
         branches: {
           create: {
@@ -94,10 +114,22 @@ export class CreateUserProjectHandler implements ICommandHandler<
           },
         },
       },
-      select: { id: true, name: true },
+      select: { id: true },
     });
 
-    return project;
+    return project.id;
+  }
+
+  private async activateProject(projectId: string): Promise<CreateUserProjectCommandReturnType> {
+    const project = await this.transactions.runSerializable(() =>
+      this.transaction.project.update({
+        where: { id: projectId },
+        data: { status: StoredProjectStatus.ACTIVE },
+        select: { id: true, name: true, description: true },
+      }),
+    );
+
+    return { ...project, status: ProjectStatus.active };
   }
 
   private async removeCreatedProject(projectId: string): Promise<void> {

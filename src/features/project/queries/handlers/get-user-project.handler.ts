@@ -1,7 +1,11 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
-import { ProjectKind } from '../../../../__generated__/client/enums.js';
+import {
+  ProjectKind,
+  ProjectStatus as StoredProjectStatus,
+} from '../../../../__generated__/client/enums.js';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
+import { toPublicProjectStatus } from '../../contracts/project.enums.js';
 import {
   GetUserProjectQuery,
   type GetUserProjectQueryReturnType,
@@ -16,10 +20,18 @@ export class GetUserProjectHandler implements IQueryHandler<
 
   async execute({ data }: GetUserProjectQuery): Promise<GetUserProjectQueryReturnType> {
     const project = await this.prisma.project.findFirst({
-      where: { id: data.id, kind: ProjectKind.USER },
-      select: { id: true, name: true },
+      where: {
+        id: data.id,
+        kind: ProjectKind.USER,
+        status: { not: StoredProjectStatus.CREATING },
+      },
+      select: { id: true, name: true, description: true, status: true },
     });
 
-    return project;
+    if (project === null) {
+      return null;
+    }
+
+    return { ...project, status: toPublicProjectStatus(project.status) };
   }
 }

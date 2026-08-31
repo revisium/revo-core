@@ -1,6 +1,9 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
-import { ProjectKind } from '../../../../__generated__/client/enums.js';
+import {
+  ProjectKind,
+  ProjectStatus as StoredProjectStatus,
+} from '../../../../__generated__/client/enums.js';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
 import {
   ListUserProjectIdsQuery,
@@ -16,7 +19,7 @@ export class ListUserProjectIdsHandler implements IQueryHandler<
 
   async execute(): Promise<ListUserProjectIdsQueryReturnType> {
     const projects = await this.prisma.project.findMany({
-      where: { kind: ProjectKind.USER },
+      where: { kind: ProjectKind.USER, status: { not: StoredProjectStatus.CREATING } },
       select: { id: true },
     });
 

@@ -1,8 +1,12 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
-import { ProjectKind } from '../../../../__generated__/client/enums.js';
+import {
+  ProjectKind,
+  ProjectStatus as StoredProjectStatus,
+} from '../../../../__generated__/client/enums.js';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
 import { getOffsetPagination } from '../../commands/utils/getOffsetPagination.js';
+import { toPublicProjectStatus } from '../../contracts/project.enums.js';
 import {
   ListUserProjectsQuery,
   type ListUserProjectsQueryReturnType,
@@ -18,15 +22,24 @@ export class ListUserProjectsHandler implements IQueryHandler<
   execute({ data }: ListUserProjectsQuery): Promise<ListUserProjectsQueryReturnType> {
     return getOffsetPagination({
       pageData: data,
-      findMany: ({ take, skip }) =>
-        this.prisma.project.findMany({
-          where: { kind: ProjectKind.USER },
+      findMany: async ({ take, skip }) => {
+        const projects = await this.prisma.project.findMany({
+          where: { kind: ProjectKind.USER, status: { not: StoredProjectStatus.CREATING } },
           orderBy: { id: 'asc' },
           take,
           skip,
-          select: { id: true, name: true },
+          select: { id: true, name: true, description: true, status: true },
+        });
+
+        return projects.map((project) => ({
+          ...project,
+          status: toPublicProjectStatus(project.status),
+        }));
+      },
+      count: () =>
+        this.prisma.project.count({
+          where: { kind: ProjectKind.USER, status: { not: StoredProjectStatus.CREATING } },
         }),
-      count: () => this.prisma.project.count({ where: { kind: ProjectKind.USER } }),
     });
   }
 }

@@ -9,6 +9,7 @@ import {
   type CreateRequirementCommandData,
   type CreateRequirementCommandReturnType,
   CreateUserProjectCommand,
+  type CreateUserProjectCommandData,
   type CreateUserProjectCommandReturnType,
   CreateWorkItemCommand,
   type CreateWorkItemCommandData,
@@ -88,7 +89,9 @@ export class ProjectApiService {
     );
   }
 
-  createUserProject(data: { name: string }): Promise<CreateUserProjectCommandReturnType> {
+  createUserProject(
+    data: CreateUserProjectCommandData,
+  ): Promise<CreateUserProjectCommandReturnType> {
     return this.commands.execute<CreateUserProjectCommand, CreateUserProjectCommandReturnType>(
       new CreateUserProjectCommand(data),
     );
