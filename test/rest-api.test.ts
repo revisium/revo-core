@@ -88,24 +88,28 @@ describe('REST API', () => {
       .post('/api/projects')
       .send({ name: '  Beta  ' })
       .expect(201);
-    const project = created.body as { id: string; name: string };
-    createdProjectIds.push(project.id);
-    expect(project.name).toBe('Beta');
+    const { projectId } = created.body as { projectId: string };
+    createdProjectIds.push(projectId);
 
     const listed = await request(app.getHttpServer()).get('/api/projects?first=50').expect(200);
     const ids = listed.body.edges.map((edge: { node: { id: string } }) => edge.node.id);
-    expect(ids).toContain(project.id);
+    expect(ids).toContain(projectId);
     expect(ids).not.toContain(SYSTEM_PLAYBOOKS_PROJECT.id);
 
     const fetched = await request(app.getHttpServer())
-      .get(`/api/projects/${project.id}`)
+      .get(`/api/projects/${projectId}`)
       .expect(200);
-    expect(fetched.body).toEqual({ id: project.id, name: 'Beta' });
+    expect(fetched.body).toEqual({
+      id: projectId,
+      name: 'Beta',
+      description: '',
+      status: 'active',
+    });
 
-    await request(app.getHttpServer()).delete(`/api/projects/${project.id}`).expect(204);
+    await request(app.getHttpServer()).delete(`/api/projects/${projectId}`).expect(204);
     createdProjectIds.pop();
 
-    await request(app.getHttpServer()).get(`/api/projects/${project.id}`).expect(404);
+    await request(app.getHttpServer()).get(`/api/projects/${projectId}`).expect(404);
   });
 
   test('rejects an empty project name', async () => {
@@ -322,9 +326,9 @@ async function createProject(
     .post('/api/projects')
     .send({ name })
     .expect(201);
-  const project = response.body as { id: string; name: string };
-  createdProjectIds.push(project.id);
-  return project;
+  const { projectId } = response.body as { projectId: string };
+  createdProjectIds.push(projectId);
+  return { id: projectId, name };
 }
 
 function adrBody(id: string, title: string) {

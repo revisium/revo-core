@@ -1,5 +1,7 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 
+import { PublicProjectStatus } from '../../../../features/project/contracts/project.enums.js';
+
 @ObjectType()
 export class ProjectModel {
   @Field(() => ID)
@@ -7,4 +9,10 @@ export class ProjectModel {
 
   @Field()
   name: string;
+
+  @Field()
+  description: string;
+
+  @Field(() => PublicProjectStatus)
+  status: PublicProjectStatus;
 }

@@ -11,8 +11,10 @@ import {
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 
+import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
 import { AppModule } from '../src/app.module.js';
 import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
+import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
 import { taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
 
 describe('GraphQL API', () => {
@@ -97,28 +99,27 @@ describe('GraphQL API', () => {
   test('creates, lists, gets, and deletes a USER project', async () => {
     const created = await graphql(app, CREATE_PROJECT, { data: { name: '  Alpha  ' } });
     expect(created.body.errors).toBeUndefined();
-    const project = created.body.data.createProject as { id: string; name: string };
-    createdProjectIds.push(project.id);
-    expect(project.name).toBe('Alpha');
+    const { projectId } = created.body.data.createProject as { projectId: string };
+    createdProjectIds.push(projectId);
 
     const listed = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
     expect(listed.body.errors).toBeUndefined();
     const ids = listed.body.data.projects.edges.map(
       (edge: { node: { id: string } }) => edge.node.id,
     );
-    expect(ids).toContain(project.id);
+    expect(ids).toContain(projectId);
     expect(ids).not.toContain(SYSTEM_PLAYBOOKS_PROJECT.id);
 
-    const fetched = await graphql(app, GET_PROJECT, { id: project.id });
+    const fetched = await graphql(app, GET_PROJECT, { id: projectId });
     expect(fetched.body).toMatchObject({
-      data: { project: { id: project.id, name: 'Alpha' } },
+      data: { project: { id: projectId, name: 'Alpha' } },
     });
 
-    const deleted = await graphql(app, DELETE_PROJECT, { id: project.id });
+    const deleted = await graphql(app, DELETE_PROJECT, { id: projectId });
     expect(deleted.body).toEqual({ data: { deleteProject: true } });
     createdProjectIds.pop();
 
-    const missing = await graphql(app, GET_PROJECT, { id: project.id });
+    const missing = await graphql(app, GET_PROJECT, { id: projectId });
     expect(missing.body).toEqual({ data: { project: null } });
   });
 
@@ -132,6 +133,69 @@ describe('GraphQL API', () => {
 
     const after = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
     expect(after.body.data.projects.totalCount).toBe(beforeCount);
+  });
+
+  test('creates a project without a description as active and empty', async () => {
+    const created = await graphql(app, CREATE_PROJECT, { data: { name: 'No description' } });
+    expect(created.body.errors).toBeUndefined();
+    const { projectId } = created.body.data.createProject as { projectId: string };
+    createdProjectIds.push(projectId);
+
+    const fetched = await graphql(app, GET_PROJECT, { id: projectId });
+    expect(fetched.body.data.project).toMatchObject({ description: '', status: 'active' });
+  });
+
+  test('stores the description passed to createProject', async () => {
+    const description = 'Keeps the product intent next to the name.';
+    const created = await graphql(app, CREATE_PROJECT, {
+      data: { name: 'With description', description },
+    });
+    expect(created.body.errors).toBeUndefined();
+    const { projectId } = created.body.data.createProject as { projectId: string };
+    createdProjectIds.push(projectId);
+
+    const fetched = await graphql(app, GET_PROJECT, { id: projectId });
+    expect(fetched.body.data.project).toMatchObject({ description, status: 'active' });
+  });
+
+  test('rejects a null description and does not create a project', async () => {
+    const before = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
+    const beforeCount = before.body.data.projects.totalCount as number;
+
+    const invalid = await graphql(app, CREATE_PROJECT, {
+      data: { name: 'Null description', description: null },
+    });
+    expect(invalid.body.data).toBeNull();
+    expect(invalid.body.errors[0].message).toBe('Description must be a string.');
+
+    const after = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
+    expect(after.body.data.projects.totalCount).toBe(beforeCount);
+  });
+
+  test('reads a project stored before the description and status columns', async () => {
+    const prisma = app.get(PrismaService);
+    const legacyId = 'legacy_project_without_description';
+    await prisma.project.create({
+      data: {
+        id: legacyId,
+        name: 'Legacy project',
+        kind: ProjectKind.USER,
+        status: ProjectStatus.ACTIVE,
+      },
+    });
+
+    try {
+      const fetched = await graphql(app, GET_PROJECT, { id: legacyId });
+
+      expect(fetched.body.errors).toBeUndefined();
+      expect(fetched.body.data.project).toMatchObject({
+        id: legacyId,
+        description: '',
+        status: 'active',
+      });
+    } finally {
+      await prisma.project.delete({ where: { id: legacyId } });
+    }
   });
 
   test('hides the SYSTEM project from get, list, and delete', async () => {
@@ -506,7 +570,7 @@ describe('GraphQL API', () => {
 
 const CREATE_PROJECT = `
   mutation CreateProject($data: ProjectCreateInput!) {
-    createProject(data: $data) { id name }
+    createProject(data: $data) { projectId }
   }
 `;
 
@@ -514,7 +578,7 @@ const LIST_PROJECTS = `
   query Projects($data: ProjectListInput!) {
     projects(data: $data) {
       totalCount
-      edges { cursor node { id name } }
+      edges { cursor node { id name description status } }
       pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
     }
   }
@@ -522,7 +586,7 @@ const LIST_PROJECTS = `
 
 const GET_PROJECT = `
   query Project($id: ID!) {
-    project(id: $id) { id name }
+    project(id: $id) { id name description status }
   }
 `;
 
@@ -690,9 +754,9 @@ async function createProject(
 ): Promise<{ id: string; name: string }> {
   const response = await graphql(app, CREATE_PROJECT, { data: { name } });
   expect(response.body.errors).toBeUndefined();
-  const project = response.body.data.createProject as { id: string; name: string };
-  createdProjectIds.push(project.id);
-  return project;
+  const { projectId } = response.body.data.createProject as { projectId: string };
+  createdProjectIds.push(projectId);
+  return { id: projectId, name };
 }
 
 function adrInput(projectId: string, id: string, title: string) {

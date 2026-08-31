@@ -24,7 +24,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ProjectError } from '../../../features/project/constants/project.constants.js';
+import { ProjectError } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { WorkPlanUpdateRequest } from './dto/work-plan-update.request.js';
 import { WorkPlanRequest } from './dto/work-plan.request.js';

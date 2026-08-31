@@ -8,6 +8,7 @@ import { listData } from './list-data.js';
 import { AdrConnectionModel } from './model/adr-connection.model.js';
 import { AdrModel } from './model/adr.model.js';
 import { ProjectConnectionModel } from './model/project-connection.model.js';
+import { ProjectCreatedModel } from './model/project-created.model.js';
 import { ProjectModel } from './model/project.model.js';
 import { RequirementConnectionModel } from './model/requirement-connection.model.js';
 import { RequirementModel } from './model/requirement.model.js';
@@ -30,8 +31,10 @@ export class ProjectResolver {
     return this.projectApi.listUserProjects(listData(data));
   }
 
-  @Mutation(() => ProjectModel)
-  createProject(@Args('data', { type: () => ProjectCreateInput }) data: ProjectCreateInput) {
+  @Mutation(() => ProjectCreatedModel)
+  createProject(
+    @Args('data', { type: () => ProjectCreateInput }) data: ProjectCreateInput,
+  ): Promise<ProjectCreatedModel> {
     return this.projectApi.createUserProject(data);
   }
 

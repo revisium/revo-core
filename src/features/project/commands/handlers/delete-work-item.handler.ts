@@ -1,7 +1,7 @@
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { ProjectTable } from '../../constants/project.constants.js';
+import { ProjectTable } from '../../contracts/project-table.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import {
   DeleteWorkItemCommand,

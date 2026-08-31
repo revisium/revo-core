@@ -2,6 +2,7 @@ import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { IdService } from '@revisium/engine';
 
 import type { Prisma } from '../../../../__generated__/client/client.js';
+import { ProjectStatus } from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import {
   EnsureProjectCommand,
@@ -58,6 +59,7 @@ export class EnsureProjectHandler implements ICommandHandler<
     const project = await this.transaction.project.create({
       data: {
         ...data,
+        status: ProjectStatus.ACTIVE,
         branches: {
           create: {
             id: branchId,

@@ -23,10 +23,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ProjectError } from '../../../features/project/constants/project.constants.js';
+import { ProjectError } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { ProjectCreateRequest } from './dto/project-create.request.js';
 import { ProjectConnectionResponse } from './model/project-connection.response.js';
+import { ProjectCreatedResponse } from './model/project-created.response.js';
 import { ProjectResponse } from './model/project.response.js';
 import { recordListQuery } from './record-list.query.js';
 
@@ -38,8 +39,8 @@ export class ProjectController {
 
   @Post()
   @ApiOperation({ operationId: 'createProject', summary: 'Create a project' })
-  @ApiCreatedResponse({ type: ProjectResponse })
-  createProject(@Body() data: ProjectCreateRequest): Promise<ProjectResponse> {
+  @ApiCreatedResponse({ type: ProjectCreatedResponse })
+  createProject(@Body() data: ProjectCreateRequest): Promise<ProjectCreatedResponse> {
     return this.projects.createUserProject(data);
   }
 

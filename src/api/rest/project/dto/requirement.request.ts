@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsIn, IsString } from 'class-validator';
 
-import { ProjectError } from '../../../../features/project/constants/project.constants.js';
+import { ProjectError } from '../../../../features/project/contracts/project.errors.js';
 
 export class RequirementRequest {
   @ApiProperty()

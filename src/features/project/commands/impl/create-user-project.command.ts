@@ -1,10 +1,10 @@
 export type CreateUserProjectCommandData = {
   readonly name: string;
+  readonly description?: string;
 };
 
 export type CreateUserProjectCommandReturnType = {
-  id: string;
-  name: string;
+  readonly projectId: string;
 };
 
 export class CreateUserProjectCommand {
