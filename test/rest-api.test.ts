@@ -6,9 +6,11 @@ import request from 'supertest';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 
 import packageJson from '../package.json' with { type: 'json' };
+import { ProjectStatus } from '../src/__generated__/client/enums.js';
 import { initSwagger } from '../src/api/rest/swagger.js';
 import { AppModule } from '../src/app.module.js';
 import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
+import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
 import { invalidPipeline, taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
 
 describe('REST API', () => {
@@ -142,17 +144,80 @@ describe('REST API', () => {
     expect(response.body.message).toContain('Record id is required.');
   });
 
+  test('separates a malformed page size from an unsupported one', async () => {
+    const project = await createProject(app, createdProjectIds, 'Page size guard');
+
+    const malformed = await request(app.getHttpServer()).get('/api/projects?first=abc').expect(400);
+    expect(malformed.body.message).toContain('numeric string is expected');
+
+    const outOfRange = await request(app.getHttpServer())
+      .get('/api/projects?first=101')
+      .expect(400);
+    expect(outOfRange.body).toMatchObject({
+      message: 'The "first" parameter must be an integer between 1 and 100.',
+    });
+
+    const records = await request(app.getHttpServer())
+      .get(`/api/projects/${project.id}/work-items?first=abc`)
+      .expect(400);
+    expect(records.body.message).toContain('numeric string is expected');
+  });
+
+  test('rejects a non-boolean includeArchived flag', async () => {
+    const numeric = await request(app.getHttpServer())
+      .get('/api/projects?includeArchived=1')
+      .expect(400);
+    expect(numeric.body.message).toContain('boolean string is expected');
+
+    await request(app.getHttpServer()).get('/api/projects?includeArchived=yes').expect(400);
+
+    const accepted = await request(app.getHttpServer())
+      .get('/api/projects?includeArchived=false')
+      .expect(200);
+    expect(accepted.body.edges).toEqual(expect.any(Array));
+  });
+
+  test('filters the project list by status and name', async () => {
+    const active = await createProject(app, createdProjectIds, 'REST active filter');
+    const archived = await createProject(app, createdProjectIds, 'REST archived filter');
+    await app.get(PrismaService).project.update({
+      where: { id: archived.id },
+      data: { status: ProjectStatus.ARCHIVED },
+    });
+
+    const listed = await request(app.getHttpServer()).get('/api/projects').expect(200);
+    const ids = listed.body.edges.map((edge: { node: { id: string } }) => edge.node.id);
+    expect(ids).toContain(active.id);
+    expect(ids).not.toContain(archived.id);
+
+    const withArchived = await request(app.getHttpServer())
+      .get('/api/projects?includeArchived=true')
+      .expect(200);
+    const archivedIds = withArchived.body.edges.map(
+      (edge: { node: { id: string } }) => edge.node.id,
+    );
+    expect(archivedIds).toEqual(expect.arrayContaining([active.id, archived.id]));
+
+    const searched = await request(app.getHttpServer())
+      .get('/api/projects?query=archived%20filter&includeArchived=true')
+      .expect(200);
+    expect(searched.body.edges.map((edge: { node: { id: string } }) => edge.node.id)).toEqual([
+      archived.id,
+    ]);
+    expect(searched.body.totalCount).toBe(1);
+  });
+
   test('rejects an invalid project list page size', async () => {
     const negative = await request(app.getHttpServer()).get('/api/projects?first=-1').expect(400);
     expect(negative.body).toMatchObject({
-      message: 'Invalid "first" parameter: must be a non-negative integer',
+      message: 'The "first" parameter must be an integer between 1 and 100.',
     });
 
     const after = await request(app.getHttpServer())
       .get('/api/projects?first=1&after=abc')
       .expect(400);
     expect(after.body).toMatchObject({
-      message: 'Invalid "after" cursor: must be a non-negative integer string',
+      message: 'The "after" cursor does not come from this list.',
     });
   });
 

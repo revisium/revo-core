@@ -49,13 +49,13 @@ export class WorkPlanController {
 
   @Get()
   @ApiOperation({ operationId: 'listWorkPlans', summary: 'List work plans' })
-  @ApiQuery({ name: 'first', type: Number, required: true })
+  @ApiQuery({ name: 'first', type: Number, required: false })
   @ApiQuery({ name: 'after', type: String, required: false })
   @ApiOkResponse({ type: WorkPlanConnectionResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   listWorkPlans(
     @Param('projectId') projectId: string,
-    @Query('first', ParseIntPipe) first: number,
+    @Query('first', new ParseIntPipe({ optional: true })) first?: number,
     @Query('after') after?: string,
   ) {
     return this.projects.listWorkPlans(projectId, recordListQuery(first, after));

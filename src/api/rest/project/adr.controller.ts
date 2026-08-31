@@ -49,13 +49,13 @@ export class AdrController {
 
   @Get()
   @ApiOperation({ operationId: 'listAdrs', summary: 'List ADRs' })
-  @ApiQuery({ name: 'first', type: Number, required: true })
+  @ApiQuery({ name: 'first', type: Number, required: false })
   @ApiQuery({ name: 'after', type: String, required: false })
   @ApiOkResponse({ type: AdrConnectionResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   listAdrs(
     @Param('projectId') projectId: string,
-    @Query('first', ParseIntPipe) first: number,
+    @Query('first', new ParseIntPipe({ optional: true })) first?: number,
     @Query('after') after?: string,
   ) {
     return this.projects.listAdrs(projectId, recordListQuery(first, after));

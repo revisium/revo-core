@@ -7,6 +7,7 @@ import {
   HttpStatus,
   NotFoundException,
   Param,
+  ParseBoolPipe,
   ParseIntPipe,
   Post,
   Query,
@@ -29,7 +30,7 @@ import { ProjectCreateRequest } from './dto/project-create.request.js';
 import { ProjectConnectionResponse } from './model/project-connection.response.js';
 import { ProjectCreatedResponse } from './model/project-created.response.js';
 import { ProjectResponse } from './model/project.response.js';
-import { recordListQuery } from './record-list.query.js';
+import { projectListQuery } from './project-list.query.js';
 
 @ApiTags('Projects')
 @Controller('projects')
@@ -46,11 +47,20 @@ export class ProjectController {
 
   @Get()
   @ApiOperation({ operationId: 'listProjects', summary: 'List projects' })
-  @ApiQuery({ name: 'first', type: Number, required: true })
+  @ApiQuery({ name: 'first', type: Number, required: false })
   @ApiQuery({ name: 'after', type: String, required: false })
+  @ApiQuery({ name: 'includeArchived', type: Boolean, required: false })
+  @ApiQuery({ name: 'query', type: String, required: false })
   @ApiOkResponse({ type: ProjectConnectionResponse })
-  listProjects(@Query('first', ParseIntPipe) first: number, @Query('after') after?: string) {
-    return this.projects.listUserProjects(recordListQuery(first, after));
+  listProjects(
+    @Query('first', new ParseIntPipe({ optional: true })) first?: number,
+    @Query('after') after?: string,
+    @Query('includeArchived', new ParseBoolPipe({ optional: true })) includeArchived?: boolean,
+    @Query('query') query?: string,
+  ) {
+    return this.projects.listUserProjects(
+      projectListQuery({ first, after, includeArchived, query }),
+    );
   }
 
   @Get(':id')

@@ -1,6 +1,7 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
+import { enginePageArgs } from '../../commands/utils/getOffsetPagination.js';
 import { ProjectTable } from '../../contracts/project-table.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import { ListAdrsQuery, type ListAdrsQueryReturnType } from '../impl/list-adrs.query.js';
@@ -17,8 +18,7 @@ export class ListAdrsHandler implements IQueryHandler<ListAdrsQuery, ListAdrsQue
     const rows = await this.engine.getRows({
       revisionId,
       tableId: ProjectTable.adr,
-      first: data.first,
-      ...(data.after === undefined ? {} : { after: data.after }),
+      ...enginePageArgs(data),
     });
 
     return {

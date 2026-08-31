@@ -198,6 +198,78 @@ describe('GraphQL API', () => {
     }
   });
 
+  test('hides archived projects unless they are asked for', async () => {
+    const active = await createProject(app, createdProjectIds, 'Filter active');
+    const archived = await createProject(app, createdProjectIds, 'Filter archived');
+    await app.get(PrismaService).project.update({
+      where: { id: archived.id },
+      data: { status: ProjectStatus.ARCHIVED },
+    });
+
+    const listed = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
+    expect(listed.body.errors).toBeUndefined();
+    expect(projectIds(listed)).toContain(active.id);
+    expect(projectIds(listed)).not.toContain(archived.id);
+
+    const withArchived = await graphql(app, LIST_PROJECTS, {
+      data: { first: 50, includeArchived: true },
+    });
+    expect(projectIds(withArchived)).toEqual(expect.arrayContaining([active.id, archived.id]));
+    expect(
+      withArchived.body.data.projects.edges.find(
+        (edge: { node: { id: string } }) => edge.node.id === archived.id,
+      ).node.status,
+    ).toBe('archived');
+  });
+
+  test('searches by a name fragment and by the exact project id', async () => {
+    const project = await createProject(app, createdProjectIds, 'Searchable orchestration');
+    await createProject(app, createdProjectIds, 'Unrelated');
+
+    const byFragment = await graphql(app, LIST_PROJECTS, {
+      data: { first: 50, query: 'chestra' },
+    });
+    expect(byFragment.body.errors).toBeUndefined();
+    expect(projectIds(byFragment)).toEqual([project.id]);
+    expect(byFragment.body.data.projects.totalCount).toBe(1);
+
+    const byId = await graphql(app, LIST_PROJECTS, { data: { first: 50, query: project.id } });
+    expect(projectIds(byId)).toEqual([project.id]);
+  });
+
+  test('returns an empty page when the search matches nothing', async () => {
+    const empty = await graphql(app, LIST_PROJECTS, {
+      data: { first: 50, query: 'no-such-project-anywhere' },
+    });
+
+    expect(empty.body.errors).toBeUndefined();
+    expect(empty.body.data.projects.edges).toEqual([]);
+    expect(empty.body.data.projects.totalCount).toBe(0);
+  });
+
+  test('rejects a page size outside the supported range', async () => {
+    const tooLarge = await graphql(app, LIST_PROJECTS, { data: { first: 101 } });
+    expect(tooLarge.body.data).toBeNull();
+    expect(tooLarge.body.errors[0].message).toBe(
+      'The "first" parameter must be an integer between 1 and 100.',
+    );
+
+    const zero = await graphql(app, LIST_PROJECTS, { data: { first: 0 } });
+    expect(zero.body.data).toBeNull();
+    expect(zero.body.errors[0].message).toBe(
+      'The "first" parameter must be an integer between 1 and 100.',
+    );
+  });
+
+  test('falls back to a full page when first is omitted', async () => {
+    const project = await createProject(app, createdProjectIds, 'Default page size');
+
+    const listed = await graphql(app, LIST_PROJECTS, { data: {} });
+
+    expect(listed.body.errors).toBeUndefined();
+    expect(projectIds(listed)).toContain(project.id);
+  });
+
   test('hides the SYSTEM project from get, list, and delete', async () => {
     const fetched = await graphql(app, GET_PROJECT, { id: SYSTEM_PLAYBOOKS_PROJECT.id });
     expect(fetched.body).toEqual({ data: { project: null } });
@@ -266,18 +338,33 @@ describe('GraphQL API', () => {
     expect(missing.body.data.project.adr).toBeNull();
   });
 
+  test('keeps the list cursor opaque', async () => {
+    await createProject(app, createdProjectIds, 'Cursor one');
+    await createProject(app, createdProjectIds, 'Cursor two');
+
+    const page = await graphql(app, LIST_PROJECTS, { data: { first: 1 } });
+    const { endCursor } = page.body.data.projects.pageInfo as { endCursor: string };
+    expect(endCursor).not.toMatch(/^\d+$/);
+
+    const next = await graphql(app, LIST_PROJECTS, { data: { first: 1, after: endCursor } });
+    expect(next.body.errors).toBeUndefined();
+    expect(projectIds(next)[0]).not.toBe(projectIds(page)[0]);
+
+    const guessed = await graphql(app, LIST_PROJECTS, { data: { first: 1, after: '1' } });
+    expect(guessed.body.data).toBeNull();
+    expect(guessed.body.errors[0].message).toBe('The "after" cursor does not come from this list.');
+  });
+
   test('rejects an invalid project list page size', async () => {
     const listed = await graphql(app, LIST_PROJECTS, { data: { first: -1 } });
     expect(listed.body.data).toBeNull();
     expect(listed.body.errors[0].message).toBe(
-      'Invalid "first" parameter: must be a non-negative integer',
+      'The "first" parameter must be an integer between 1 and 100.',
     );
 
     const after = await graphql(app, LIST_PROJECTS, { data: { first: 1, after: 'abc' } });
     expect(after.body.data).toBeNull();
-    expect(after.body.errors[0].message).toBe(
-      'Invalid "after" cursor: must be a non-negative integer string',
-    );
+    expect(after.body.errors[0].message).toBe('The "after" cursor does not come from this list.');
   });
 
   test('paginates USER projects and ADRs through GraphQL', async () => {
@@ -285,14 +372,6 @@ describe('GraphQL API', () => {
     await createProject(app, createdProjectIds, 'Page B');
     await graphql(app, CREATE_ADR, { data: adrInput(project.id, 'ADR-1', 'One') });
     await graphql(app, CREATE_ADR, { data: adrInput(project.id, 'ADR-2', 'Two') });
-
-    const empty = await graphql(app, LIST_PROJECTS, { data: { first: 0 } });
-    expect(empty.body.errors).toBeUndefined();
-    expect(empty.body.data.projects.edges).toEqual([]);
-    expect(empty.body.data.projects.pageInfo).toMatchObject({
-      hasNextPage: false,
-      hasPreviousPage: false,
-    });
 
     const firstProjects = await graphql(app, LIST_PROJECTS, { data: { first: 1 } });
     expect(firstProjects.body.errors).toBeUndefined();
@@ -741,6 +820,12 @@ async function startApp(): Promise<INestApplication> {
   const app = module.createNestApplication();
   await app.init();
   return app;
+}
+
+function projectIds(response: {
+  body: { data: { projects: { edges: { node: { id: string } }[] } } };
+}): string[] {
+  return response.body.data.projects.edges.map((edge) => edge.node.id);
 }
 
 async function graphql(app: INestApplication, query: string, variables?: Record<string, unknown>) {
