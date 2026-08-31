@@ -3,8 +3,10 @@ import { type IPaginatedType } from '@revisium/engine';
 
 export const PaginationError = {
   pageSizeInvalid: 'The "first" parameter must be an integer between 1 and 100.',
-  cursorInvalid: 'Invalid "after" cursor: must be a non-negative integer string',
+  cursorInvalid: 'The "after" cursor does not come from this list.',
 } as const;
+
+const CURSOR_PREFIX = 'offset:';
 
 export const DEFAULT_PAGE_SIZE = 100;
 export const MAX_PAGE_SIZE = 100;
@@ -44,15 +46,8 @@ export async function getOffsetPagination<T>({
   count,
 }: GetPaginationArgsType<T>): Promise<IPaginatedType<T>> {
   const first = readPageSize(pageData.first);
-
-  if (pageData.after != null) {
-    if (!/^\d+$/.test(pageData.after) || !Number.isSafeInteger(Number(pageData.after))) {
-      throw new BadRequestException(PaginationError.cursorInvalid);
-    }
-  }
-
   const take = first;
-  const skip = pageData.after ? Number(pageData.after) : 0;
+  const skip = pageData.after === undefined ? 0 : decodeCursor(pageData.after);
 
   const items = await findMany({
     take,
@@ -74,14 +69,14 @@ export async function getOffsetPagination<T>({
 
   return {
     edges: items.map((item, index) => ({
-      cursor: ((startCursor ?? 0) + index).toString(),
+      cursor: encodeCursor((startCursor ?? 0) + index),
       node: item,
     })),
     pageInfo: {
       hasNextPage,
       hasPreviousPage,
-      ...(startCursor === undefined ? {} : { startCursor: startCursor.toString() }),
-      ...(endCursor === undefined ? {} : { endCursor: endCursor.toString() }),
+      ...(startCursor === undefined ? {} : { startCursor: encodeCursor(startCursor) }),
+      ...(endCursor === undefined ? {} : { endCursor: encodeCursor(endCursor) }),
     },
     totalCount,
   };
@@ -97,4 +92,24 @@ export function readPageSize(first: number | undefined): number {
   }
 
   return first;
+}
+
+function encodeCursor(position: number): string {
+  return Buffer.from(`${CURSOR_PREFIX}${position}`).toString('base64url');
+}
+
+function decodeCursor(cursor: string): number {
+  const decoded = Buffer.from(cursor, 'base64url').toString('utf8');
+
+  if (!decoded.startsWith(CURSOR_PREFIX)) {
+    throw new BadRequestException(PaginationError.cursorInvalid);
+  }
+
+  const position = Number(decoded.slice(CURSOR_PREFIX.length));
+
+  if (!Number.isSafeInteger(position) || position < 0) {
+    throw new BadRequestException(PaginationError.cursorInvalid);
+  }
+
+  return position;
 }

@@ -42,7 +42,7 @@ describe('getOffsetPagination', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  test('throws when after is not a valid integer string', async () => {
+  test('throws when after did not come from this list', async () => {
     await expect(
       getOffsetPagination({
         pageData: { first: 10, after: 'abc' },
@@ -50,6 +50,40 @@ describe('getOffsetPagination', () => {
         count: mockCount,
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
+
+    await expect(
+      getOffsetPagination({
+        pageData: { first: 10, after: cursor(-1) },
+        findMany: mockFindMany,
+        count: mockCount,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    await expect(
+      getOffsetPagination({
+        pageData: { first: 10, after: Buffer.from('2').toString('base64url') },
+        findMany: mockFindMany,
+        count: mockCount,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  test('hides the cursor encoding from the caller', async () => {
+    const page = await getOffsetPagination({
+      pageData: { first: 2 },
+      findMany: mockFindMany,
+      count: mockCount,
+    });
+
+    expect(page.pageInfo.endCursor).not.toMatch(/^\d+$/);
+
+    const next = await getOffsetPagination({
+      pageData: { first: 2, after: page.pageInfo.endCursor ?? '' },
+      findMany: mockFindMany,
+      count: mockCount,
+    });
+
+    expect(next.edges[0]?.node).not.toEqual(page.edges[0]?.node);
   });
 
   test('throws when first is below the supported range', async () => {
@@ -93,13 +127,13 @@ describe('getOffsetPagination', () => {
     expect(result.totalCount).toBe(5);
     expect(result.pageInfo.hasNextPage).toBe(true);
     expect(result.pageInfo.hasPreviousPage).toBe(false);
-    expect(result.pageInfo.startCursor).toBe('1');
-    expect(result.pageInfo.endCursor).toBe('2');
+    expect(result.pageInfo.startCursor).toBe(cursor(1));
+    expect(result.pageInfo.endCursor).toBe(cursor(2));
   });
 
   test('returns the next page from an offset cursor', async () => {
     const result = await getOffsetPagination({
-      pageData: { first: 2, after: '2' },
+      pageData: { first: 2, after: cursor(2) },
       findMany: mockFindMany,
       count: mockCount,
     });
@@ -109,3 +143,7 @@ describe('getOffsetPagination', () => {
     expect(result.pageInfo.hasNextPage).toBe(true);
   });
 });
+
+function cursor(position: number): string {
+  return Buffer.from(`offset:${position}`).toString('base64url');
+}

@@ -338,6 +338,23 @@ describe('GraphQL API', () => {
     expect(missing.body.data.project.adr).toBeNull();
   });
 
+  test('keeps the list cursor opaque', async () => {
+    await createProject(app, createdProjectIds, 'Cursor one');
+    await createProject(app, createdProjectIds, 'Cursor two');
+
+    const page = await graphql(app, LIST_PROJECTS, { data: { first: 1 } });
+    const { endCursor } = page.body.data.projects.pageInfo as { endCursor: string };
+    expect(endCursor).not.toMatch(/^\d+$/);
+
+    const next = await graphql(app, LIST_PROJECTS, { data: { first: 1, after: endCursor } });
+    expect(next.body.errors).toBeUndefined();
+    expect(projectIds(next)[0]).not.toBe(projectIds(page)[0]);
+
+    const guessed = await graphql(app, LIST_PROJECTS, { data: { first: 1, after: '1' } });
+    expect(guessed.body.data).toBeNull();
+    expect(guessed.body.errors[0].message).toBe('The "after" cursor does not come from this list.');
+  });
+
   test('rejects an invalid project list page size', async () => {
     const listed = await graphql(app, LIST_PROJECTS, { data: { first: -1 } });
     expect(listed.body.data).toBeNull();
@@ -347,9 +364,7 @@ describe('GraphQL API', () => {
 
     const after = await graphql(app, LIST_PROJECTS, { data: { first: 1, after: 'abc' } });
     expect(after.body.data).toBeNull();
-    expect(after.body.errors[0].message).toBe(
-      'Invalid "after" cursor: must be a non-negative integer string',
-    );
+    expect(after.body.errors[0].message).toBe('The "after" cursor does not come from this list.');
   });
 
   test('paginates USER projects and ADRs through GraphQL', async () => {

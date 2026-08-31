@@ -217,7 +217,7 @@ describe('REST API', () => {
       .get('/api/projects?first=1&after=abc')
       .expect(400);
     expect(after.body).toMatchObject({
-      message: 'Invalid "after" cursor: must be a non-negative integer string',
+      message: 'The "after" cursor does not come from this list.',
     });
   });
 
