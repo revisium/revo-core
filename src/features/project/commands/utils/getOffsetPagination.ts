@@ -1,7 +1,27 @@
 import { BadRequestException } from '@nestjs/common';
 import { type IPaginatedType } from '@revisium/engine';
 
-export type PageDataType = { readonly first: number; after?: string };
+export const PaginationError = {
+  pageSizeInvalid: 'The "first" parameter must be an integer between 1 and 100.',
+  cursorInvalid: 'Invalid "after" cursor: must be a non-negative integer string',
+} as const;
+
+export const DEFAULT_PAGE_SIZE = 100;
+export const MAX_PAGE_SIZE = 100;
+
+export type PageDataType = { readonly first?: number; after?: string };
+
+export type EnginePageArgs = {
+  first: number;
+  after?: string;
+};
+
+export function enginePageArgs(pageData: PageDataType): EnginePageArgs {
+  return {
+    first: readPageSize(pageData.first),
+    ...(pageData.after === undefined ? {} : { after: pageData.after }),
+  };
+}
 
 export type OffsetPaginationFindManyArgs = {
   take: number;
@@ -23,19 +43,15 @@ export async function getOffsetPagination<T>({
   findMany,
   count,
 }: GetPaginationArgsType<T>): Promise<IPaginatedType<T>> {
-  if (!Number.isInteger(pageData.first) || pageData.first < 0) {
-    throw new BadRequestException('Invalid "first" parameter: must be a non-negative integer');
-  }
+  const first = readPageSize(pageData.first);
 
   if (pageData.after != null) {
     if (!/^\d+$/.test(pageData.after) || !Number.isSafeInteger(Number(pageData.after))) {
-      throw new BadRequestException(
-        'Invalid "after" cursor: must be a non-negative integer string',
-      );
+      throw new BadRequestException(PaginationError.cursorInvalid);
     }
   }
 
-  const take = pageData.first;
+  const take = first;
   const skip = pageData.after ? Number(pageData.after) : 0;
 
   const items = await findMany({
@@ -69,4 +85,16 @@ export async function getOffsetPagination<T>({
     },
     totalCount,
   };
+}
+
+export function readPageSize(first: number | undefined): number {
+  if (first === undefined) {
+    return DEFAULT_PAGE_SIZE;
+  }
+
+  if (!Number.isInteger(first) || first < 1 || first > MAX_PAGE_SIZE) {
+    throw new BadRequestException(PaginationError.pageSizeInvalid);
+  }
+
+  return first;
 }

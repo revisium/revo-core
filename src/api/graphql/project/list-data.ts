@@ -1,10 +1,8 @@
-export function listData(data: { first: number; after?: string }): {
-  first: number;
-  after?: string;
-} {
-  if (data.after === undefined) {
-    return { first: data.first };
-  }
+import type { PageDataType } from '../../../features/project/commands/utils/getOffsetPagination.js';
 
-  return { first: data.first, after: data.after };
+export function listData(data: { first?: number; after?: string }): PageDataType {
+  return {
+    ...(data.first === undefined ? {} : { first: data.first }),
+    ...(data.after === undefined ? {} : { after: data.after }),
+  };
 }

@@ -7,7 +7,6 @@ import {
   HttpStatus,
   NotFoundException,
   Param,
-  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -49,13 +48,13 @@ export class WorkItemController {
 
   @Get()
   @ApiOperation({ operationId: 'listWorkItems', summary: 'List work items' })
-  @ApiQuery({ name: 'first', type: Number, required: true })
+  @ApiQuery({ name: 'first', type: Number, required: false })
   @ApiQuery({ name: 'after', type: String, required: false })
   @ApiOkResponse({ type: WorkItemConnectionResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   listWorkItems(
     @Param('projectId') projectId: string,
-    @Query('first', ParseIntPipe) first: number,
+    @Query('first') first?: string,
     @Query('after') after?: string,
   ) {
     return this.projects.listWorkItems(projectId, recordListQuery(first, after));

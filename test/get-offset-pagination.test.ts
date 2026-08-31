@@ -52,14 +52,34 @@ describe('getOffsetPagination', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  test('accepts first=0 as a valid value', async () => {
-    const result = await getOffsetPagination({
-      pageData: { first: 0 },
+  test('throws when first is below the supported range', async () => {
+    await expect(
+      getOffsetPagination({
+        pageData: { first: 0 },
+        findMany: mockFindMany,
+        count: mockCount,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  test('throws when first is above the supported range', async () => {
+    await expect(
+      getOffsetPagination({
+        pageData: { first: 101 },
+        findMany: mockFindMany,
+        count: mockCount,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  test('falls back to the default page size when first is omitted', async () => {
+    await getOffsetPagination({
+      pageData: {},
       findMany: mockFindMany,
       count: mockCount,
     });
 
-    expect(result.edges).toHaveLength(0);
+    expect(mockFindMany).toHaveBeenCalledWith({ take: 100, skip: 0 });
   });
 
   test('returns the first page without an after cursor', async () => {

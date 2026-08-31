@@ -7,7 +7,6 @@ import {
   HttpStatus,
   NotFoundException,
   Param,
-  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -49,13 +48,13 @@ export class RequirementController {
 
   @Get()
   @ApiOperation({ operationId: 'listRequirements', summary: 'List requirements' })
-  @ApiQuery({ name: 'first', type: Number, required: true })
+  @ApiQuery({ name: 'first', type: Number, required: false })
   @ApiQuery({ name: 'after', type: String, required: false })
   @ApiOkResponse({ type: RequirementConnectionResponse })
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   listRequirements(
     @Param('projectId') projectId: string,
-    @Query('first', ParseIntPipe) first: number,
+    @Query('first') first?: string,
     @Query('after') after?: string,
   ) {
     return this.projects.listRequirements(projectId, recordListQuery(first, after));

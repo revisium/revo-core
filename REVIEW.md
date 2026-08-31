@@ -35,11 +35,12 @@
 
 List reads use cursor pagination. Do not invent a second paging model.
 
-- Query data takes `first` and optional `after`.
+- Query data takes optional `first` and optional `after`.
 - The return type is a feature-owned page contract with `edges`, `totalCount`, and `pageInfo` (`startCursor`, `endCursor`, `hasNextPage`, `hasPreviousPage`).
 - The handler forwards `first` / `after` to the persistence list API and maps `edges[].node`. Do not reimplement paging.
-- GraphQL list fields return a `Paginated(Model)` connection and take `first: Int!` plus optional `after`.
-- REST list endpoints take `first` and `after` as query parameters and return the same connection body. Default `first` is 100; maximum is 1000.
+- GraphQL list fields return a `Paginated(Model)` connection and take optional `first` plus optional `after`.
+- REST list endpoints take `first` and `after` as query parameters and return the same connection body.
+- One page-size rule covers every list: `first` defaults to 100 and must be an integer between 1 and 100. It lives in the shared pagination helper; features and transports do not restate it.
 - Paginate list reads only. Get-one and single-resource writes are not paginated.
 
 Promote repeated objective review findings to Oxlint, Oxfmt, or focused contract tests.
