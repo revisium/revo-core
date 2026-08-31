@@ -1,4 +1,4 @@
-import { BadRequestException, Logger } from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { CommandBus, CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { IdService } from '@revisium/engine';
 import { nanoid } from 'nanoid';
@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid';
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
+import { errorReason } from '../../../../infrastructure/error-reason.js';
 import { ProjectError } from '../../contracts/project.errors.js';
 import {
   ApplyContentModelCommand,
@@ -51,9 +52,14 @@ export class CreateUserProjectHandler implements ICommandHandler<
     );
 
     try {
-      await this.commands.execute<ApplyContentModelCommand, ApplyContentModelCommandReturnType>(
-        new ApplyContentModelCommand({ projectId }),
-      );
+      const published = await this.commands.execute<
+        ApplyContentModelCommand,
+        ApplyContentModelCommandReturnType
+      >(new ApplyContentModelCommand({ projectId }));
+
+      if (!published) {
+        throw new InternalServerErrorException(ProjectError.initCommitMissing);
+      }
     } catch (error) {
       await this.removeCreatedProject(projectId);
       throw error;
@@ -134,9 +140,7 @@ export class CreateUserProjectHandler implements ICommandHandler<
         new DeleteUserProjectCommand({ projectId }),
       );
     } catch (cleanupError) {
-      const details =
-        cleanupError instanceof Error ? cleanupError.message : 'Project remnant cleanup failed.';
-      this.logger.error(details);
+      this.logger.error(errorReason(cleanupError, 'Project remnant cleanup failed.'));
     }
   }
 }

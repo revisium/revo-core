@@ -6,6 +6,7 @@ import { GetWorkItemHandler } from './handlers/get-work-item.handler.js';
 import { GetWorkPlanHandler } from './handlers/get-work-plan.handler.js';
 import { ListAdrsHandler } from './handlers/list-adrs.handler.js';
 import { ListRequirementsHandler } from './handlers/list-requirements.handler.js';
+import { ListUnfinishedUserProjectIdsHandler } from './handlers/list-unfinished-user-project-ids.handler.js';
 import { ListUserProjectIdsHandler } from './handlers/list-user-project-ids.handler.js';
 import { ListUserProjectsHandler } from './handlers/list-user-projects.handler.js';
 import { ListWorkItemsHandler } from './handlers/list-work-items.handler.js';
@@ -42,6 +43,11 @@ export type {
   ListRequirementsQueryData,
   ListRequirementsQueryReturnType,
 } from './impl/list-requirements.query.js';
+export { ListUnfinishedUserProjectIdsQuery } from './impl/list-unfinished-user-project-ids.query.js';
+export type {
+  ListUnfinishedUserProjectIdsQueryData,
+  ListUnfinishedUserProjectIdsQueryReturnType,
+} from './impl/list-unfinished-user-project-ids.query.js';
 export { ListUserProjectIdsQuery } from './impl/list-user-project-ids.query.js';
 export type {
   ListUserProjectIdsQueryData,
@@ -67,6 +73,7 @@ export const PROJECT_QUERY_HANDLERS = [
   GetProjectHandler,
   GetUserProjectHandler,
   ListUserProjectsHandler,
+  ListUnfinishedUserProjectIdsHandler,
   ListUserProjectIdsHandler,
   GetAdrHandler,
   ListAdrsHandler,
