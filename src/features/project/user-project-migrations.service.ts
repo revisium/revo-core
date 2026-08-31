@@ -1,6 +1,7 @@
 import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
+import { errorReason } from '../../infrastructure/error-reason.js';
 import {
   ApplyContentModelCommand,
   type ApplyContentModelCommandReturnType,
@@ -50,7 +51,7 @@ export class UserProjectMigrationsService implements OnApplicationBootstrap {
         new DeleteUserProjectCommand({ projectId }),
       );
     } catch (error) {
-      this.logger.error(`Unfinished project ${projectId} was not removed: ${reason(error)}`);
+      this.logger.error(`Unfinished project ${projectId} was not removed: ${errorReason(error)}`);
     }
   }
 
@@ -72,11 +73,7 @@ export class UserProjectMigrationsService implements OnApplicationBootstrap {
         new ApplyContentModelCommand({ projectId }),
       );
     } catch (error) {
-      this.logger.error(`Content model was not updated for ${projectId}: ${reason(error)}`);
+      this.logger.error(`Content model was not updated for ${projectId}: ${errorReason(error)}`);
     }
   }
-}
-
-function reason(error: unknown): string {
-  return error instanceof Error ? error.message : 'unknown error';
 }

@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid';
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
+import { errorReason } from '../../../../infrastructure/error-reason.js';
 import { ProjectError } from '../../contracts/project.errors.js';
 import {
   ApplyContentModelCommand,
@@ -139,9 +140,7 @@ export class CreateUserProjectHandler implements ICommandHandler<
         new DeleteUserProjectCommand({ projectId }),
       );
     } catch (cleanupError) {
-      const details =
-        cleanupError instanceof Error ? cleanupError.message : 'Project remnant cleanup failed.';
-      this.logger.error(details);
+      this.logger.error(errorReason(cleanupError, 'Project remnant cleanup failed.'));
     }
   }
 }
