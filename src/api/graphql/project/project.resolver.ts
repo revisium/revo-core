@@ -28,7 +28,7 @@ export class ProjectResolver {
 
   @Query(() => ProjectConnectionModel)
   projects(@Args('data', { type: () => ProjectListInput }) data: ProjectListInput) {
-    return this.projectApi.listUserProjects(listData(data));
+    return this.projectApi.listUserProjects(data);
   }
 
   @Mutation(() => ProjectCreatedModel)

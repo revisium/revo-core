@@ -2108,7 +2108,7 @@
         "parameters": [
           {
             "name": "first",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
               "type": "number"
@@ -2116,6 +2116,22 @@
           },
           {
             "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeArchived",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "query",
             "required": false,
             "in": "query",
             "schema": {
@@ -2248,7 +2264,7 @@
           },
           {
             "name": "first",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
               "type": "number"
@@ -2455,7 +2471,7 @@
           },
           {
             "name": "first",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
               "type": "number"
@@ -2662,7 +2678,7 @@
           },
           {
             "name": "first",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
               "type": "number"
@@ -2869,7 +2885,7 @@
           },
           {
             "name": "first",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
               "type": "number"

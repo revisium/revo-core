@@ -372,7 +372,9 @@ type ProjectEdgeModel {
 
 input ProjectListInput {
   after: String
-  first: Int!
+  first: Int
+  includeArchived: Boolean
+  query: String
 }
 
 type ProjectModel {
@@ -432,7 +434,7 @@ input RecordDeleteInput {
 
 input RecordListInput {
   after: String
-  first: Int!
+  first: Int
 }
 
 type RequirementConnectionModel {

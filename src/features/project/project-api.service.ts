@@ -59,6 +59,7 @@ import {
   ListRequirementsQuery,
   type ListRequirementsQueryReturnType,
   ListUserProjectsQuery,
+  type ListUserProjectsQueryData,
   type ListUserProjectsQueryReturnType,
   ListWorkItemsQuery,
   type ListWorkItemsQueryReturnType,
@@ -109,7 +110,7 @@ export class ProjectApiService {
     );
   }
 
-  listUserProjects(data: PageDataType): Promise<ListUserProjectsQueryReturnType> {
+  listUserProjects(data: ListUserProjectsQueryData): Promise<ListUserProjectsQueryReturnType> {
     return this.queries.execute<ListUserProjectsQuery, ListUserProjectsQueryReturnType>(
       new ListUserProjectsQuery(data),
     );
