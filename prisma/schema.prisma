@@ -10,15 +10,25 @@ datasource db {
 }
 
 model Project {
-  id           String       @id @default(nanoid())
+  id           String        @id @default(nanoid())
   name         String
-  kind         ProjectKind  @default(USER)
-  createdAt    DateTime     @default(now()) @db.Timestamptz(3)
-  updatedAt    DateTime     @updatedAt @db.Timestamptz(3)
+  description  String        @default("")
+  status       ProjectStatus @default(CREATING)
+  kind         ProjectKind   @default(USER)
+  createdAt    DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime      @updatedAt @db.Timestamptz(3)
   repositories Repository[]
   branches     Branch[]
 
   @@map("projects")
+  @@schema("public")
+}
+
+enum ProjectStatus {
+  CREATING
+  ACTIVE
+  ARCHIVED
+
   @@schema("public")
 }
 

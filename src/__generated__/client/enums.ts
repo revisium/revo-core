@@ -9,6 +9,15 @@
 * 🟢 You can import this file directly.
 */
 
+export const ProjectStatus = {
+  CREATING: 'CREATING',
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type ProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus]
+
+
 export const ProjectKind = {
   USER: 'USER',
   SYSTEM: 'SYSTEM'
