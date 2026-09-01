@@ -38,6 +38,9 @@ import {
   type UpdateAdrCommandReturnType,
   UpdateRequirementCommand,
   type UpdateRequirementCommandReturnType,
+  UpdateUserProjectCommand,
+  type UpdateUserProjectCommandData,
+  type UpdateUserProjectCommandReturnType,
   UpdateWorkItemCommand,
   type UpdateWorkItemCommandReturnType,
   UpdateWorkPlanCommand,
@@ -107,6 +110,14 @@ export class ProjectApiService {
   ): Promise<ArchiveUserProjectCommandReturnType> {
     return this.commands.execute<ArchiveUserProjectCommand, ArchiveUserProjectCommandReturnType>(
       new ArchiveUserProjectCommand(data),
+    );
+  }
+
+  updateUserProject(
+    data: UpdateUserProjectCommandData,
+  ): Promise<UpdateUserProjectCommandReturnType> {
+    return this.commands.execute<UpdateUserProjectCommand, UpdateUserProjectCommandReturnType>(
+      new UpdateUserProjectCommand(data),
     );
   }
 

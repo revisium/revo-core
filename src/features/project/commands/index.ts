@@ -14,6 +14,7 @@ import { EnsureProjectHandler } from './handlers/ensure-project.handler.js';
 import { RestoreUserProjectHandler } from './handlers/restore-user-project.handler.js';
 import { UpdateAdrHandler } from './handlers/update-adr.handler.js';
 import { UpdateRequirementHandler } from './handlers/update-requirement.handler.js';
+import { UpdateUserProjectHandler } from './handlers/update-user-project.handler.js';
 import { UpdateWorkItemHandler } from './handlers/update-work-item.handler.js';
 import { UpdateWorkPlanHandler } from './handlers/update-work-plan.handler.js';
 
@@ -97,6 +98,11 @@ export type {
   UpdateRequirementCommandData,
   UpdateRequirementCommandReturnType,
 } from './impl/update-requirement.command.js';
+export { UpdateUserProjectCommand } from './impl/update-user-project.command.js';
+export type {
+  UpdateUserProjectCommandData,
+  UpdateUserProjectCommandReturnType,
+} from './impl/update-user-project.command.js';
 export { UpdateWorkItemCommand } from './impl/update-work-item.command.js';
 export type {
   UpdateWorkItemCommandData,
@@ -111,6 +117,7 @@ export type {
 export const PROJECT_COMMAND_HANDLERS = [
   EnsureProjectHandler,
   CreateUserProjectHandler,
+  UpdateUserProjectHandler,
   ArchiveUserProjectHandler,
   DeleteUserProjectHandler,
   RestoreUserProjectHandler,

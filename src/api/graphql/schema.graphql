@@ -253,6 +253,7 @@ type Mutation {
   updateMethodDocument(data: MethodDocumentInput!): MethodDocumentModel!
   updatePipeline(data: PipelineInput!): PipelineModel!
   updatePlaybook(data: PlaybookInput!): PlaybookModel!
+  updateProject(data: ProjectUpdateInput!): Boolean!
   updateRequirement(data: RequirementInput!): RequirementModel!
   updateRole(data: RoleInput!): RoleModel!
   updateRoleRef(data: RoleRefInput!): RoleRefModel!
@@ -402,6 +403,12 @@ type ProjectModel {
 enum ProjectStatus {
   active
   archived
+}
+
+input ProjectUpdateInput {
+  description: String
+  id: ID!
+  name: String
 }
 
 type Query {
