@@ -26,7 +26,7 @@ export class ListUserProjectsHandler implements IQueryHandler<
       findMany: async ({ take, skip }) => {
         const projects = await this.prisma.project.findMany({
           where,
-          orderBy: { id: 'asc' },
+          orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
           take,
           skip,
           select: USER_PROJECT_SELECT,

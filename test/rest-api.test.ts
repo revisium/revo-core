@@ -6,7 +6,7 @@ import request from 'supertest';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 
 import packageJson from '../package.json' with { type: 'json' };
-import { ProjectStatus } from '../src/__generated__/client/enums.js';
+import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
 import { initSwagger } from '../src/api/rest/swagger.js';
 import { AppModule } from '../src/app.module.js';
 import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
@@ -253,6 +253,98 @@ describe('REST API', () => {
     expect(searched.body.totalCount).toBe(1);
   });
 
+  test('lists the most recently changed project first', async () => {
+    const stale = await createProject(app, createdProjectIds, 'REST recency stale');
+    const recent = await createProject(app, createdProjectIds, 'REST recency recent');
+    const freshest = await createProject(app, createdProjectIds, 'REST recency freshest');
+    await setUpdatedAt(app, stale.id, '2026-04-01T00:00:00.000Z');
+    await setUpdatedAt(app, recent.id, '2026-04-02T00:00:00.000Z');
+    await setUpdatedAt(app, freshest.id, '2026-04-03T00:00:00.000Z');
+
+    const listed = await request(app.getHttpServer()).get('/api/projects?first=50').expect(200);
+
+    const created = new Set([stale.id, recent.id, freshest.id]);
+    expect(
+      listed.body.edges
+        .map((edge: { node: ListedProject }) => edge.node)
+        .filter((node: ListedProject) => created.has(node.id))
+        .map((node: ListedProject) => ({ id: node.id, updatedAt: node.updatedAt })),
+    ).toEqual([
+      { id: freshest.id, updatedAt: '2026-04-03T00:00:00.000Z' },
+      { id: recent.id, updatedAt: '2026-04-02T00:00:00.000Z' },
+      { id: stale.id, updatedAt: '2026-04-01T00:00:00.000Z' },
+    ]);
+  });
+
+  test('keeps the recency order while searching and while including archived', async () => {
+    const stale = await createProject(app, createdProjectIds, 'REST recency filter stale');
+    const archived = await createProject(app, createdProjectIds, 'REST recency filter archived');
+    const active = await createProject(app, createdProjectIds, 'REST recency filter active');
+    await app.get(PrismaService).project.update({
+      where: { id: archived.id },
+      data: { status: ProjectStatus.ARCHIVED, updatedAt: '2026-05-02T00:00:00.000Z' },
+    });
+    await setUpdatedAt(app, stale.id, '2026-05-01T00:00:00.000Z');
+    await setUpdatedAt(app, active.id, '2026-05-03T00:00:00.000Z');
+
+    const searched = await request(app.getHttpServer())
+      .get('/api/projects?query=REST%20recency%20filter')
+      .expect(200);
+
+    expect(listedIds(searched.body)).toEqual([active.id, stale.id]);
+
+    const withArchived = await request(app.getHttpServer())
+      .get('/api/projects?query=REST%20recency%20filter&includeArchived=true')
+      .expect(200);
+
+    expect(listedIds(withArchived.body)).toEqual([active.id, archived.id, stale.id]);
+    expect(withArchived.body.totalCount).toBe(3);
+  });
+
+  test('breaks an updatedAt tie by id and holds that order across pages', async () => {
+    const recentTie = '2026-06-02T00:00:00.000Z';
+    const staleTie = '2026-06-01T00:00:00.000Z';
+    const seeded = [
+      'rest-recency-tie-recent-a',
+      'rest-recency-tie-recent-b',
+      'rest-recency-tie-stale-a',
+      'rest-recency-tie-stale-b',
+    ];
+
+    // Seeded in the reverse of id-ascending order on purpose. Postgres sorts a tie
+    // group this small with a stable insertion sort, so it falls back to insertion
+    // order whenever the id tie-breaker is missing. Reversing it here makes a
+    // dropped tie-breaker fail every run instead of three runs in four.
+    await seedProject(app, 'rest-recency-tie-recent-b', recentTie);
+    await seedProject(app, 'rest-recency-tie-recent-a', recentTie);
+    await seedProject(app, 'rest-recency-tie-stale-b', staleTie);
+    await seedProject(app, 'rest-recency-tie-stale-a', staleTie);
+
+    try {
+      const expected = [
+        ...(await idsAscending(app, ['rest-recency-tie-recent-a', 'rest-recency-tie-recent-b'])),
+        ...(await idsAscending(app, ['rest-recency-tie-stale-a', 'rest-recency-tie-stale-b'])),
+      ];
+      const listPage = '/api/projects?first=2&query=rest-recency-tie';
+
+      const page = await request(app.getHttpServer()).get(listPage).expect(200);
+
+      expect(page.body.totalCount).toBe(4);
+      expect(page.body.pageInfo.hasNextPage).toBe(true);
+      expect(listedIds(page.body)).toEqual(expected.slice(0, 2));
+
+      const next = await request(app.getHttpServer())
+        .get(`${listPage}&after=${page.body.pageInfo.endCursor}`)
+        .expect(200);
+
+      expect(next.body.pageInfo.hasNextPage).toBe(false);
+      expect(listedIds(next.body)).toEqual(expected.slice(2));
+      expect([...listedIds(page.body), ...listedIds(next.body)]).toEqual(expected);
+    } finally {
+      await app.get(PrismaService).project.deleteMany({ where: { id: { in: seeded } } });
+    }
+  });
+
   test('rejects an invalid project list page size', async () => {
     const negative = await request(app.getHttpServer()).get('/api/projects?first=-1').expect(400);
     expect(negative.body).toMatchObject({
@@ -440,6 +532,32 @@ async function createProject(
   const { projectId } = response.body as { projectId: string };
   createdProjectIds.push(projectId);
   return { id: projectId, name };
+}
+
+type ListedProject = { id: string; updatedAt: string };
+
+function listedIds(body: { edges: { node: ListedProject }[] }): string[] {
+  return body.edges.map((edge) => edge.node.id);
+}
+
+async function seedProject(app: INestApplication, id: string, updatedAt: string): Promise<void> {
+  await app.get(PrismaService).project.create({
+    data: { id, name: id, kind: ProjectKind.USER, status: ProjectStatus.ACTIVE, updatedAt },
+  });
+}
+
+async function setUpdatedAt(app: INestApplication, id: string, updatedAt: string): Promise<void> {
+  await app.get(PrismaService).project.update({ where: { id }, data: { updatedAt } });
+}
+
+async function idsAscending(app: INestApplication, ids: string[]): Promise<string[]> {
+  const projects = await app.get(PrismaService).project.findMany({
+    where: { id: { in: ids } },
+    orderBy: { id: 'asc' },
+    select: { id: true },
+  });
+
+  return projects.map((project) => project.id);
 }
 
 function adrBody(id: string, title: string) {

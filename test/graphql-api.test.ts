@@ -280,6 +280,108 @@ describe('GraphQL API', () => {
     expect(projectIds(byId)).toEqual([project.id]);
   });
 
+  test('lists the most recently changed project first', async () => {
+    const stale = await createProject(app, createdProjectIds, 'Recency stale');
+    const recent = await createProject(app, createdProjectIds, 'Recency recent');
+    const freshest = await createProject(app, createdProjectIds, 'Recency freshest');
+    await setUpdatedAt(app, stale.id, '2026-01-01T00:00:00.000Z');
+    await setUpdatedAt(app, recent.id, '2026-01-02T00:00:00.000Z');
+    await setUpdatedAt(app, freshest.id, '2026-01-03T00:00:00.000Z');
+
+    const listed = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
+
+    expect(listed.body.errors).toBeUndefined();
+    const created = new Set([stale.id, recent.id, freshest.id]);
+    expect(
+      listed.body.data.projects.edges
+        .map((edge: { node: ListedProject }) => edge.node)
+        .filter((node: ListedProject) => created.has(node.id))
+        .map((node: ListedProject) => ({ id: node.id, updatedAt: node.updatedAt })),
+    ).toEqual([
+      { id: freshest.id, updatedAt: '2026-01-03T00:00:00.000Z' },
+      { id: recent.id, updatedAt: '2026-01-02T00:00:00.000Z' },
+      { id: stale.id, updatedAt: '2026-01-01T00:00:00.000Z' },
+    ]);
+  });
+
+  test('keeps the recency order while searching and while including archived', async () => {
+    const stale = await createProject(app, createdProjectIds, 'Recency filter stale');
+    const archived = await createProject(app, createdProjectIds, 'Recency filter archived');
+    const active = await createProject(app, createdProjectIds, 'Recency filter active');
+    await app.get(PrismaService).project.update({
+      where: { id: archived.id },
+      data: { status: ProjectStatus.ARCHIVED, updatedAt: '2026-02-02T00:00:00.000Z' },
+    });
+    await setUpdatedAt(app, stale.id, '2026-02-01T00:00:00.000Z');
+    await setUpdatedAt(app, active.id, '2026-02-03T00:00:00.000Z');
+
+    const searched = await graphql(app, LIST_PROJECTS, {
+      data: { first: 50, query: 'Recency filter' },
+    });
+
+    expect(searched.body.errors).toBeUndefined();
+    expect(projectIds(searched)).toEqual([active.id, stale.id]);
+
+    const withArchived = await graphql(app, LIST_PROJECTS, {
+      data: { first: 50, query: 'Recency filter', includeArchived: true },
+    });
+
+    expect(withArchived.body.errors).toBeUndefined();
+    expect(projectIds(withArchived)).toEqual([active.id, archived.id, stale.id]);
+    expect(withArchived.body.data.projects.totalCount).toBe(3);
+  });
+
+  test('breaks an updatedAt tie by id and holds that order across pages', async () => {
+    const recentTie = '2026-03-02T00:00:00.000Z';
+    const staleTie = '2026-03-01T00:00:00.000Z';
+    const seeded = [
+      'gql-recency-tie-recent-a',
+      'gql-recency-tie-recent-b',
+      'gql-recency-tie-stale-a',
+      'gql-recency-tie-stale-b',
+    ];
+
+    // Seeded in the reverse of id-ascending order on purpose. Postgres sorts a tie
+    // group this small with a stable insertion sort, so it falls back to insertion
+    // order whenever the id tie-breaker is missing. Reversing it here makes a
+    // dropped tie-breaker fail every run instead of three runs in four.
+    await seedProject(app, 'gql-recency-tie-recent-b', recentTie);
+    await seedProject(app, 'gql-recency-tie-recent-a', recentTie);
+    await seedProject(app, 'gql-recency-tie-stale-b', staleTie);
+    await seedProject(app, 'gql-recency-tie-stale-a', staleTie);
+
+    try {
+      const expected = [
+        ...(await idsAscending(app, ['gql-recency-tie-recent-a', 'gql-recency-tie-recent-b'])),
+        ...(await idsAscending(app, ['gql-recency-tie-stale-a', 'gql-recency-tie-stale-b'])),
+      ];
+
+      const page = await graphql(app, LIST_PROJECTS, {
+        data: { first: 2, query: 'gql-recency-tie' },
+      });
+
+      expect(page.body.errors).toBeUndefined();
+      expect(page.body.data.projects.totalCount).toBe(4);
+      expect(page.body.data.projects.pageInfo.hasNextPage).toBe(true);
+      expect(projectIds(page)).toEqual(expected.slice(0, 2));
+
+      const next = await graphql(app, LIST_PROJECTS, {
+        data: {
+          first: 2,
+          query: 'gql-recency-tie',
+          after: page.body.data.projects.pageInfo.endCursor,
+        },
+      });
+
+      expect(next.body.errors).toBeUndefined();
+      expect(next.body.data.projects.pageInfo.hasNextPage).toBe(false);
+      expect(projectIds(next)).toEqual(expected.slice(2));
+      expect([...projectIds(page), ...projectIds(next)]).toEqual(expected);
+    } finally {
+      await app.get(PrismaService).project.deleteMany({ where: { id: { in: seeded } } });
+    }
+  });
+
   test('returns an empty page when the search matches nothing', async () => {
     const empty = await graphql(app, LIST_PROJECTS, {
       data: { first: 50, query: 'no-such-project-anywhere' },
@@ -871,6 +973,28 @@ function projectIds(response: {
   body: { data: { projects: { edges: { node: { id: string } }[] } } };
 }): string[] {
   return response.body.data.projects.edges.map((edge) => edge.node.id);
+}
+
+type ListedProject = { id: string; updatedAt: string };
+
+async function seedProject(app: INestApplication, id: string, updatedAt: string): Promise<void> {
+  await app.get(PrismaService).project.create({
+    data: { id, name: id, kind: ProjectKind.USER, status: ProjectStatus.ACTIVE, updatedAt },
+  });
+}
+
+async function setUpdatedAt(app: INestApplication, id: string, updatedAt: string): Promise<void> {
+  await app.get(PrismaService).project.update({ where: { id }, data: { updatedAt } });
+}
+
+async function idsAscending(app: INestApplication, ids: string[]): Promise<string[]> {
+  const projects = await app.get(PrismaService).project.findMany({
+    where: { id: { in: ids } },
+    orderBy: { id: 'asc' },
+    select: { id: true },
+  });
+
+  return projects.map((project) => project.id);
 }
 
 async function graphql(app: INestApplication, query: string, variables?: Record<string, unknown>) {
