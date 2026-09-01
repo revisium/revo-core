@@ -1,3 +1,4 @@
+import { ArchiveUserProjectHandler } from './handlers/archive-user-project.handler.js';
 import { CleanupProjectDatasetHandler } from './handlers/cleanup-project-dataset.handler.js';
 import { CreateAdrHandler } from './handlers/create-adr.handler.js';
 import { CreateRequirementHandler } from './handlers/create-requirement.handler.js';
@@ -16,6 +17,11 @@ import { UpdateRequirementHandler } from './handlers/update-requirement.handler.
 import { UpdateWorkItemHandler } from './handlers/update-work-item.handler.js';
 import { UpdateWorkPlanHandler } from './handlers/update-work-plan.handler.js';
 
+export { ArchiveUserProjectCommand } from './impl/archive-user-project.command.js';
+export type {
+  ArchiveUserProjectCommandData,
+  ArchiveUserProjectCommandReturnType,
+} from './impl/archive-user-project.command.js';
 export { CleanupProjectDatasetCommand } from './impl/cleanup-project-dataset.command.js';
 export type {
   CleanupProjectDatasetCommandData,
@@ -105,6 +111,7 @@ export type {
 export const PROJECT_COMMAND_HANDLERS = [
   EnsureProjectHandler,
   CreateUserProjectHandler,
+  ArchiveUserProjectHandler,
   DeleteUserProjectHandler,
   RestoreUserProjectHandler,
   CleanupProjectDatasetHandler,

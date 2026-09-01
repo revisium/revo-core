@@ -17,6 +17,7 @@ import {
 import {
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -75,6 +76,16 @@ export class ProjectController {
     }
 
     return project;
+  }
+
+  @Post(':id/archive')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ operationId: 'archiveProject', summary: 'Archive a project' })
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiConflictResponse({ description: ProjectError.notActive })
+  async archiveProject(@Param('id') id: string): Promise<void> {
+    await this.projects.archiveUserProject({ projectId: id });
   }
 
   @Post(':id/restore')

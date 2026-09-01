@@ -168,6 +168,35 @@ describe('GraphQL API', () => {
     expect(fetched.body.data.project).toMatchObject({ id: project.id });
   });
 
+  test('archives an active project and reflects it in the read model', async () => {
+    const project = await createProject(app, createdProjectIds, 'Archive target');
+
+    const archived = await graphql(app, ARCHIVE_PROJECT, { data: { id: project.id } });
+    expect(archived.body.errors).toBeUndefined();
+    expect(archived.body.data.archiveProject).toBe(true);
+
+    const fetched = await graphql(app, GET_PROJECT, { data: { id: project.id } });
+    expect(fetched.body.data.project).toMatchObject({ status: 'archived' });
+
+    const listed = await graphql(app, LIST_PROJECTS, { data: { first: 50, query: project.id } });
+    expect(projectIds(listed)).not.toContain(project.id);
+
+    const withArchived = await graphql(app, LIST_PROJECTS, {
+      data: { first: 50, query: project.id, includeArchived: true },
+    });
+    expect(projectIds(withArchived)).toEqual([project.id]);
+
+    const repeated = await graphql(app, ARCHIVE_PROJECT, { data: { id: project.id } });
+    expect(repeated.body.data).toBeNull();
+    expect(repeated.body.errors[0].message).toBe('Project is not active.');
+  });
+
+  test('archiving an unknown project returns a not found error', async () => {
+    const missing = await graphql(app, ARCHIVE_PROJECT, { data: { id: 'unknown-project-id' } });
+    expect(missing.body.data).toBeNull();
+    expect(missing.body.errors[0].message).toBe('Project was not found.');
+  });
+
   test('rejects an empty project name and does not create a project', async () => {
     const before = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
     const beforeCount = before.body.data.projects.totalCount as number;
@@ -918,6 +947,12 @@ const GET_PROJECT = `
 const RESTORE_PROJECT = `
   mutation RestoreProject($data: ProjectInput!) {
     restoreProject(data: $data)
+  }
+`;
+
+const ARCHIVE_PROJECT = `
+  mutation ArchiveProject($data: ProjectInput!) {
+    archiveProject(data: $data)
   }
 `;
 

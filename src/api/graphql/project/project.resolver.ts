@@ -40,6 +40,11 @@ export class ProjectResolver {
   }
 
   @Mutation(() => Boolean)
+  archiveProject(@Args('data', { type: () => ProjectInput }) data: ProjectInput): Promise<boolean> {
+    return this.projectApi.archiveUserProject({ projectId: data.id });
+  }
+
+  @Mutation(() => Boolean)
   restoreProject(@Args('data', { type: () => ProjectInput }) data: ProjectInput): Promise<boolean> {
     return this.projectApi.restoreUserProject({ projectId: data.id });
   }

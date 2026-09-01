@@ -2187,6 +2187,34 @@
         "tags": ["Projects"]
       }
     },
+    "/api/projects/{id}/archive": {
+      "post": {
+        "operationId": "archiveProject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "Project was not found."
+          },
+          "409": {
+            "description": "Project is not active."
+          }
+        },
+        "summary": "Archive a project",
+        "tags": ["Projects"]
+      }
+    },
     "/api/projects/{id}/restore": {
       "post": {
         "operationId": "restoreProject",
