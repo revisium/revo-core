@@ -213,6 +213,7 @@ type MethodDocumentModel {
 }
 
 type Mutation {
+  archiveProject(data: ProjectInput!): Boolean!
   commitCatalog(message: String!): CatalogCommitResultModel!
   createAdr(data: AdrInput!): AdrModel!
   createLaunchProfile(data: LaunchProfileInput!): LaunchProfileModel!

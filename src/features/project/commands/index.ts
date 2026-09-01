@@ -1,4 +1,5 @@
 import { ApplyContentModelHandler } from './handlers/apply-content-model.handler.js';
+import { ArchiveUserProjectHandler } from './handlers/archive-user-project.handler.js';
 import { CleanupProjectDatasetHandler } from './handlers/cleanup-project-dataset.handler.js';
 import { CreateAdrHandler } from './handlers/create-adr.handler.js';
 import { CreateRequirementHandler } from './handlers/create-requirement.handler.js';
@@ -21,6 +22,11 @@ export type {
   ApplyContentModelCommandData,
   ApplyContentModelCommandReturnType,
 } from './impl/apply-content-model.command.js';
+export { ArchiveUserProjectCommand } from './impl/archive-user-project.command.js';
+export type {
+  ArchiveUserProjectCommandData,
+  ArchiveUserProjectCommandReturnType,
+} from './impl/archive-user-project.command.js';
 export { CleanupProjectDatasetCommand } from './impl/cleanup-project-dataset.command.js';
 export type {
   CleanupProjectDatasetCommandData,
@@ -106,6 +112,7 @@ export const PROJECT_COMMAND_HANDLERS = [
   EnsureProjectHandler,
   CreateUserProjectHandler,
   DeleteUserProjectHandler,
+  ArchiveUserProjectHandler,
   ApplyContentModelHandler,
   CleanupProjectDatasetHandler,
   CreateAdrHandler,

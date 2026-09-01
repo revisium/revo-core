@@ -146,6 +146,43 @@ describe('REST API', () => {
     await request(app.getHttpServer()).get(`/api/projects/${project.id}`).expect(200);
   });
 
+  test('archives a project over REST and reflects it in the read model', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST archive target');
+
+    const archived = await request(app.getHttpServer())
+      .post(`/api/projects/${project.id}/archive`)
+      .expect(204);
+    expect(archived.headers['content-type']).toBeUndefined();
+
+    const fetched = await request(app.getHttpServer())
+      .get(`/api/projects/${project.id}`)
+      .expect(200);
+    expect(fetched.body).toMatchObject({ status: 'archived' });
+
+    const listed = await request(app.getHttpServer())
+      .get(`/api/projects?query=${project.id}`)
+      .expect(200);
+    expect(projectIds(listed)).not.toContain(project.id);
+
+    const withArchived = await request(app.getHttpServer())
+      .get(`/api/projects?query=${project.id}&includeArchived=true`)
+      .expect(200);
+    expect(projectIds(withArchived)).toEqual([project.id]);
+
+    const repeated = await request(app.getHttpServer())
+      .post(`/api/projects/${project.id}/archive`)
+      .expect(409);
+    expect(repeated.body).toMatchObject({ message: 'Project is not active.' });
+  });
+
+  test('archiving an unknown project returns 404', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/projects/unknown-project-id/archive')
+      .expect(404);
+
+    expect(response.body).toMatchObject({ message: 'Project was not found.' });
+  });
+
   test('returns the stored project timestamps as ISO strings', async () => {
     const project = await createProject(app, createdProjectIds, 'REST timestamps');
     const stored = await app.get(PrismaService).project.findUniqueOrThrow({

@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
 import {
+  ArchiveUserProjectCommand,
+  type ArchiveUserProjectCommandData,
+  type ArchiveUserProjectCommandReturnType,
   CreateAdrCommand,
   type CreateAdrCommandData,
   type CreateAdrCommandReturnType,
@@ -93,6 +96,14 @@ export class ProjectApiService {
   ): Promise<CreateUserProjectCommandReturnType> {
     return this.commands.execute<CreateUserProjectCommand, CreateUserProjectCommandReturnType>(
       new CreateUserProjectCommand(data),
+    );
+  }
+
+  archiveUserProject(
+    data: ArchiveUserProjectCommandData,
+  ): Promise<ArchiveUserProjectCommandReturnType> {
+    return this.commands.execute<ArchiveUserProjectCommand, ArchiveUserProjectCommandReturnType>(
+      new ArchiveUserProjectCommand(data),
     );
   }
 

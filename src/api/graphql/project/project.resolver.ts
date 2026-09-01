@@ -39,6 +39,11 @@ export class ProjectResolver {
     return this.projectApi.createUserProject(data);
   }
 
+  @Mutation(() => Boolean)
+  archiveProject(@Args('data', { type: () => ProjectInput }) data: ProjectInput): Promise<boolean> {
+    return this.projectApi.archiveUserProject({ projectId: data.id });
+  }
+
   @ResolveField(() => AdrModel, { nullable: true })
   adr(@Parent() project: ProjectModel, @Args('id', { type: () => ID }) id: string) {
     return this.projectApi.getAdr(project.id, id);
