@@ -1,5 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { nanoid } from 'nanoid';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
@@ -10,8 +11,8 @@ import { taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
 
 // oxlint-disable eslint/no-await-in-loop -- Transport cases intentionally execute serially on DBOS.
 
-const PIPELINE_ID = 'cri-terminal-pipeline';
-const PROFILE_ID = 'cri-terminal-profile';
+const PIPELINE_ID = `cri-terminal-pipeline-${nanoid()}`;
+const PROFILE_ID = `cri-terminal-profile-${nanoid()}`;
 
 describe('CRI selector matrix', () => {
   let app: INestApplication;

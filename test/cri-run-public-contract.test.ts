@@ -205,8 +205,8 @@ describe('CRI public run contract', () => {
 
   test('returns exact REST and GraphQL parity for the selector negative matrix', async () => {
     expect.hasAssertions();
-    const pipelineId = 'cri-golden-pipeline';
-    const profileId = 'cri-golden-profile';
+    const pipelineId = `cri-golden-pipeline-${nanoid()}`;
+    const profileId = `cri-golden-profile-${nanoid()}`;
     await catalog.createPipeline({
       id: pipelineId,
       playbookId: 'revo',

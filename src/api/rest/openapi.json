@@ -3183,6 +3183,56 @@
         "tags": ["Runs"]
       }
     },
+    "/api/runs/{runId}/details": {
+      "get": {
+        "operationId": "getRunDetails",
+        "parameters": [
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "Run not found"
+          }
+        },
+        "summary": "Get run details",
+        "tags": ["Runs"]
+      }
+    },
+    "/api/runs/{runId}/events": {
+      "get": {
+        "operationId": "getRunEvents",
+        "parameters": [
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "Run not found"
+          }
+        },
+        "summary": "Get run events",
+        "tags": ["Runs"]
+      }
+    },
     "/api/runs/{runId}": {
       "get": {
         "operationId": "getRun",

@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
+import type { PipelineSourcePackage, RunProfile } from '@revisium/revo-run';
 import { nanoid } from 'nanoid';
 
 import { isCatalogRecordId } from '../../../playbook-catalog/contracts/catalog-record-id.js';
@@ -46,7 +47,7 @@ export class StartRunHandler implements ICommandHandler<
     const profile = await this.selectedProfile(data, hasProfileId);
 
     try {
-      return await this.runs.startRun({
+      return await this.runs.createRun({
         runId: `r${nanoid()}`,
         pipeline,
         profile,
@@ -60,7 +61,7 @@ export class StartRunHandler implements ICommandHandler<
   private async selectedPipeline(
     data: StartRunCommandData,
     hasPipelineId: boolean,
-  ): Promise<unknown> {
+  ): Promise<PipelineSourcePackage> {
     if (hasPipelineId) {
       if (!isCatalogRecordId(data.pipelineId)) {
         return this.invalidPipelineSelector('invalid_id');
@@ -79,7 +80,7 @@ export class StartRunHandler implements ICommandHandler<
   private async selectedProfile(
     data: StartRunCommandData,
     hasProfileId: boolean,
-  ): Promise<unknown> {
+  ): Promise<RunProfile> {
     if (hasProfileId) {
       if (!isCatalogRecordId(data.profileId)) {
         return this.invalidProfileSelector('invalid_id');

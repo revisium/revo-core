@@ -71,6 +71,19 @@ describe('REST API', () => {
       .toBe('succeeded');
 
     expect(snapshot).toMatchObject({ runId, status: 'succeeded' });
+
+    const details = await request(app.getHttpServer())
+      .get(`/api/runs/${runId}/details`)
+      .expect(200);
+    expect(details.body).toMatchObject({
+      schemaVersion: 'run-details/v1',
+      runId,
+      status: 'succeeded',
+    });
+
+    const events = await request(app.getHttpServer()).get(`/api/runs/${runId}/events`).expect(200);
+    expect(events.body.items.length).toBeGreaterThan(0);
+    expect(events.body.items[0]).toMatchObject({ schemaVersion: 'run-event/v1', runId });
   });
 
   test('returns not found for an unknown run', async () => {
