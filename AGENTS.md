@@ -12,6 +12,7 @@ change; it is not a restatement of the diff or a work log.
 scenario checked outside automated tests and CI. Add `Notes for the reviewer`
 only for a specific review focus, non-obvious risk, or deliberate tradeoff. Do
 not list automated verification commands in the pull request description.
+Do not hard-wrap prose in the pull request body; let GitHub wrap it for display.
 
 Create a new pull request from the repository template:
 
