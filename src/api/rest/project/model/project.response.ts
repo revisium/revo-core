@@ -14,4 +14,10 @@ export class ProjectResponse {
 
   @ApiProperty({ enum: PublicProjectStatus, enumName: 'ProjectStatus' })
   status: PublicProjectStatus;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  createdAt: string;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  updatedAt: string;
 }

@@ -9,6 +9,8 @@ export type GetUserProjectQueryReturnType = {
   name: string;
   description: string;
   status: PublicProjectStatus;
+  createdAt: string;
+  updatedAt: string;
 } | null;
 
 export class GetUserProjectQuery {

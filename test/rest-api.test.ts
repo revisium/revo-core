@@ -13,6 +13,8 @@ import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/rev
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
 import { invalidPipeline, taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
 
+const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+
 describe('REST API', () => {
   let app: INestApplication;
   const createdProjectIds: string[] = [];
@@ -106,12 +108,56 @@ describe('REST API', () => {
       name: 'Beta',
       description: '',
       status: 'active',
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     });
 
     await request(app.getHttpServer()).delete(`/api/projects/${projectId}`).expect(204);
     createdProjectIds.pop();
 
     await request(app.getHttpServer()).get(`/api/projects/${projectId}`).expect(404);
+  });
+
+  test('returns the stored project timestamps as ISO strings', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST timestamps');
+    const stored = await app.get(PrismaService).project.findUniqueOrThrow({
+      where: { id: project.id },
+      select: { createdAt: true, updatedAt: true },
+    });
+
+    const fetched = await request(app.getHttpServer())
+      .get(`/api/projects/${project.id}`)
+      .expect(200);
+
+    const { createdAt, updatedAt } = fetched.body as { createdAt: string; updatedAt: string };
+    expect(createdAt).toMatch(ISO_TIMESTAMP);
+    expect(updatedAt).toMatch(ISO_TIMESTAMP);
+    expect({ createdAt, updatedAt }).toEqual({
+      createdAt: stored.createdAt.toISOString(),
+      updatedAt: stored.updatedAt.toISOString(),
+    });
+  });
+
+  test('repeats the project timestamps in the project list', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST listed timestamps');
+    const stored = await app.get(PrismaService).project.findUniqueOrThrow({
+      where: { id: project.id },
+      select: { createdAt: true, updatedAt: true },
+    });
+
+    const listed = await request(app.getHttpServer())
+      .get(`/api/projects?query=${project.id}`)
+      .expect(200);
+
+    expect(listed.body.edges).toEqual([
+      {
+        cursor: expect.any(String),
+        node: expect.objectContaining({
+          createdAt: stored.createdAt.toISOString(),
+          updatedAt: stored.updatedAt.toISOString(),
+        }),
+      },
+    ]);
   });
 
   test('rejects an empty project name', async () => {

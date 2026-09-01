@@ -380,12 +380,14 @@ input ProjectListInput {
 type ProjectModel {
   adr(id: ID!): AdrModel
   adrs(data: RecordListInput!): AdrConnectionModel!
+  createdAt: String!
   description: String!
   id: ID!
   name: String!
   requirement(id: ID!): RequirementModel
   requirements(data: RecordListInput!): RequirementConnectionModel!
   status: ProjectStatus!
+  updatedAt: String!
   workItem(id: ID!): WorkItemModel
   workItems(data: RecordListInput!): WorkItemConnectionModel!
   workPlan(id: ID!): WorkPlanModel
