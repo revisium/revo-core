@@ -15,4 +15,10 @@ export class ProjectModel {
 
   @Field(() => PublicProjectStatus)
   status: PublicProjectStatus;
+
+  @Field(() => String)
+  createdAt: string;
+
+  @Field(() => String)
+  updatedAt: string;
 }

@@ -4360,9 +4360,17 @@
                 "$ref": "#/components/schemas/ProjectStatus"
               }
             ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
-        "required": ["id", "name", "description", "status"]
+        "required": ["id", "name", "description", "status", "createdAt", "updatedAt"]
       },
       "ProjectEdgeResponse": {
         "type": "object",

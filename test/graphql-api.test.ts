@@ -198,6 +198,49 @@ describe('GraphQL API', () => {
     }
   });
 
+  test('returns the stored project timestamps as ISO strings', async () => {
+    const project = await createProject(app, createdProjectIds, 'Timestamps');
+    const stored = await app.get(PrismaService).project.findUniqueOrThrow({
+      where: { id: project.id },
+      select: { createdAt: true, updatedAt: true },
+    });
+
+    const fetched = await graphql(app, GET_PROJECT, { id: project.id });
+
+    expect(fetched.body.errors).toBeUndefined();
+    const { createdAt, updatedAt } = fetched.body.data.project as {
+      createdAt: string;
+      updatedAt: string;
+    };
+    expect(createdAt).toMatch(ISO_TIMESTAMP);
+    expect(updatedAt).toMatch(ISO_TIMESTAMP);
+    expect({ createdAt, updatedAt }).toEqual({
+      createdAt: stored.createdAt.toISOString(),
+      updatedAt: stored.updatedAt.toISOString(),
+    });
+  });
+
+  test('repeats the project timestamps in the project list', async () => {
+    const project = await createProject(app, createdProjectIds, 'Listed timestamps');
+    const stored = await app.get(PrismaService).project.findUniqueOrThrow({
+      where: { id: project.id },
+      select: { createdAt: true, updatedAt: true },
+    });
+
+    const listed = await graphql(app, LIST_PROJECTS, { data: { first: 50, query: project.id } });
+
+    expect(listed.body.errors).toBeUndefined();
+    expect(listed.body.data.projects.edges).toEqual([
+      {
+        cursor: expect.any(String),
+        node: expect.objectContaining({
+          createdAt: stored.createdAt.toISOString(),
+          updatedAt: stored.updatedAt.toISOString(),
+        }),
+      },
+    ]);
+  });
+
   test('hides archived projects unless they are asked for', async () => {
     const active = await createProject(app, createdProjectIds, 'Filter active');
     const archived = await createProject(app, createdProjectIds, 'Filter archived');
@@ -647,6 +690,8 @@ describe('GraphQL API', () => {
   });
 });
 
+const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+
 const CREATE_PROJECT = `
   mutation CreateProject($data: ProjectCreateInput!) {
     createProject(data: $data) { projectId }
@@ -657,7 +702,7 @@ const LIST_PROJECTS = `
   query Projects($data: ProjectListInput!) {
     projects(data: $data) {
       totalCount
-      edges { cursor node { id name description status } }
+      edges { cursor node { id name description status createdAt updatedAt } }
       pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
     }
   }
@@ -665,7 +710,7 @@ const LIST_PROJECTS = `
 
 const GET_PROJECT = `
   query Project($id: ID!) {
-    project(id: $id) { id name description status }
+    project(id: $id) { id name description status createdAt updatedAt }
   }
 `;
 

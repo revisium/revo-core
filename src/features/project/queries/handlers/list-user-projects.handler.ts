@@ -4,12 +4,12 @@ import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
 import { getOffsetPagination } from '../../commands/utils/getOffsetPagination.js';
-import { toPublicProjectStatus } from '../../contracts/project.enums.js';
 import {
   ListUserProjectsQuery,
   type ListUserProjectsQueryData,
   type ListUserProjectsQueryReturnType,
 } from '../impl/list-user-projects.query.js';
+import { toUserProject, USER_PROJECT_SELECT } from './user-project.mapper.js';
 
 @QueryHandler(ListUserProjectsQuery)
 export class ListUserProjectsHandler implements IQueryHandler<
@@ -29,13 +29,10 @@ export class ListUserProjectsHandler implements IQueryHandler<
           orderBy: { id: 'asc' },
           take,
           skip,
-          select: { id: true, name: true, description: true, status: true },
+          select: USER_PROJECT_SELECT,
         });
 
-        return projects.map((project) => ({
-          ...project,
-          status: toPublicProjectStatus(project.status),
-        }));
+        return projects.map(toUserProject);
       },
       count: () => this.prisma.project.count({ where }),
     });
