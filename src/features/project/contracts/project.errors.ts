@@ -1,5 +1,6 @@
 export const ProjectError = {
   notFound: 'Project was not found.',
+  notActive: 'Project is not active.',
   nameRequired: 'Name is required.',
   descriptionInvalid: 'Description must be a string.',
   initCommitMissing: 'Project creation did not publish the initial revision.',
