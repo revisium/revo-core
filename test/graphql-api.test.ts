@@ -246,6 +246,193 @@ describe('GraphQL API', () => {
     expect(after.body.data.projects.totalCount).toBe(beforeCount);
   });
 
+  test('renames an active project and reads the new name back', async () => {
+    const project = await createProject(app, createdProjectIds, 'Rename before');
+
+    const updated = await graphql(app, UPDATE_PROJECT, {
+      data: { id: project.id, name: 'Rename after' },
+    });
+    expect(updated.body).toEqual({ data: { updateProject: true } });
+
+    const fetched = await graphql(app, GET_PROJECT, { data: { id: project.id } });
+    expect(fetched.body.data.project).toMatchObject({ id: project.id, name: 'Rename after' });
+  });
+
+  test('normalizes the name passed to updateProject', async () => {
+    const project = await createProject(app, createdProjectIds, 'Normalized rename');
+
+    const updated = await graphql(app, UPDATE_PROJECT, {
+      data: { id: project.id, name: '  Новое имя  ' },
+    });
+    expect(updated.body).toEqual({ data: { updateProject: true } });
+
+    const fetched = await graphql(app, GET_PROJECT, { data: { id: project.id } });
+    expect(fetched.body.data.project).toMatchObject({ name: 'Новое имя' });
+  });
+
+  test('rejects a blank updateProject name and keeps the stored name', async () => {
+    const project = await createProject(app, createdProjectIds, 'Blank rename');
+
+    const updated = await graphql(app, UPDATE_PROJECT, {
+      data: { id: project.id, name: '   ' },
+    });
+
+    expect(updated.body.data).toBeNull();
+    expect(updated.body.errors[0].message).toBe('Name is required.');
+    expect((await storedProject(app, project.id)).name).toBe('Blank rename');
+  });
+
+  test('clears the description with an empty string', async () => {
+    const project = await createProject(
+      app,
+      createdProjectIds,
+      'Clear description',
+      'Written once.',
+    );
+
+    const updated = await graphql(app, UPDATE_PROJECT, {
+      data: { id: project.id, description: '' },
+    });
+    expect(updated.body).toEqual({ data: { updateProject: true } });
+
+    const fetched = await graphql(app, GET_PROJECT, { data: { id: project.id } });
+    expect(fetched.body.data.project).toMatchObject({ description: '' });
+  });
+
+  test('keeps the stored description when updateProject only renames', async () => {
+    const project = await createProject(app, createdProjectIds, 'Kept description', 'Kept text.');
+
+    const updated = await graphql(app, UPDATE_PROJECT, {
+      data: { id: project.id, name: 'Kept description renamed' },
+    });
+    expect(updated.body).toEqual({ data: { updateProject: true } });
+
+    const fetched = await graphql(app, GET_PROJECT, { data: { id: project.id } });
+    expect(fetched.body.data.project).toMatchObject({
+      name: 'Kept description renamed',
+      description: 'Kept text.',
+    });
+  });
+
+  test('touches nothing when updateProject carries only an id', async () => {
+    const project = await createProject(app, createdProjectIds, 'Untouched', 'Untouched text.');
+    await setUpdatedAt(app, project.id, '2026-07-01T00:00:00.000Z');
+    const before = await storedProject(app, project.id);
+
+    const updated = await graphql(app, UPDATE_PROJECT, { data: { id: project.id } });
+
+    expect(updated.body).toEqual({ data: { updateProject: true } });
+    expect(await storedProject(app, project.id)).toEqual(before);
+    expect(before.updatedAt.toISOString()).toBe('2026-07-01T00:00:00.000Z');
+  });
+
+  test('refuses to update an archived project', async () => {
+    const project = await createProject(app, createdProjectIds, 'Archived update');
+    await app.get(PrismaService).project.update({
+      where: { id: project.id },
+      data: { status: ProjectStatus.ARCHIVED },
+    });
+
+    const updated = await graphql(app, UPDATE_PROJECT, {
+      data: { id: project.id, name: 'Archived rename' },
+    });
+
+    expect(updated.body.data).toBeNull();
+    expect(updated.body.errors[0].message).toBe('Project is not active.');
+    expect((await storedProject(app, project.id)).name).toBe('Archived update');
+  });
+
+  test('hides a project that is still being created from updateProject', async () => {
+    const creatingId = 'gql-update-creating-project';
+    createdProjectIds.push(creatingId);
+    await app.get(PrismaService).project.create({
+      data: {
+        id: creatingId,
+        name: 'Creating update',
+        kind: ProjectKind.USER,
+        status: ProjectStatus.CREATING,
+      },
+    });
+
+    const updated = await graphql(app, UPDATE_PROJECT, {
+      data: { id: creatingId, name: 'Creating rename' },
+    });
+
+    expect(updated.body.data).toBeNull();
+    expect(updated.body.errors[0].message).toBe('Project was not found.');
+    expect((await storedProject(app, creatingId)).name).toBe('Creating update');
+  });
+
+  test('hides the SYSTEM project from updateProject', async () => {
+    const updated = await graphql(app, UPDATE_PROJECT, {
+      data: { id: SYSTEM_PLAYBOOKS_PROJECT.id, name: 'Hijacked' },
+    });
+
+    expect(updated.body.data).toBeNull();
+    expect(updated.body.errors[0].message).toBe('Project was not found.');
+    expect((await storedProject(app, SYSTEM_PLAYBOOKS_PROJECT.id)).name).toBe(
+      SYSTEM_PLAYBOOKS_PROJECT.name,
+    );
+  });
+
+  test('refuses to update an unknown project', async () => {
+    const updated = await graphql(app, UPDATE_PROJECT, {
+      data: { id: 'no-such-project-anywhere', name: 'Ghost' },
+    });
+
+    expect(updated.body.data).toBeNull();
+    expect(updated.body.errors[0].message).toBe('Project was not found.');
+  });
+
+  test('rejects a null name in updateProject', async () => {
+    const project = await createProject(app, createdProjectIds, 'Null name update');
+
+    const updated = await graphql(app, UPDATE_PROJECT, {
+      data: { id: project.id, name: null },
+    });
+
+    expect(updated.body.data).toBeNull();
+    expect(updated.body.errors[0].message).toBe('Name is required.');
+    expect((await storedProject(app, project.id)).name).toBe('Null name update');
+  });
+
+  test('rejects a null description in updateProject', async () => {
+    const project = await createProject(app, createdProjectIds, 'Null update', 'Kept text.');
+
+    const updated = await graphql(app, UPDATE_PROJECT, {
+      data: { id: project.id, description: null },
+    });
+
+    expect(updated.body.data).toBeNull();
+    expect(updated.body.errors[0].message).toBe('Description must be a string.');
+    expect((await storedProject(app, project.id)).description).toBe('Kept text.');
+  });
+
+  test('lifts a renamed project to the top of the list', async () => {
+    const target = await createProject(app, createdProjectIds, 'Update recency target');
+    const other = await createProject(app, createdProjectIds, 'Update recency other');
+    await setUpdatedAt(app, target.id, '2026-07-02T00:00:00.000Z');
+    await setUpdatedAt(app, other.id, '2026-07-03T00:00:00.000Z');
+
+    const before = await graphql(app, LIST_PROJECTS, {
+      data: { first: 50, query: 'Update recency' },
+    });
+    expect(projectIds(before)).toEqual([other.id, target.id]);
+
+    const updated = await graphql(app, UPDATE_PROJECT, {
+      data: { id: target.id, name: 'Update recency target renamed' },
+    });
+    expect(updated.body).toEqual({ data: { updateProject: true } });
+
+    const after = await graphql(app, LIST_PROJECTS, {
+      data: { first: 50, query: 'Update recency' },
+    });
+    expect(projectIds(after)).toEqual([target.id, other.id]);
+    expect((await storedProject(app, target.id)).updatedAt.getTime()).toBeGreaterThan(
+      Date.parse('2026-07-03T00:00:00.000Z'),
+    );
+  });
+
   test('reads a project stored before the description and status columns', async () => {
     const prisma = app.get(PrismaService);
     const legacyId = 'legacy_project_without_description';
@@ -877,6 +1064,12 @@ const CREATE_PROJECT = `
   }
 `;
 
+const UPDATE_PROJECT = `
+  mutation UpdateProject($data: ProjectUpdateInput!) {
+    updateProject(data: $data)
+  }
+`;
+
 const LIST_PROJECTS = `
   query Projects($data: ProjectListInput!) {
     projects(data: $data) {
@@ -1089,12 +1282,20 @@ async function createProject(
   app: INestApplication,
   createdProjectIds: string[],
   name: string,
+  description?: string,
 ): Promise<{ id: string; name: string }> {
-  const response = await graphql(app, CREATE_PROJECT, { data: { name } });
+  const response = await graphql(app, CREATE_PROJECT, { data: { name, description } });
   expect(response.body.errors).toBeUndefined();
   const { projectId } = response.body.data.createProject as { projectId: string };
   createdProjectIds.push(projectId);
   return { id: projectId, name };
+}
+
+async function storedProject(app: INestApplication, id: string) {
+  return app.get(PrismaService).project.findUniqueOrThrow({
+    where: { id },
+    select: { name: true, description: true, status: true, updatedAt: true },
+  });
 }
 
 function adrInput(projectId: string, id: string, title: string) {

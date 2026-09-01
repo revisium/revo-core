@@ -3,6 +3,7 @@ import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nest
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { ProjectCreateInput } from './input/project-create.input.js';
 import { ProjectListInput } from './input/project-list.input.js';
+import { ProjectUpdateInput } from './input/project-update.input.js';
 import { ProjectInput } from './input/project.input.js';
 import { RecordListInput } from './input/record-list.input.js';
 import { listData } from './list-data.js';
@@ -42,6 +43,13 @@ export class ProjectResolver {
   @Mutation(() => Boolean)
   archiveProject(@Args('data', { type: () => ProjectInput }) data: ProjectInput): Promise<boolean> {
     return this.projectApi.archiveUserProject({ projectId: data.id });
+  }
+
+  @Mutation(() => Boolean)
+  updateProject(
+    @Args('data', { type: () => ProjectUpdateInput }) data: ProjectUpdateInput,
+  ): Promise<boolean> {
+    return this.projectApi.updateUserProject(data);
   }
 
   @ResolveField(() => AdrModel, { nullable: true })

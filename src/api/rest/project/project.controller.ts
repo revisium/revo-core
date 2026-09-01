@@ -8,12 +8,14 @@ import {
   Param,
   ParseBoolPipe,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
@@ -27,10 +29,12 @@ import {
 import { ProjectError } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { ProjectCreateRequest } from './dto/project-create.request.js';
+import { ProjectUpdateRequest } from './dto/project-update.request.js';
 import { ProjectConnectionResponse } from './model/project-connection.response.js';
 import { ProjectCreatedResponse } from './model/project-created.response.js';
 import { ProjectResponse } from './model/project.response.js';
 import { projectListQuery } from './project-list.query.js';
+import { projectUpdateBody } from './project-update.body.js';
 
 @ApiTags('Projects')
 @Controller('projects')
@@ -85,5 +89,16 @@ export class ProjectController {
   @ApiConflictResponse({ description: ProjectError.notActive })
   async archiveProject(@Param('id') id: string): Promise<void> {
     await this.projects.archiveUserProject({ projectId: id });
+  }
+
+  @Patch(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ operationId: 'updateProject', summary: 'Update a project' })
+  @ApiNoContentResponse()
+  @ApiBadRequestResponse({ description: ProjectError.updateBodyInvalid })
+  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiConflictResponse({ description: ProjectError.notActive })
+  async updateProject(@Param('id') id: string, @Body() data: ProjectUpdateRequest): Promise<void> {
+    await this.projects.updateUserProject(projectUpdateBody(id, data));
   }
 }

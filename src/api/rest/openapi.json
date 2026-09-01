@@ -2185,6 +2185,45 @@
         },
         "summary": "Get a project",
         "tags": ["Projects"]
+      },
+      "patch": {
+        "operationId": "updateProject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Project update body is required and must be a JSON object."
+          },
+          "404": {
+            "description": "Project was not found."
+          },
+          "409": {
+            "description": "Project is not active."
+          }
+        },
+        "summary": "Update a project",
+        "tags": ["Projects"]
       }
     },
     "/api/projects/{id}/archive": {
@@ -4424,6 +4463,17 @@
           }
         },
         "required": ["edges", "pageInfo", "totalCount"]
+      },
+      "ProjectUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
       },
       "AdrAlternativeResponse": {
         "type": "object",

@@ -183,6 +183,275 @@ describe('REST API', () => {
     expect(response.body).toMatchObject({ message: 'Project was not found.' });
   });
 
+  test('renames an active project through PATCH', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST rename before');
+
+    const updated = await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .send({ name: 'REST rename after' })
+      .expect(204);
+    expect(updated.body).toEqual({});
+
+    const fetched = await request(app.getHttpServer())
+      .get(`/api/projects/${project.id}`)
+      .expect(200);
+    expect(fetched.body).toMatchObject({ id: project.id, name: 'REST rename after' });
+  });
+
+  test('normalizes the name passed to PATCH', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST normalized rename');
+
+    await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .send({ name: '  Новое имя  ' })
+      .expect(204);
+
+    const fetched = await request(app.getHttpServer())
+      .get(`/api/projects/${project.id}`)
+      .expect(200);
+    expect(fetched.body).toMatchObject({ name: 'Новое имя' });
+  });
+
+  test('rejects a blank name in PATCH and keeps the stored name', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST blank rename');
+
+    const updated = await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .send({ name: '   ' })
+      .expect(400);
+
+    expect(updated.body.message).toBe('Name is required.');
+    expect((await storedProject(app, project.id)).name).toBe('REST blank rename');
+  });
+
+  test('clears the description with an empty string', async () => {
+    const project = await createProject(
+      app,
+      createdProjectIds,
+      'REST clear description',
+      'Written once.',
+    );
+
+    await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .send({ description: '' })
+      .expect(204);
+
+    const fetched = await request(app.getHttpServer())
+      .get(`/api/projects/${project.id}`)
+      .expect(200);
+    expect(fetched.body).toMatchObject({ description: '' });
+  });
+
+  test('keeps the stored description when PATCH only renames', async () => {
+    const project = await createProject(
+      app,
+      createdProjectIds,
+      'REST kept description',
+      'Kept text.',
+    );
+
+    await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .send({ name: 'REST kept description renamed' })
+      .expect(204);
+
+    const fetched = await request(app.getHttpServer())
+      .get(`/api/projects/${project.id}`)
+      .expect(200);
+    expect(fetched.body).toMatchObject({
+      name: 'REST kept description renamed',
+      description: 'Kept text.',
+    });
+  });
+
+  test('touches nothing when PATCH carries an empty body', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST untouched', 'Untouched.');
+    await setUpdatedAt(app, project.id, '2026-08-01T00:00:00.000Z');
+    const before = await storedProject(app, project.id);
+
+    const updated = await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .send({})
+      .expect(204);
+
+    expect(updated.body).toEqual({});
+    expect(await storedProject(app, project.id)).toEqual(before);
+    expect(before.updatedAt.toISOString()).toBe('2026-08-01T00:00:00.000Z');
+  });
+
+  test('rejects a JSON array PATCH body and leaves the project untouched', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST array body', 'Array body.');
+    await setUpdatedAt(app, project.id, '2026-09-03T00:00:00.000Z');
+    const before = await storedProject(app, project.id);
+
+    const updated = await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .send([])
+      .expect(400);
+
+    expect(updated.body.message).toBe('Project update body is required and must be a JSON object.');
+    expect(await storedProject(app, project.id)).toEqual(before);
+    expect(before.updatedAt.toISOString()).toBe('2026-09-03T00:00:00.000Z');
+  });
+
+  test('rejects a bodyless PATCH because a JSON object body is required', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST bodyless', 'Bodyless.');
+    await setUpdatedAt(app, project.id, '2026-09-01T00:00:00.000Z');
+    const before = await storedProject(app, project.id);
+
+    const updated = await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .expect(400);
+
+    expect(updated.body.message).toBe('Project update body is required and must be a JSON object.');
+    expect(await storedProject(app, project.id)).toEqual(before);
+  });
+
+  test('rejects an unparsed non-JSON PATCH body because a JSON body is required', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST non-JSON', 'Non-JSON.');
+    await setUpdatedAt(app, project.id, '2026-09-02T00:00:00.000Z');
+    const before = await storedProject(app, project.id);
+
+    const updated = await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .set('Content-Type', 'text/plain')
+      .send('name=Ignored')
+      .expect(400);
+
+    expect(updated.body.message).toBe('Project update body is required and must be a JSON object.');
+    expect(await storedProject(app, project.id)).toEqual(before);
+  });
+
+  test('refuses to PATCH an archived project', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST archived update');
+    await app.get(PrismaService).project.update({
+      where: { id: project.id },
+      data: { status: ProjectStatus.ARCHIVED },
+    });
+
+    const updated = await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .send({ name: 'REST archived rename' })
+      .expect(409);
+
+    expect(updated.body).toMatchObject({ message: 'Project is not active.' });
+    expect((await storedProject(app, project.id)).name).toBe('REST archived update');
+  });
+
+  test('hides a project that is still being created from PATCH', async () => {
+    const creatingId = 'rest-update-creating-project';
+    createdProjectIds.push(creatingId);
+    await app.get(PrismaService).project.create({
+      data: {
+        id: creatingId,
+        name: 'REST creating update',
+        kind: ProjectKind.USER,
+        status: ProjectStatus.CREATING,
+      },
+    });
+
+    const updated = await request(app.getHttpServer())
+      .patch(`/api/projects/${creatingId}`)
+      .send({ name: 'REST creating rename' })
+      .expect(404);
+
+    expect(updated.body).toMatchObject({ message: 'Project was not found.' });
+    expect((await storedProject(app, creatingId)).name).toBe('REST creating update');
+  });
+
+  test('hides the SYSTEM project from PATCH', async () => {
+    const updated = await request(app.getHttpServer())
+      .patch(`/api/projects/${SYSTEM_PLAYBOOKS_PROJECT.id}`)
+      .send({ name: 'Hijacked' })
+      .expect(404);
+
+    expect(updated.body).toMatchObject({ message: 'Project was not found.' });
+    expect((await storedProject(app, SYSTEM_PLAYBOOKS_PROJECT.id)).name).toBe(
+      SYSTEM_PLAYBOOKS_PROJECT.name,
+    );
+  });
+
+  test('refuses to PATCH an unknown project', async () => {
+    const updated = await request(app.getHttpServer())
+      .patch('/api/projects/no-such-project-anywhere')
+      .send({ name: 'Ghost' })
+      .expect(404);
+
+    expect(updated.body).toMatchObject({ message: 'Project was not found.' });
+  });
+
+  test('reports a null or non-string description in the class-validator shape', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST null update', 'Kept text.');
+
+    const nulled = await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .send({ description: null })
+      .expect(400);
+    expect(nulled.body.message).toEqual(['Description must be a string.']);
+
+    const wrongType = await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .send({ description: 123 })
+      .expect(400);
+    expect(wrongType.body.message).toEqual(['Description must be a string.']);
+
+    expect((await storedProject(app, project.id)).description).toBe('Kept text.');
+  });
+
+  test('reports a null or non-string name in the class-validator shape', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST null name');
+
+    const nulled = await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .send({ name: null })
+      .expect(400);
+    expect(nulled.body.message).toEqual(['Name is required.']);
+
+    const wrongType = await request(app.getHttpServer())
+      .patch(`/api/projects/${project.id}`)
+      .send({ name: 7 })
+      .expect(400);
+    expect(wrongType.body.message).toEqual(['Name is required.']);
+
+    expect((await storedProject(app, project.id)).name).toBe('REST null name');
+  });
+
+  test('ignores an id in the PATCH body and uses the path id', async () => {
+    const target = await createProject(app, createdProjectIds, 'REST path id target');
+    const other = await createProject(app, createdProjectIds, 'REST path id other');
+
+    await request(app.getHttpServer())
+      .patch(`/api/projects/${target.id}`)
+      .send({ id: other.id, name: 'REST path id renamed' })
+      .expect(204);
+
+    expect((await storedProject(app, target.id)).name).toBe('REST path id renamed');
+    expect((await storedProject(app, other.id)).name).toBe('REST path id other');
+  });
+
+  test('lifts a renamed project to the top of the list', async () => {
+    const target = await createProject(app, createdProjectIds, 'REST update recency target');
+    const other = await createProject(app, createdProjectIds, 'REST update recency other');
+    await setUpdatedAt(app, target.id, '2026-08-02T00:00:00.000Z');
+    await setUpdatedAt(app, other.id, '2026-08-03T00:00:00.000Z');
+    const listPath = '/api/projects?first=50&query=REST%20update%20recency';
+
+    const before = await request(app.getHttpServer()).get(listPath).expect(200);
+    expect(listedIds(before.body)).toEqual([other.id, target.id]);
+
+    await request(app.getHttpServer())
+      .patch(`/api/projects/${target.id}`)
+      .send({ name: 'REST update recency target renamed' })
+      .expect(204);
+
+    const after = await request(app.getHttpServer()).get(listPath).expect(200);
+    expect(listedIds(after.body)).toEqual([target.id, other.id]);
+    expect((await storedProject(app, target.id)).updatedAt.getTime()).toBeGreaterThan(
+      Date.parse('2026-08-03T00:00:00.000Z'),
+    );
+  });
+
   test('returns the stored project timestamps as ISO strings', async () => {
     const project = await createProject(app, createdProjectIds, 'REST timestamps');
     const stored = await app.get(PrismaService).project.findUniqueOrThrow({
@@ -582,14 +851,22 @@ async function createProject(
   app: INestApplication,
   createdProjectIds: string[],
   name: string,
+  description?: string,
 ): Promise<{ id: string; name: string }> {
   const response = await request(app.getHttpServer())
     .post('/api/projects')
-    .send({ name })
+    .send({ name, description })
     .expect(201);
   const { projectId } = response.body as { projectId: string };
   createdProjectIds.push(projectId);
   return { id: projectId, name };
+}
+
+async function storedProject(app: INestApplication, id: string) {
+  return app.get(PrismaService).project.findUniqueOrThrow({
+    where: { id },
+    select: { name: true, description: true, status: true, updatedAt: true },
+  });
 }
 
 type ListedProject = { id: string; updatedAt: string };

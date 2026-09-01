@@ -1,6 +1,7 @@
 export const ProjectError = {
   notFound: 'Project was not found.',
   notActive: 'Project is not active.',
+  updateBodyInvalid: 'Project update body is required and must be a JSON object.',
   nameRequired: 'Name is required.',
   descriptionInvalid: 'Description must be a string.',
   initCommitMissing: 'Project creation did not publish the initial revision.',
