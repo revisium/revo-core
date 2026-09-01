@@ -1,10 +1,7 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
-  HttpCode,
-  HttpStatus,
   NotFoundException,
   Param,
   ParseBoolPipe,
@@ -16,7 +13,6 @@ import {
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
-  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -69,19 +65,11 @@ export class ProjectController {
   @ApiNotFoundResponse({ description: ProjectError.notFound })
   async getProject(@Param('id') id: string): Promise<ProjectResponse> {
     const project = await this.projects.getUserProject(id);
+
     if (project === null) {
       throw new NotFoundException(ProjectError.notFound);
     }
 
     return project;
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ operationId: 'deleteProject', summary: 'Delete a project' })
-  @ApiNoContentResponse()
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
-  async deleteProject(@Param('id') id: string): Promise<void> {
-    await this.projects.deleteUserProject(id);
   }
 }

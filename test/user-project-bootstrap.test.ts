@@ -1,13 +1,19 @@
 import type { INestApplication } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
-import type { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CommandBus, type QueryBus } from '@nestjs/cqrs';
 import { Test } from '@nestjs/testing';
 import { IdService } from '@revisium/engine';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
 import { AppModule } from '../src/app.module.js';
+import {
+  DeleteUserProjectCommand,
+  type DeleteUserProjectCommandReturnType,
+} from '../src/features/project/commands/impl/delete-user-project.command.js';
+import { ProjectError } from '../src/features/project/contracts/project.errors.js';
 import { UserProjectMigrationsService } from '../src/features/project/user-project-migrations.service.js';
+import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
 
 const DEFAULT_BRANCH_NAME = 'master';
@@ -81,6 +87,22 @@ describe('project bootstrap cleanup', () => {
     ).resolves.toBe(0);
     await expect(
       prisma.project.findUnique({ where: { id: seeded.ready } }),
+    ).resolves.not.toBeNull();
+  });
+
+  test('refuses to delete the SYSTEM project through the internal command', async () => {
+    app = await startApp();
+
+    await expect(
+      app
+        .get(CommandBus)
+        .execute<DeleteUserProjectCommand, DeleteUserProjectCommandReturnType>(
+          new DeleteUserProjectCommand({ projectId: SYSTEM_PLAYBOOKS_PROJECT.id }),
+        ),
+    ).rejects.toThrow(ProjectError.notFound);
+
+    await expect(
+      prisma.project.findUnique({ where: { id: SYSTEM_PLAYBOOKS_PROJECT.id } }),
     ).resolves.not.toBeNull();
   });
 });

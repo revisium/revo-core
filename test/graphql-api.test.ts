@@ -27,10 +27,16 @@ describe('GraphQL API', () => {
 
   afterEach(async () => {
     const ids = createdProjectIds.splice(0);
-    for (const id of ids) {
-      // oxlint-disable-next-line no-await-in-loop -- Delete one project at a time; cleanup is global.
-      await graphql(app, DELETE_PROJECT, { id });
+
+    if (ids.length === 0) {
+      return;
     }
+
+    const prisma = app.get(PrismaService);
+    await prisma.$transaction([
+      prisma.branch.deleteMany({ where: { projectId: { in: ids } } }),
+      prisma.project.deleteMany({ where: { id: { in: ids } } }),
+    ]);
   });
 
   afterAll(async () => app.close());
@@ -96,7 +102,7 @@ describe('GraphQL API', () => {
     expect(response.body).toEqual({ data: { run: null } });
   });
 
-  test('creates, lists, gets, and deletes a USER project', async () => {
+  test('creates, lists, and gets a USER project', async () => {
     const created = await graphql(app, CREATE_PROJECT, { data: { name: '  Alpha  ' } });
     expect(created.body.errors).toBeUndefined();
     const { projectId } = created.body.data.createProject as { projectId: string };
@@ -104,23 +110,62 @@ describe('GraphQL API', () => {
 
     const listed = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
     expect(listed.body.errors).toBeUndefined();
-    const ids = listed.body.data.projects.edges.map(
-      (edge: { node: { id: string } }) => edge.node.id,
-    );
-    expect(ids).toContain(projectId);
-    expect(ids).not.toContain(SYSTEM_PLAYBOOKS_PROJECT.id);
+    expect(projectIds(listed)).toContain(projectId);
+    expect(projectIds(listed)).not.toContain(SYSTEM_PLAYBOOKS_PROJECT.id);
 
-    const fetched = await graphql(app, GET_PROJECT, { id: projectId });
+    const fetched = await graphql(app, GET_PROJECT, { data: { id: projectId } });
     expect(fetched.body).toMatchObject({
       data: { project: { id: projectId, name: 'Alpha' } },
     });
+  });
 
-    const deleted = await graphql(app, DELETE_PROJECT, { id: projectId });
-    expect(deleted.body).toEqual({ data: { deleteProject: true } });
-    createdProjectIds.pop();
+  test('takes the project id through the data envelope, not as a bare argument', async () => {
+    const project = await createProject(app, createdProjectIds, 'Envelope');
 
-    const missing = await graphql(app, GET_PROJECT, { id: projectId });
-    expect(missing.body).toEqual({ data: { project: null } });
+    const enveloped = await graphql(app, GET_PROJECT, { data: { id: project.id } });
+    expect(enveloped.body.errors).toBeUndefined();
+    expect(enveloped.body.data.project).toMatchObject({ id: project.id });
+
+    const bare = await graphqlErrors(app, `{ project(id: "${project.id}") { id } }`);
+    expect(bare).toContainEqual(
+      expect.stringContaining('Unknown argument "id" on field "Query.project".'),
+    );
+  });
+
+  test('names the project identifier id, without repeating the query name', async () => {
+    const project = await createProject(app, createdProjectIds, 'Read model identifier');
+
+    const listed = await graphql(app, LIST_PROJECTS, { data: { first: 50, query: project.id } });
+    expect(listed.body.errors).toBeUndefined();
+    expect(projectIds(listed)).toEqual([project.id]);
+
+    const prefixedField = await graphqlErrors(
+      app,
+      `{ project(data: { id: "${project.id}" }) { projectId } }`,
+    );
+    expect(prefixedField).toContainEqual(
+      expect.stringContaining('Cannot query field "projectId" on type "ProjectModel".'),
+    );
+
+    const prefixedInput = await graphqlErrors(
+      app,
+      `{ project(data: { projectId: "${project.id}" }) { id } }`,
+    );
+    expect(prefixedInput).toContainEqual(
+      expect.stringContaining('Field "projectId" is not defined by type "ProjectInput".'),
+    );
+  });
+
+  test('offers no public project delete mutation', async () => {
+    const project = await createProject(app, createdProjectIds, 'No public delete');
+
+    const removed = await graphqlErrors(app, `mutation { deleteProject(id: "${project.id}") }`);
+    expect(removed).toContainEqual(
+      expect.stringContaining('Cannot query field "deleteProject" on type "Mutation".'),
+    );
+
+    const fetched = await graphql(app, GET_PROJECT, { data: { id: project.id } });
+    expect(fetched.body.data.project).toMatchObject({ id: project.id });
   });
 
   test('rejects an empty project name and does not create a project', async () => {
@@ -141,7 +186,7 @@ describe('GraphQL API', () => {
     const { projectId } = created.body.data.createProject as { projectId: string };
     createdProjectIds.push(projectId);
 
-    const fetched = await graphql(app, GET_PROJECT, { id: projectId });
+    const fetched = await graphql(app, GET_PROJECT, { data: { id: projectId } });
     expect(fetched.body.data.project).toMatchObject({ description: '', status: 'active' });
   });
 
@@ -154,7 +199,7 @@ describe('GraphQL API', () => {
     const { projectId } = created.body.data.createProject as { projectId: string };
     createdProjectIds.push(projectId);
 
-    const fetched = await graphql(app, GET_PROJECT, { id: projectId });
+    const fetched = await graphql(app, GET_PROJECT, { data: { id: projectId } });
     expect(fetched.body.data.project).toMatchObject({ description, status: 'active' });
   });
 
@@ -185,7 +230,7 @@ describe('GraphQL API', () => {
     });
 
     try {
-      const fetched = await graphql(app, GET_PROJECT, { id: legacyId });
+      const fetched = await graphql(app, GET_PROJECT, { data: { id: legacyId } });
 
       expect(fetched.body.errors).toBeUndefined();
       expect(fetched.body.data.project).toMatchObject({
@@ -205,7 +250,7 @@ describe('GraphQL API', () => {
       select: { createdAt: true, updatedAt: true },
     });
 
-    const fetched = await graphql(app, GET_PROJECT, { id: project.id });
+    const fetched = await graphql(app, GET_PROJECT, { data: { id: project.id } });
 
     expect(fetched.body.errors).toBeUndefined();
     const { createdAt, updatedAt } = fetched.body.data.project as {
@@ -415,18 +460,19 @@ describe('GraphQL API', () => {
     expect(projectIds(listed)).toContain(project.id);
   });
 
-  test('hides the SYSTEM project from get, list, and delete', async () => {
-    const fetched = await graphql(app, GET_PROJECT, { id: SYSTEM_PLAYBOOKS_PROJECT.id });
-    expect(fetched.body).toEqual({ data: { project: null } });
+  test('hides the SYSTEM project from get and list', async () => {
+    const listed = await graphql(app, LIST_PROJECTS, { data: { first: 50 } });
+    expect(projectIds(listed)).not.toContain(SYSTEM_PLAYBOOKS_PROJECT.id);
 
-    const deleted = await graphql(app, DELETE_PROJECT, { id: SYSTEM_PLAYBOOKS_PROJECT.id });
-    expect(deleted.body.data).toBeNull();
-    expect(deleted.body.errors[0].message).toBe('Project was not found.');
+    const fetched = await graphql(app, GET_PROJECT, {
+      data: { id: SYSTEM_PLAYBOOKS_PROJECT.id },
+    });
+    expect(fetched.body).toEqual({ data: { project: null } });
   });
 
   test('returns empty record connections after create', async () => {
     const project = await createProject(app, createdProjectIds, 'Empty records');
-    const fetched = await graphql(app, GET_PROJECT_RECORDS, { id: project.id });
+    const fetched = await graphql(app, GET_PROJECT_RECORDS, { projectId: project.id });
 
     expect(fetched.body.errors).toBeUndefined();
     expect(fetched.body.data.project).toMatchObject({
@@ -758,7 +804,9 @@ describe('GraphQL API', () => {
     const secondHasA = await graphql(app, GET_ADR, { projectId: second.id, id: 'ADR-A' });
     expect(secondHasA.body.data.project.adr).toBeNull();
 
-    const systemProject = await graphql(app, GET_PROJECT, { id: SYSTEM_PLAYBOOKS_PROJECT.id });
+    const systemProject = await graphql(app, GET_PROJECT, {
+      data: { id: SYSTEM_PLAYBOOKS_PROJECT.id },
+    });
     expect(systemProject.body.data.project).toBeNull();
   });
 
@@ -767,7 +815,7 @@ describe('GraphQL API', () => {
     await app.close();
     app = await startApp();
 
-    const fetched = await graphql(app, GET_PROJECT_RECORDS, { id: project.id });
+    const fetched = await graphql(app, GET_PROJECT_RECORDS, { projectId: project.id });
     expect(fetched.body.errors).toBeUndefined();
     expect(fetched.body.data.project.adrs.totalCount).toBe(0);
 
@@ -811,20 +859,14 @@ const LIST_PROJECTS = `
 `;
 
 const GET_PROJECT = `
-  query Project($id: ID!) {
-    project(id: $id) { id name description status createdAt updatedAt }
-  }
-`;
-
-const DELETE_PROJECT = `
-  mutation DeleteProject($id: ID!) {
-    deleteProject(id: $id)
+  query Project($data: ProjectInput!) {
+    project(data: $data) { id name description status createdAt updatedAt }
   }
 `;
 
 const GET_PROJECT_RECORDS = `
-  query ProjectRecords($id: ID!) {
-    project(id: $id) {
+  query ProjectRecords($projectId: ID!) {
+    project(data: { id: $projectId }) {
       adrs(data: { first: 10 }) { totalCount edges { node { id } } }
       requirements(data: { first: 10 }) { totalCount edges { node { id } } }
       workPlans(data: { first: 10 }) { totalCount edges { node { id } } }
@@ -853,7 +895,7 @@ const DELETE_ADR = `
 
 const GET_ADR = `
   query Adr($projectId: ID!, $id: ID!) {
-    project(id: $projectId) {
+    project(data: { id: $projectId }) {
       adr(id: $id) { id title }
     }
   }
@@ -861,7 +903,7 @@ const GET_ADR = `
 
 const LIST_ADRS = `
   query Adrs($projectId: ID!, $data: RecordListInput!) {
-    project(id: $projectId) {
+    project(data: { id: $projectId }) {
       adrs(data: $data) {
         totalCount
         edges { cursor node { id } }
@@ -927,7 +969,7 @@ const DELETE_WORK_ITEM = `
 
 const LIST_RECORDS = `
   query ListRecords($projectId: ID!, $data: RecordListInput!) {
-    project(id: $projectId) {
+    project(data: { id: $projectId }) {
       requirements(data: $data) {
         totalCount
         edges { cursor node { id } }
@@ -954,7 +996,7 @@ const GET_RECORD_SMOKE = `
     $workPlanId: ID!
     $workItemId: ID!
   ) {
-    project(id: $projectId) {
+    project(data: { id: $projectId }) {
       requirement(id: $requirementId) { id }
       workPlan(id: $workPlanId) { id }
       workItem(id: $workItemId) { id }
@@ -999,6 +1041,13 @@ async function idsAscending(app: INestApplication, ids: string[]): Promise<strin
 
 async function graphql(app: INestApplication, query: string, variables?: Record<string, unknown>) {
   return request(app.getHttpServer()).post('/graphql').send({ query, variables }).expect(200);
+}
+
+async function graphqlErrors(app: INestApplication, query: string): Promise<string[]> {
+  const response = await request(app.getHttpServer()).post('/graphql').send({ query });
+  const errors = response.body.errors as { message: string }[] | undefined;
+
+  return (errors ?? []).map((error) => error.message);
 }
 
 async function createProject(
