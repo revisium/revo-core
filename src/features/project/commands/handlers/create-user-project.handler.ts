@@ -8,10 +8,7 @@ import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enu
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import { errorReason } from '../../../../infrastructure/error-reason.js';
 import { ProjectError } from '../../contracts/project.errors.js';
-import {
-  ApplyContentModelCommand,
-  type ApplyContentModelCommandReturnType,
-} from '../impl/apply-content-model.command.js';
+import { ProjectContentModelService } from '../../project-content-model.service.js';
 import {
   CreateUserProjectCommand,
   type CreateUserProjectCommandData,
@@ -35,6 +32,7 @@ export class CreateUserProjectHandler implements ICommandHandler<
     private readonly commands: CommandBus,
     private readonly transactions: TransactionPrismaService,
     private readonly ids: IdService,
+    private readonly contentModel: ProjectContentModelService,
   ) {}
 
   private get transaction(): Prisma.TransactionClient {
@@ -52,10 +50,7 @@ export class CreateUserProjectHandler implements ICommandHandler<
     );
 
     try {
-      const published = await this.commands.execute<
-        ApplyContentModelCommand,
-        ApplyContentModelCommandReturnType
-      >(new ApplyContentModelCommand({ projectId }));
+      const published = await this.contentModel.apply(projectId);
 
       if (!published) {
         throw new InternalServerErrorException(ProjectError.initCommitMissing);

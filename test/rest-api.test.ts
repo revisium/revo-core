@@ -581,6 +581,61 @@ describe('REST API', () => {
     expect(searched.body.totalCount).toBe(1);
   });
 
+  test('restores an archived project', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST restore archived');
+    await app.get(PrismaService).project.update({
+      where: { id: project.id },
+      data: { status: ProjectStatus.ARCHIVED },
+    });
+
+    const restored = await request(app.getHttpServer())
+      .post(`/api/projects/${project.id}/restore`)
+      .expect(200);
+    expect(restored.headers['content-type']).toContain('application/json');
+    expect(restored.body).toBe(true);
+
+    const fetched = await request(app.getHttpServer())
+      .get(`/api/projects/${project.id}`)
+      .expect(200);
+    expect(fetched.body).toMatchObject({ status: 'active' });
+  });
+
+  test('hides a creating project from restore', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST restore creating');
+    await app.get(PrismaService).project.update({
+      where: { id: project.id },
+      data: { status: ProjectStatus.CREATING },
+    });
+
+    const restored = await request(app.getHttpServer())
+      .post(`/api/projects/${project.id}/restore`)
+      .expect(404);
+    expect(restored.body.message).toContain('Project was not found.');
+  });
+
+  test('hides a SYSTEM project from restore', async () => {
+    const restored = await request(app.getHttpServer())
+      .post(`/api/projects/${SYSTEM_PLAYBOOKS_PROJECT.id}/restore`)
+      .expect(404);
+    expect(restored.body.message).toContain('Project was not found.');
+  });
+
+  test('refuses to restore a project that is not archived', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST restore active');
+
+    const restored = await request(app.getHttpServer())
+      .post(`/api/projects/${project.id}/restore`)
+      .expect(409);
+    expect(restored.body.message).toContain('Project is not archived.');
+  });
+
+  test('returns not found when restoring an unknown project', async () => {
+    const restored = await request(app.getHttpServer())
+      .post('/api/projects/missing-project/restore')
+      .expect(404);
+    expect(restored.body.message).toContain('Project was not found.');
+  });
+
   test('lists the most recently changed project first', async () => {
     const stale = await createProject(app, createdProjectIds, 'REST recency stale');
     const recent = await createProject(app, createdProjectIds, 'REST recency recent');

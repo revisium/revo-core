@@ -46,6 +46,11 @@ export class ProjectResolver {
   }
 
   @Mutation(() => Boolean)
+  restoreProject(@Args('data', { type: () => ProjectInput }) data: ProjectInput): Promise<boolean> {
+    return this.projectApi.restoreUserProject({ projectId: data.id });
+  }
+
+  @Mutation(() => Boolean)
   updateProject(
     @Args('data', { type: () => ProjectUpdateInput }) data: ProjectUpdateInput,
   ): Promise<boolean> {

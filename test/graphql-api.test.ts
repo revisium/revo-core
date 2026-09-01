@@ -526,6 +526,57 @@ describe('GraphQL API', () => {
     ).toBe('archived');
   });
 
+  test('restores an archived project', async () => {
+    const project = await createProject(app, createdProjectIds, 'Restore archived');
+    await app.get(PrismaService).project.update({
+      where: { id: project.id },
+      data: { status: ProjectStatus.ARCHIVED },
+    });
+
+    const restored = await graphql(app, RESTORE_PROJECT, { data: { id: project.id } });
+    expect(restored.body.errors).toBeUndefined();
+    expect(restored.body.data.restoreProject).toBe(true);
+
+    const fetched = await graphql(app, GET_PROJECT, { data: { id: project.id } });
+    expect(fetched.body.data.project).toMatchObject({ status: 'active' });
+  });
+
+  test('hides a creating project from restore', async () => {
+    const project = await createProject(app, createdProjectIds, 'GraphQL restore creating');
+    await app.get(PrismaService).project.update({
+      where: { id: project.id },
+      data: { status: ProjectStatus.CREATING },
+    });
+
+    const restored = await graphql(app, RESTORE_PROJECT, { data: { id: project.id } });
+    expect(restored.body.data).toBeNull();
+    expect(restored.body.errors[0].message).toBe('Project was not found.');
+  });
+
+  test('hides an unknown project from restore', async () => {
+    const restored = await graphql(app, RESTORE_PROJECT, { data: { id: 'missing-project' } });
+    expect(restored.body.data).toBeNull();
+    expect(restored.body.errors[0].message).toBe('Project was not found.');
+  });
+
+  test('hides a SYSTEM project from restore', async () => {
+    const restored = await graphql(app, RESTORE_PROJECT, {
+      data: { id: SYSTEM_PLAYBOOKS_PROJECT.id },
+    });
+    expect(restored.body.data).toBeNull();
+    expect(restored.body.errors[0].message).toBe('Project was not found.');
+  });
+
+  test('refuses to restore a project that is not archived', async () => {
+    const project = await createProject(app, createdProjectIds, 'Restore active');
+
+    const restored = await graphql(app, RESTORE_PROJECT, { data: { id: project.id } });
+    expect(restored.body.errors[0].message).toBe('Project is not archived.');
+
+    const fetched = await graphql(app, GET_PROJECT, { data: { id: project.id } });
+    expect(fetched.body.data.project).toMatchObject({ status: 'active' });
+  });
+
   test('searches by a name fragment and by the exact project id', async () => {
     const project = await createProject(app, createdProjectIds, 'Searchable orchestration');
     await createProject(app, createdProjectIds, 'Unrelated');
@@ -1083,6 +1134,12 @@ const LIST_PROJECTS = `
 const GET_PROJECT = `
   query Project($data: ProjectInput!) {
     project(data: $data) { id name description status createdAt updatedAt }
+  }
+`;
+
+const RESTORE_PROJECT = `
+  mutation RestoreProject($data: ProjectInput!) {
+    restoreProject(data: $data)
   }
 `;
 

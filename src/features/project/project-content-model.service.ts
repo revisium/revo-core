@@ -1,24 +1,16 @@
 import { readFile } from 'node:fs/promises';
 
-import { Inject, InternalServerErrorException } from '@nestjs/common';
-import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
+import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { EngineApiService, HashService, SystemTablesService } from '@revisium/engine';
 
 import {
   SYSTEM_TABLE_IDS,
   type SystemTableValue,
-} from '../../../../infrastructure/system-tables.constants.js';
-import { ProjectDraftService } from '../../project-draft.service.js';
-import {
-  ApplyContentModelCommand,
-  type ApplyContentModelCommandReturnType,
-} from '../impl/apply-content-model.command.js';
+} from '../../infrastructure/system-tables.constants.js';
+import { ProjectDraftService } from './project-draft.service.js';
 
 const DEFAULT_BRANCH_NAME = 'master';
-const MIGRATIONS_URL = new URL(
-  '../../../../../resources/content-model/migrations.json',
-  import.meta.url,
-);
+const MIGRATIONS_URL = new URL('../../../resources/content-model/migrations.json', import.meta.url);
 
 type SystemTablesApi = {
   ensureSystemTable(
@@ -32,11 +24,8 @@ type ContentModelMigration = EngineMigrations[number] & {
   readonly schema: object;
 };
 
-@CommandHandler(ApplyContentModelCommand)
-export class ApplyContentModelHandler implements ICommandHandler<
-  ApplyContentModelCommand,
-  ApplyContentModelCommandReturnType
-> {
+@Injectable()
+export class ProjectContentModelService {
   constructor(
     private readonly drafts: ProjectDraftService,
     @Inject(SystemTablesService)
@@ -46,18 +35,17 @@ export class ApplyContentModelHandler implements ICommandHandler<
     private readonly hashes: HashService,
   ) {}
 
-  async execute({ data }: ApplyContentModelCommand): Promise<ApplyContentModelCommandReturnType> {
-    const draftRevisionId = await this.drafts.getDraftRevisionId(data.projectId);
+  async apply(projectId: string): Promise<boolean> {
+    const draftRevisionId = await this.drafts.getDraftRevisionId(projectId);
     await this.ensureSystemTables(draftRevisionId);
     const migrationsApplied = await this.applyMigrations(draftRevisionId);
+
     if (!migrationsApplied) {
       return false;
     }
 
-    await this.engine.createRevision({
-      projectId: data.projectId,
-      branchName: DEFAULT_BRANCH_NAME,
-    });
+    await this.engine.createRevision({ projectId, branchName: DEFAULT_BRANCH_NAME });
+
     return true;
   }
 
@@ -72,6 +60,7 @@ export class ApplyContentModelHandler implements ICommandHandler<
     const migrations = await this.loadMigrations();
     const results = await this.engine.applyMigrations({ revisionId: draftRevisionId, migrations });
     const failed = results.find(({ status }) => status === 'failed');
+
     if (failed !== undefined) {
       const details = failed.error === undefined ? '' : `: ${failed.error}`;
       throw new InternalServerErrorException(
@@ -86,6 +75,7 @@ export class ApplyContentModelHandler implements ICommandHandler<
     const content = await readFile(MIGRATIONS_URL, 'utf8');
     // oxlint-disable-next-line typescript/no-unsafe-assignment -- The engine validates migration JSON at runtime.
     const migrations: ContentModelMigration[] = JSON.parse(content);
+
     return Promise.all(
       migrations.map(async (migration) => ({
         ...migration,
