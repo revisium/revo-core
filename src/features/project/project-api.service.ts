@@ -28,6 +28,9 @@ import {
   EnsureProjectCommand,
   type EnsureProjectCommandData,
   type EnsureProjectCommandReturnType,
+  RestoreUserProjectCommand,
+  type RestoreUserProjectCommandData,
+  type RestoreUserProjectCommandReturnType,
   UpdateAdrCommand,
   type UpdateAdrCommandReturnType,
   UpdateRequirementCommand,
@@ -105,6 +108,14 @@ export class ProjectApiService {
   listUserProjects(data: ListUserProjectsQueryData): Promise<ListUserProjectsQueryReturnType> {
     return this.queries.execute<ListUserProjectsQuery, ListUserProjectsQueryReturnType>(
       new ListUserProjectsQuery(data),
+    );
+  }
+
+  restoreUserProject(
+    data: RestoreUserProjectCommandData,
+  ): Promise<RestoreUserProjectCommandReturnType> {
+    return this.commands.execute<RestoreUserProjectCommand, RestoreUserProjectCommandReturnType>(
+      new RestoreUserProjectCommand(data),
     );
   }
 

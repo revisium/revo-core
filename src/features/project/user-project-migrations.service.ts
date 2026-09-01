@@ -3,13 +3,10 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
 import { errorReason } from '../../infrastructure/error-reason.js';
 import {
-  ApplyContentModelCommand,
-  type ApplyContentModelCommandReturnType,
-} from './commands/impl/apply-content-model.command.js';
-import {
   DeleteUserProjectCommand,
   type DeleteUserProjectCommandReturnType,
 } from './commands/impl/delete-user-project.command.js';
+import { ProjectContentModelService } from './project-content-model.service.js';
 import {
   ListUnfinishedUserProjectIdsQuery,
   type ListUnfinishedUserProjectIdsQueryReturnType,
@@ -26,6 +23,7 @@ export class UserProjectMigrationsService implements OnApplicationBootstrap {
   constructor(
     private readonly commands: CommandBus,
     private readonly queries: QueryBus,
+    private readonly contentModel: ProjectContentModelService,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
@@ -69,9 +67,7 @@ export class UserProjectMigrationsService implements OnApplicationBootstrap {
 
   private async applyToUserProject(projectId: string): Promise<void> {
     try {
-      await this.commands.execute<ApplyContentModelCommand, ApplyContentModelCommandReturnType>(
-        new ApplyContentModelCommand({ projectId }),
-      );
+      await this.contentModel.apply(projectId);
     } catch (error) {
       this.logger.error(`Content model was not updated for ${projectId}: ${errorReason(error)}`);
     }

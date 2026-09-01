@@ -1,4 +1,3 @@
-import { ApplyContentModelHandler } from './handlers/apply-content-model.handler.js';
 import { CleanupProjectDatasetHandler } from './handlers/cleanup-project-dataset.handler.js';
 import { CreateAdrHandler } from './handlers/create-adr.handler.js';
 import { CreateRequirementHandler } from './handlers/create-requirement.handler.js';
@@ -11,16 +10,12 @@ import { DeleteUserProjectHandler } from './handlers/delete-user-project.handler
 import { DeleteWorkItemHandler } from './handlers/delete-work-item.handler.js';
 import { DeleteWorkPlanHandler } from './handlers/delete-work-plan.handler.js';
 import { EnsureProjectHandler } from './handlers/ensure-project.handler.js';
+import { RestoreUserProjectHandler } from './handlers/restore-user-project.handler.js';
 import { UpdateAdrHandler } from './handlers/update-adr.handler.js';
 import { UpdateRequirementHandler } from './handlers/update-requirement.handler.js';
 import { UpdateWorkItemHandler } from './handlers/update-work-item.handler.js';
 import { UpdateWorkPlanHandler } from './handlers/update-work-plan.handler.js';
 
-export { ApplyContentModelCommand } from './impl/apply-content-model.command.js';
-export type {
-  ApplyContentModelCommandData,
-  ApplyContentModelCommandReturnType,
-} from './impl/apply-content-model.command.js';
 export { CleanupProjectDatasetCommand } from './impl/cleanup-project-dataset.command.js';
 export type {
   CleanupProjectDatasetCommandData,
@@ -81,6 +76,11 @@ export type {
   EnsureProjectCommandData,
   EnsureProjectCommandReturnType,
 } from './impl/ensure-project.command.js';
+export { RestoreUserProjectCommand } from './impl/restore-user-project.command.js';
+export type {
+  RestoreUserProjectCommandData,
+  RestoreUserProjectCommandReturnType,
+} from './impl/restore-user-project.command.js';
 export { UpdateAdrCommand } from './impl/update-adr.command.js';
 export type {
   UpdateAdrCommandData,
@@ -106,7 +106,7 @@ export const PROJECT_COMMAND_HANDLERS = [
   EnsureProjectHandler,
   CreateUserProjectHandler,
   DeleteUserProjectHandler,
-  ApplyContentModelHandler,
+  RestoreUserProjectHandler,
   CleanupProjectDatasetHandler,
   CreateAdrHandler,
   UpdateAdrHandler,
