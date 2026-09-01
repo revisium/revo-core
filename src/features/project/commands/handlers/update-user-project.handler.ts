@@ -66,11 +66,9 @@ export class UpdateUserProjectHandler implements ICommandHandler<
   private async applyChanges(id: string, changes: ProjectChanges): Promise<boolean> {
     await this.assertActiveProject(id);
 
-    if (Object.keys(changes).length === 0) {
-      return true;
+    if (Object.keys(changes).length > 0) {
+      await this.transaction.project.update({ where: { id }, data: changes });
     }
-
-    await this.transaction.project.update({ where: { id }, data: changes });
 
     return true;
   }
