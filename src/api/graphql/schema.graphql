@@ -235,7 +235,6 @@ type Mutation {
   deletePipeline(id: ID!): Boolean!
   deletePipelineRole(id: ID!): Boolean!
   deletePlaybook(id: ID!): Boolean!
-  deleteProject(id: ID!): Boolean!
   deleteRequirement(data: RecordDeleteInput!): Boolean!
   deleteRole(id: ID!): Boolean!
   deleteRoleRef(id: ID!): Boolean!
@@ -370,6 +369,10 @@ type ProjectEdgeModel {
   node: ProjectModel!
 }
 
+input ProjectInput {
+  id: ID!
+}
+
 input ProjectListInput {
   after: String
   first: Int
@@ -413,7 +416,7 @@ type Query {
   pipelines(after: String, first: Int!, playbookId: ID, revisionId: ID, scope: CatalogScope! = HEAD): PipelineConnection!
   playbook(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): PlaybookModel!
   playbooks(after: String, first: Int!, revisionId: ID, scope: CatalogScope! = HEAD): PlaybookConnection!
-  project(id: ID!): ProjectModel
+  project(data: ProjectInput!): ProjectModel
   projects(data: ProjectListInput!): ProjectConnectionModel!
   role(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): RoleModel!
   roleRef(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): RoleRefModel!

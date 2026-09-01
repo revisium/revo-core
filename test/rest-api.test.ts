@@ -28,10 +28,16 @@ describe('REST API', () => {
 
   afterEach(async () => {
     const ids = createdProjectIds.splice(0);
-    for (const id of ids) {
-      // oxlint-disable-next-line no-await-in-loop -- Delete one project at a time; cleanup is global.
-      await request(app.getHttpServer()).delete(`/api/projects/${id}`);
+
+    if (ids.length === 0) {
+      return;
     }
+
+    const prisma = app.get(PrismaService);
+    await prisma.$transaction([
+      prisma.branch.deleteMany({ where: { projectId: { in: ids } } }),
+      prisma.project.deleteMany({ where: { id: { in: ids } } }),
+    ]);
   });
 
   afterAll(async () => app.close());
@@ -87,7 +93,7 @@ describe('REST API', () => {
     });
   });
 
-  test('creates, lists, gets, and deletes a USER project', async () => {
+  test('creates, lists, and gets a USER project', async () => {
     const created = await request(app.getHttpServer())
       .post('/api/projects')
       .send({ name: '  Beta  ' })
@@ -96,9 +102,8 @@ describe('REST API', () => {
     createdProjectIds.push(projectId);
 
     const listed = await request(app.getHttpServer()).get('/api/projects?first=50').expect(200);
-    const ids = listed.body.edges.map((edge: { node: { id: string } }) => edge.node.id);
-    expect(ids).toContain(projectId);
-    expect(ids).not.toContain(SYSTEM_PLAYBOOKS_PROJECT.id);
+    expect(projectIds(listed)).toContain(projectId);
+    expect(projectIds(listed)).not.toContain(SYSTEM_PLAYBOOKS_PROJECT.id);
 
     const fetched = await request(app.getHttpServer())
       .get(`/api/projects/${projectId}`)
@@ -111,11 +116,34 @@ describe('REST API', () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     });
+  });
 
-    await request(app.getHttpServer()).delete(`/api/projects/${projectId}`).expect(204);
-    createdProjectIds.pop();
+  test('names the project identifier id, without repeating the resource name', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST read model identifier');
 
-    await request(app.getHttpServer()).get(`/api/projects/${projectId}`).expect(404);
+    const fetched = await request(app.getHttpServer())
+      .get(`/api/projects/${project.id}`)
+      .expect(200);
+    expect(fetched.body).toMatchObject({ id: project.id });
+    expect(fetched.body).not.toHaveProperty('projectId');
+
+    const listed = await request(app.getHttpServer())
+      .get(`/api/projects?query=${project.id}`)
+      .expect(200);
+    expect(projectIds(listed)).toEqual([project.id]);
+    expect(listed.body.edges[0].node).not.toHaveProperty('projectId');
+  });
+
+  test('offers no public project delete endpoint', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST no public delete');
+
+    const removed = await request(app.getHttpServer()).delete(`/api/projects/${project.id}`);
+    expect(removed.status).toBe(404);
+    expect(removed.body).toMatchObject({
+      message: `Cannot DELETE /api/projects/${project.id}`,
+    });
+
+    await request(app.getHttpServer()).get(`/api/projects/${project.id}`).expect(200);
   });
 
   test('returns the stored project timestamps as ISO strings', async () => {
@@ -232,24 +260,18 @@ describe('REST API', () => {
     });
 
     const listed = await request(app.getHttpServer()).get('/api/projects').expect(200);
-    const ids = listed.body.edges.map((edge: { node: { id: string } }) => edge.node.id);
-    expect(ids).toContain(active.id);
-    expect(ids).not.toContain(archived.id);
+    expect(projectIds(listed)).toContain(active.id);
+    expect(projectIds(listed)).not.toContain(archived.id);
 
     const withArchived = await request(app.getHttpServer())
       .get('/api/projects?includeArchived=true')
       .expect(200);
-    const archivedIds = withArchived.body.edges.map(
-      (edge: { node: { id: string } }) => edge.node.id,
-    );
-    expect(archivedIds).toEqual(expect.arrayContaining([active.id, archived.id]));
+    expect(projectIds(withArchived)).toEqual(expect.arrayContaining([active.id, archived.id]));
 
     const searched = await request(app.getHttpServer())
       .get('/api/projects?query=archived%20filter&includeArchived=true')
       .expect(200);
-    expect(searched.body.edges.map((edge: { node: { id: string } }) => edge.node.id)).toEqual([
-      archived.id,
-    ]);
+    expect(projectIds(searched)).toEqual([archived.id]);
     expect(searched.body.totalCount).toBe(1);
   });
 
@@ -267,18 +289,13 @@ describe('REST API', () => {
     });
   });
 
-  test('hides the SYSTEM project from get and delete', async () => {
+  test('hides the SYSTEM project from get', async () => {
     const fetched = await request(app.getHttpServer()).get(
       `/api/projects/${SYSTEM_PLAYBOOKS_PROJECT.id}`,
     );
+
     expect(fetched.status).toBe(404);
     expect(fetched.body).toMatchObject({ message: 'Project was not found.' });
-
-    const deleted = await request(app.getHttpServer()).delete(
-      `/api/projects/${SYSTEM_PLAYBOOKS_PROJECT.id}`,
-    );
-    expect(deleted.status).toBe(404);
-    expect(deleted.body).toMatchObject({ message: 'Project was not found.' });
   });
 
   test('returns empty record connections after create', async () => {
@@ -427,6 +444,10 @@ describe('REST API', () => {
     expect(response.body.info.version).toBe(packageJson.version);
   });
 });
+
+function projectIds(response: { body: { edges: { node: { id: string } }[] } }): string[] {
+  return response.body.edges.map((edge) => edge.node.id);
+}
 
 async function createProject(
   app: INestApplication,

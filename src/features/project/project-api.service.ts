@@ -21,8 +21,6 @@ import {
   type DeleteAdrCommandReturnType,
   DeleteRequirementCommand,
   type DeleteRequirementCommandReturnType,
-  DeleteUserProjectCommand,
-  type DeleteUserProjectCommandReturnType,
   DeleteWorkItemCommand,
   type DeleteWorkItemCommandReturnType,
   DeleteWorkPlanCommand,
@@ -95,12 +93,6 @@ export class ProjectApiService {
   ): Promise<CreateUserProjectCommandReturnType> {
     return this.commands.execute<CreateUserProjectCommand, CreateUserProjectCommandReturnType>(
       new CreateUserProjectCommand(data),
-    );
-  }
-
-  deleteUserProject(id: string): Promise<DeleteUserProjectCommandReturnType> {
-    return this.commands.execute<DeleteUserProjectCommand, DeleteUserProjectCommandReturnType>(
-      new DeleteUserProjectCommand({ projectId: id }),
     );
   }
 

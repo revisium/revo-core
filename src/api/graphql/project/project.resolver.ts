@@ -3,6 +3,7 @@ import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nest
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { ProjectCreateInput } from './input/project-create.input.js';
 import { ProjectListInput } from './input/project-list.input.js';
+import { ProjectInput } from './input/project.input.js';
 import { RecordListInput } from './input/record-list.input.js';
 import { listData } from './list-data.js';
 import { AdrConnectionModel } from './model/adr-connection.model.js';
@@ -22,8 +23,8 @@ export class ProjectResolver {
   constructor(private readonly projectApi: ProjectApiService) {}
 
   @Query(() => ProjectModel, { nullable: true })
-  project(@Args('id', { type: () => ID }) id: string) {
-    return this.projectApi.getUserProject(id);
+  project(@Args('data', { type: () => ProjectInput }) data: ProjectInput) {
+    return this.projectApi.getUserProject(data.id);
   }
 
   @Query(() => ProjectConnectionModel)
@@ -36,11 +37,6 @@ export class ProjectResolver {
     @Args('data', { type: () => ProjectCreateInput }) data: ProjectCreateInput,
   ): Promise<ProjectCreatedModel> {
     return this.projectApi.createUserProject(data);
-  }
-
-  @Mutation(() => Boolean)
-  deleteProject(@Args('id', { type: () => ID }) id: string): Promise<boolean> {
-    return this.projectApi.deleteUserProject(id);
   }
 
   @ResolveField(() => AdrModel, { nullable: true })
