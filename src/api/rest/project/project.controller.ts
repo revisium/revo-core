@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   NotFoundException,
@@ -85,5 +86,16 @@ export class ProjectController {
   @ApiConflictResponse({ description: ProjectError.notActive })
   async archiveProject(@Param('id') id: string): Promise<void> {
     await this.projects.archiveUserProject({ projectId: id });
+  }
+
+  @Post(':id/restore')
+  @HttpCode(HttpStatus.OK)
+  @Header('Content-Type', 'application/json')
+  @ApiOperation({ operationId: 'restoreProject', summary: 'Restore an archived project' })
+  @ApiOkResponse({ type: Boolean })
+  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiConflictResponse({ description: ProjectError.notArchived })
+  restoreProject(@Param('id') id: string): Promise<boolean> {
+    return this.projects.restoreUserProject({ projectId: id });
   }
 }

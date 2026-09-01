@@ -246,6 +246,7 @@ type Mutation {
   deleteWorkPlan(data: RecordDeleteInput!): Boolean!
   discardCatalog: CatalogMutationResultModel!
   importCatalog(data: JSON!): CatalogImportResultModel!
+  restoreProject(data: ProjectInput!): Boolean!
   startRun(data: StartRunInput!): StartRunResultModel!
   updateAdr(data: AdrInput!): AdrModel!
   updateLaunchProfile(data: LaunchProfileInput!): LaunchProfileModel!

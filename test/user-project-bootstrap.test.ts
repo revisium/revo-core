@@ -12,6 +12,7 @@ import {
   type DeleteUserProjectCommandReturnType,
 } from '../src/features/project/commands/impl/delete-user-project.command.js';
 import { ProjectError } from '../src/features/project/contracts/project.errors.js';
+import { ProjectContentModelService } from '../src/features/project/project-content-model.service.js';
 import { UserProjectMigrationsService } from '../src/features/project/user-project-migrations.service.js';
 import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
@@ -28,18 +29,19 @@ type SeededProjects = {
 describe('UserProjectMigrationsService', () => {
   test('cleans unfinished projects before updating the ready ones', async () => {
     const dispatched: string[] = [];
+    const applied: string[] = [];
     const service = new UserProjectMigrationsService(
-      commandBusFake(dispatched, { failFor: 'broken' }),
+      commandBusFake(dispatched),
       queryBusFake({ unfinished: ['stale'], ready: ['broken', 'healthy'] }),
+      contentModelUpdaterFake(applied, {
+        failFor: 'broken',
+      }) as unknown as ProjectContentModelService,
     );
 
     await expect(service.onApplicationBootstrap()).resolves.toBeUndefined();
 
-    expect(dispatched).toEqual([
-      'DeleteUserProjectCommand:stale',
-      'ApplyContentModelCommand:broken',
-      'ApplyContentModelCommand:healthy',
-    ]);
+    expect(dispatched).toEqual(['DeleteUserProjectCommand:stale']);
+    expect(applied).toEqual(['broken', 'healthy']);
   });
 });
 
@@ -107,22 +109,32 @@ describe('project bootstrap cleanup', () => {
   });
 });
 
-function commandBusFake(dispatched: string[], options: { failFor: string }): CommandBus {
+function commandBusFake(dispatched: string[]): CommandBus {
   return {
     execute: async (command: object) => {
       const { projectId } = (command as { data: { projectId: string } }).data;
       dispatched.push(`${command.constructor.name}:${projectId}`);
 
-      if (
-        command.constructor.name === 'ApplyContentModelCommand' &&
-        projectId === options.failFor
-      ) {
+      return true;
+    },
+  } as unknown as CommandBus;
+}
+
+function contentModelUpdaterFake(
+  applied: string[],
+  options: { failFor: string },
+): { apply(projectId: string): Promise<boolean> } {
+  return {
+    apply: async (projectId) => {
+      applied.push(projectId);
+
+      if (projectId === options.failFor) {
         throw new Error(`Content model update failed for ${projectId}`);
       }
 
       return true;
     },
-  } as unknown as CommandBus;
+  };
 }
 
 function queryBusFake(ids: { unfinished: string[]; ready: string[] }): QueryBus {
