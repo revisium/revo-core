@@ -6,7 +6,17 @@ import {
   type StartRunCommandData,
   type StartRunCommandReturnType,
 } from './commands/index.js';
-import { GetRunQuery, type GetRunQueryData, type GetRunQueryReturnType } from './queries/index.js';
+import {
+  GetRunDetailsQuery,
+  GetRunEventsQuery,
+  GetRunQuery,
+  type GetRunDetailsQueryData,
+  type GetRunDetailsQueryReturnType,
+  type GetRunEventsQueryData,
+  type GetRunEventsQueryReturnType,
+  type GetRunQueryData,
+  type GetRunQueryReturnType,
+} from './queries/index.js';
 
 @Injectable()
 export class RunApiService {
@@ -23,5 +33,17 @@ export class RunApiService {
 
   getRun(data: GetRunQueryData): Promise<GetRunQueryReturnType> {
     return this.queries.execute<GetRunQuery, GetRunQueryReturnType>(new GetRunQuery(data));
+  }
+
+  getRunDetails(data: GetRunDetailsQueryData): Promise<GetRunDetailsQueryReturnType> {
+    return this.queries.execute<GetRunDetailsQuery, GetRunDetailsQueryReturnType>(
+      new GetRunDetailsQuery(data),
+    );
+  }
+
+  getRunEvents(data: GetRunEventsQueryData): Promise<GetRunEventsQueryReturnType> {
+    return this.queries.execute<GetRunEventsQuery, GetRunEventsQueryReturnType>(
+      new GetRunEventsQuery(data),
+    );
   }
 }
