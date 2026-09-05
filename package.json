@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "build": "pnpm db:generate && rm -rf dist && tsc -p tsconfig.build.json",
     "db:generate": "prisma generate",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
@@ -22,7 +22,7 @@
     "test:cov": "dotenv -e .env.test -- vitest run --coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "verify": "dotenv -e .env.test -- pnpm verify:checks",
-    "verify:checks": "pnpm db:generate && pnpm format:check && pnpm typecheck && pnpm lint && pnpm build && pnpm test:cov",
+    "verify:checks": "pnpm format:check && pnpm build && pnpm typecheck && pnpm lint && pnpm test:cov",
     "sonar:local": "bash scripts/sonar-local.sh",
     "sonar:issues:local": "bash scripts/sonar-issues-local.sh",
     "ci:local:sonar": "bash scripts/ci-local-sonar.sh"
