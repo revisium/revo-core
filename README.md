@@ -18,6 +18,8 @@
 - REST and Swagger at `/api`.
 - Committed GraphQL and OpenAPI contracts.
 - Durable pipeline execution through `@revisium/revo-run`.
+- Process-local agent discovery, pipeline Attempt execution, and experimental
+  long-lived DialogueSession APIs through `@revisium/revo-agent-runtime`.
 - PostgreSQL with Prisma-owned product data and DBOS-owned workflow state.
 
 ## Boundaries
@@ -26,7 +28,7 @@
 - Does not own terminal UX.
 - Does not own standalone installation or service lifecycle.
 
-Agent execution, method planning, MCP, installation packaging, and the product UI are not implemented yet.
+Method planning, MCP, installation packaging, and the product UI are not implemented yet.
 
 ## Current API
 
@@ -71,6 +73,11 @@ Natural source completion sends the GraphQL SSE `complete` event. When a client 
 closing its HTTP stream, Yoga calls `return()` on the source iterator; feature-owned iterators must
 use that signal to release listeners, readers, and other per-subscription resources.
 
+## Agent sessions
+
+AgentSession GraphQL APIs support multi-turn dialogue and SSE independently of pipeline Runs.
+Sessions are currently process-local and are not recovered after restart.
+
 ## Development
 
 ```bash
@@ -86,6 +93,8 @@ Run `pnpm generate:api-contracts` only when intentionally changing a public API.
 ## Composition
 
 - `revo-run`
+- `revo-agent-runtime`
 - PostgreSQL and Prisma
 
-`revo-agent-runtime` is a planned execution adapter for this composition.
+Core owns one agent manager shared by sessions and pipeline Attempts.
+See [runtime composition and configuration](docs/architecture/agent-runtime.md).

@@ -41,9 +41,12 @@ importers:
       '@revisium/engine':
         specifier: 0.7.0
         version: 0.7.0(@nestjs/cache-manager@3.1.3(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.28)(cache-manager@7.2.9)(keyv@5.6.0)(rxjs@7.8.2))(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/config@4.0.4(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2))(@nestjs/core@11.1.28)(@nestjs/cqrs@11.0.3(@nestjs/common@11.1.28(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.28)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@prisma/adapter-pg@7.9.1)(@prisma/client@7.9.1(prisma@7.9.1(@types/react@19.2.18)(magicast@0.5.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@7.0.2))(typescript@7.0.2))(pg@8.22.0)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@revisium/revo-agent-runtime':
+        specifier: 0.3.0-alpha.0
+        version: 0.3.0-alpha.0(@anthropic-ai/sdk@0.123.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))
       '@revisium/revo-run':
-        specifier: 0.2.0-alpha.4
-        version: 0.2.0-alpha.4(@anthropic-ai/sdk@0.122.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))
+        specifier: 0.2.0-alpha.5
+        version: 0.2.0-alpha.5(@anthropic-ai/sdk@0.123.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))
       class-transformer:
         specifier: 0.5.1
         version: 0.5.1
@@ -71,6 +74,9 @@ importers:
       rxjs:
         specifier: 7.8.2
         version: 7.8.2
+      typebox:
+        specifier: 1.3.10
+        version: 1.3.10
     devDependencies:
       '@nestjs/testing':
         specifier: 11.1.28
@@ -194,8 +200,8 @@ packages:
       '@modelcontextprotocol/sdk': ^1.29.0
       zod: ^4.0.0
 
-  '@anthropic-ai/sdk@0.122.0':
-    resolution: {integrity: sha512-GGPNftt0caaz9MDlmNQGHX8855Ojaduyy5pm9Sm1h7HalCn0cWNb5/bweadJF+4yzbal+QL6ztBa09WAAOzLmQ==}
+  '@anthropic-ai/sdk@0.123.0':
+    resolution: {integrity: sha512-Y9oX9mPNGZClHQOFqrWRk43Srcu/UHuPq3rfxxOq7JgW0gi+lJA2MAOK4Ul3k/+AUrwRWFJvd0tK3oC0Pw25dw==}
     hasBin: true
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
@@ -1321,16 +1327,16 @@ packages:
     peerDependencies:
       '@prisma/client': ^5.0.0 || ^6.0.0 || ^7.0.0
 
-  '@revisium/revo-agent-runtime@0.2.0-alpha.0':
-    resolution: {integrity: sha512-vJvzj+DB8dx7exuiDc+3u1l4KrUnKqVuI7uXHcAMxAOPxfFk0CiPRluZG/4RAqD9CvFErvYsAG8Da3Cm1DMTiA==}
+  '@revisium/revo-agent-runtime@0.3.0-alpha.0':
+    resolution: {integrity: sha512-jnKiZ+ZFaGPoLah0fhVeHbFHthNgVnfyF3Swyj+XFamUVWVkoeh/JmtAsDSYAXGu/COxBOUwlIqMRt2AoDCadg==}
     engines: {node: '>=24.15.0 <25'}
 
   '@revisium/revo-pipeline@0.2.0-alpha.3':
     resolution: {integrity: sha512-r+lBnr/SD5Q6SfbKtkjf0uuPZfK4noGUuzoGu+50KRbeFPtdFFXBoZMX1+8L1OG5nORi1auK+p4dZ4hZZmjGLg==}
     engines: {node: '>=24.11.1 <25'}
 
-  '@revisium/revo-run@0.2.0-alpha.4':
-    resolution: {integrity: sha512-K49xG3sJaMggI3s1EaEFygtZ+L43ZYvXn1G6oMqN2zD3R7SgYoN2gSu0STT3PGCrfe/7HC9c2L9ouv+y8RvD/A==}
+  '@revisium/revo-run@0.2.0-alpha.5':
+    resolution: {integrity: sha512-1H3YCmkdUDJ/wjPGcExh3tVDbM+ZfJ/qE6Ns/WU+T3pFANVQQxhu1tmfHQA+yT+a67hUEOgxscMVff7dgZ6GAA==}
     engines: {node: '>=24.11.1 <25'}
 
   '@revisium/revo-scripts@0.1.0-alpha.1':
@@ -2563,8 +2569,8 @@ packages:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
 
-  jose@6.2.10:
-    resolution: {integrity: sha512-iiW7J9qRFlGxvCOIBDBDxFePQSn7ZMAnrYGhrrOo6siO/MIqwfyilLR27pkfDgUk+raLuzADS8A3S/KLBisc0g==}
+  jose@6.2.11:
+    resolution: {integrity: sha512-A5NPn7g8EAzGU3IzRs+Yiq8K5n3ypYS75M5+KKiVHdUexfpWK1kP4ZMq7QnTGDoMj6TJ1dtcEJjW60yZDXS4hg==}
 
   js-tokens@10.0.0:
     resolution: {integrity: sha512-lM/UBzQmfJRo9ABXbPWemivdCW8V2G8FHaHdypQaIy523snUjog0W71ayWXTjiR+ixeMyVHN2XcpnTd/liPg/Q==}
@@ -3509,31 +3515,27 @@ packages:
 
 snapshots:
 
-  '@agentclientprotocol/claude-agent-acp@0.70.0(@anthropic-ai/sdk@0.122.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))':
+  '@agentclientprotocol/claude-agent-acp@0.70.0(@anthropic-ai/sdk@0.123.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))':
     dependencies:
-      '@agentclientprotocol/sdk': 1.3.0(zod@4.4.3)
-      '@anthropic-ai/claude-agent-sdk': 0.3.232(@anthropic-ai/sdk@0.122.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))(zod@4.4.3)
-      zod: 4.4.3
+      '@agentclientprotocol/sdk': 1.3.0(zod@4.5.4)
+      '@anthropic-ai/claude-agent-sdk': 0.3.232(@anthropic-ai/sdk@0.123.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))(zod@4.5.4)
+      zod: 4.5.4
     transitivePeerDependencies:
       - '@anthropic-ai/sdk'
       - '@modelcontextprotocol/sdk'
 
   '@agentclientprotocol/codex-acp@1.7.0':
     dependencies:
-      '@agentclientprotocol/sdk': 1.4.0(zod@4.4.3)
+      '@agentclientprotocol/sdk': 1.4.0(zod@4.5.4)
       '@openai/codex': 0.148.0
       diff: 9.0.0
       open: 11.0.2
       vscode-jsonrpc: 9.0.2
-      zod: 4.4.3
+      zod: 4.5.4
 
-  '@agentclientprotocol/sdk@1.3.0(zod@4.4.3)':
+  '@agentclientprotocol/sdk@1.3.0(zod@4.5.4)':
     dependencies:
-      zod: 4.4.3
-
-  '@agentclientprotocol/sdk@1.4.0(zod@4.4.3)':
-    dependencies:
-      zod: 4.4.3
+      zod: 4.5.4
 
   '@agentclientprotocol/sdk@1.4.0(zod@4.5.4)':
     dependencies:
@@ -3563,11 +3565,11 @@ snapshots:
   '@anthropic-ai/claude-agent-sdk-win32-x64@0.3.232':
     optional: true
 
-  '@anthropic-ai/claude-agent-sdk@0.3.232(@anthropic-ai/sdk@0.122.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))(zod@4.4.3)':
+  '@anthropic-ai/claude-agent-sdk@0.3.232(@anthropic-ai/sdk@0.123.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))(zod@4.5.4)':
     dependencies:
-      '@anthropic-ai/sdk': 0.122.0(zod@4.5.4)
+      '@anthropic-ai/sdk': 0.123.0(zod@4.5.4)
       '@modelcontextprotocol/sdk': 1.30.0(zod@4.5.4)
-      zod: 4.4.3
+      zod: 4.5.4
     optionalDependencies:
       '@anthropic-ai/claude-agent-sdk-darwin-arm64': 0.3.232
       '@anthropic-ai/claude-agent-sdk-darwin-x64': 0.3.232
@@ -3578,7 +3580,7 @@ snapshots:
       '@anthropic-ai/claude-agent-sdk-win32-arm64': 0.3.232
       '@anthropic-ai/claude-agent-sdk-win32-x64': 0.3.232
 
-  '@anthropic-ai/sdk@0.122.0(zod@4.5.4)':
+  '@anthropic-ai/sdk@0.123.0(zod@4.5.4)':
     dependencies:
       json-schema-to-ts: 3.1.1
       standardwebhooks: 1.1.1
@@ -3960,7 +3962,7 @@ snapshots:
       express: 5.2.1
       express-rate-limit: 8.7.0(express@5.2.1)
       hono: 4.13.5
-      jose: 6.2.10
+      jose: 6.2.11
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
@@ -4460,9 +4462,9 @@ snapshots:
     dependencies:
       '@prisma/client': 7.9.1(prisma@7.9.1(@types/react@19.2.18)(magicast@0.5.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@7.0.2))(typescript@7.0.2)
 
-  '@revisium/revo-agent-runtime@0.2.0-alpha.0(@anthropic-ai/sdk@0.122.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))':
+  '@revisium/revo-agent-runtime@0.3.0-alpha.0(@anthropic-ai/sdk@0.123.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))':
     dependencies:
-      '@agentclientprotocol/claude-agent-acp': 0.70.0(@anthropic-ai/sdk@0.122.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))
+      '@agentclientprotocol/claude-agent-acp': 0.70.0(@anthropic-ai/sdk@0.123.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))
       '@agentclientprotocol/codex-acp': 1.7.0
       '@agentclientprotocol/sdk': 1.4.0(zod@4.5.4)
       ajv: 8.20.0
@@ -4479,10 +4481,10 @@ snapshots:
       canonicalize: 4.0.0
       typebox: 1.3.10
 
-  '@revisium/revo-run@0.2.0-alpha.4(@anthropic-ai/sdk@0.122.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))':
+  '@revisium/revo-run@0.2.0-alpha.5(@anthropic-ai/sdk@0.123.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))':
     dependencies:
       '@dbos-inc/dbos-sdk': 4.25.14
-      '@revisium/revo-agent-runtime': 0.2.0-alpha.0(@anthropic-ai/sdk@0.122.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))
+      '@revisium/revo-agent-runtime': 0.3.0-alpha.0(@anthropic-ai/sdk@0.123.0(zod@4.5.4))(@modelcontextprotocol/sdk@1.30.0(zod@4.5.4))
       '@revisium/revo-pipeline': 0.2.0-alpha.3
       '@revisium/revo-scripts': 0.1.0-alpha.1
       typebox: 1.3.10
@@ -5640,7 +5642,7 @@ snapshots:
 
   jiti@2.7.0: {}
 
-  jose@6.2.10: {}
+  jose@6.2.11: {}
 
   js-tokens@10.0.0: {}
 

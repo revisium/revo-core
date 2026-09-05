@@ -52,6 +52,460 @@ enum AdrStatus {
   superseded
 }
 
+type AgentActionModel {
+  kind: String!
+  title: String
+}
+
+type AgentBooleanQuestionModel {
+  input: String!
+  questionId: String!
+  required: Boolean!
+  title: String!
+}
+
+type AgentCancelledTurnModel {
+  status: String!
+}
+
+type AgentCapabilitiesModel {
+  cancellation: Boolean!
+  session: AgentSessionCapabilitiesModel!
+  structuredResult: Boolean!
+  usage: Boolean!
+}
+
+type AgentCompletedTurnModel {
+  message: AgentMessageModel!
+  status: String!
+  usage: AgentUsageModel
+}
+
+type AgentConfigurationBooleanModel {
+  category: String
+  currentValue: Boolean!
+  description: String
+  id: String!
+  name: String!
+  type: String!
+}
+
+type AgentConfigurationCatalogModel {
+  agent: AgentRefModel!
+  catalogRevision: String!
+  definitionDigest: String!
+  launch: AgentLaunchEvidenceModel!
+  model: AgentConfigurationModelView
+  options: [AgentConfigurationOption!]!
+  schemaVersion: String!
+}
+
+type AgentConfigurationGroupModel {
+  id: String!
+  name: String!
+}
+
+type AgentConfigurationModelView {
+  currentModel: String!
+  currentProvider: AgentConfigurationGroupModel
+  optionId: String!
+  providers: [AgentConfigurationProviderModel!]!
+  sessionAvailable: [AgentConfigurationValueModel!]!
+}
+
+union AgentConfigurationOption = AgentConfigurationBooleanModel | AgentConfigurationSelectModel
+
+type AgentConfigurationProviderModel {
+  id: String!
+  models: [AgentConfigurationValueModel!]!
+  name: String!
+}
+
+type AgentConfigurationSelectModel {
+  category: String
+  currentValue: String!
+  description: String
+  id: String!
+  name: String!
+  type: String!
+  values: [AgentConfigurationValueModel!]!
+}
+
+input AgentConfigurationSelectionInput {
+  catalogRevision: String
+  selections: JSON!
+}
+
+type AgentConfigurationValueModel {
+  description: String
+  group: AgentConfigurationGroupModel
+  name: String!
+  value: String!
+}
+
+type AgentDefinitionConnectionModel {
+  edges: [AgentDescriptorEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type AgentDescriptorEdge {
+  cursor: String!
+  node: AgentDescriptorModel!
+}
+
+type AgentDescriptorModel {
+  agent: AgentRefModel!
+  capabilities: AgentCapabilitiesModel!
+  definitionDigest: String!
+  description: String
+  displayName: String!
+}
+
+type AgentFailedTurnModel {
+  error: AgentFaultModel!
+  status: String!
+}
+
+type AgentFaultModel {
+  code: String!
+  details: JSON
+  message: String!
+  phase: String!
+  retryable: Boolean!
+}
+
+type AgentInputRequestModel {
+  kind: String!
+  message: String!
+  questions: [AgentQuestion!]!
+  requestId: String!
+}
+
+type AgentInteractionCapabilitiesModel {
+  input: Boolean!
+  permission: Boolean!
+}
+
+union AgentInteractionRequest = AgentInputRequestModel | AgentPermissionRequestModel
+
+type AgentInteractionResponseModel {
+  kind: String!
+  optionId: String
+  outcome: String!
+  values: JSON
+}
+
+type AgentInteractionScopeModel {
+  kind: String!
+  turnId: ID
+}
+
+type AgentInterruptedTurnModel {
+  status: String!
+}
+
+type AgentLaunchEvidenceModel {
+  executable: String!
+  reportedVersion: String!
+}
+
+type AgentMessageModel {
+  content: String!
+  role: String!
+}
+
+type AgentNumberQuestionModel {
+  input: String!
+  integer: Boolean!
+  maximum: Float
+  minimum: Float
+  questionId: String!
+  required: Boolean!
+  title: String!
+}
+
+type AgentPendingInteractionModel {
+  request: AgentInteractionRequest!
+  scope: AgentInteractionScopeModel!
+  state: String!
+}
+
+type AgentPermissionOptionModel {
+  kind: String!
+  label: String!
+  optionId: String!
+}
+
+type AgentPermissionRequestModel {
+  action: AgentActionModel!
+  kind: String!
+  options: [AgentPermissionOptionModel!]!
+  requestId: String!
+}
+
+type AgentPlanItemModel {
+  itemId: String!
+  status: String!
+  title: String!
+}
+
+type AgentProgressEventModel implements AgentSessionEventModel {
+  eventId: ID!
+  message: String!
+  observedAt: String!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  turnId: ID!
+  type: String!
+}
+
+union AgentQuestion = AgentBooleanQuestionModel | AgentNumberQuestionModel | AgentSelectQuestionModel | AgentTextQuestionModel
+
+type AgentRefModel {
+  id: String!
+  version: String!
+}
+
+type AgentSelectOptionModel {
+  label: String!
+  optionId: String!
+}
+
+type AgentSelectQuestionModel {
+  allowOther: Boolean!
+  input: String!
+  options: [AgentSelectOptionModel!]!
+  questionId: String!
+  required: Boolean!
+  selection: String!
+  title: String!
+}
+
+type AgentSessionCapabilitiesModel {
+  interactions: AgentInteractionCapabilitiesModel!
+  multiTurn: Boolean!
+  resume: String!
+  updates: AgentUpdateCapabilitiesModel!
+}
+
+type AgentSessionCheckpointModel {
+  checkpointId: ID!
+  cursor: AgentSessionEventCursorModel!
+  eligibility: String!
+  payload: String!
+  pin: AgentSessionPinModel!
+  schemaVersion: String!
+  sessionId: ID!
+  sha256: String!
+}
+
+type AgentSessionConnectionModel {
+  edges: [AgentSessionSnapshotEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+union AgentSessionEvent = AgentProgressEventModel | AssistantMessageCompletedEventModel | AssistantMessageDeltaEventModel | InteractionRequestedEventModel | InteractionResolvedEventModel | PlanUpdatedEventModel | SessionAcceptedEventModel | SessionCheckpointedEventModel | SessionClosedEventModel | SessionHibernatedEventModel | SessionOpenedEventModel | ToolActivityEventModel | TurnCompletedEventModel | TurnStartedEventModel | UsageUpdatedEventModel
+
+input AgentSessionEventCursorInput {
+  eventId: ID!
+  sequence: Int!
+  streamId: String!
+}
+
+type AgentSessionEventCursorModel {
+  eventId: ID!
+  sequence: Int!
+  streamId: String!
+}
+
+interface AgentSessionEventModel {
+  eventId: ID!
+  observedAt: String!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  type: String!
+}
+
+type AgentSessionHibernateModel {
+  resumeToken: AgentSessionResumeTokenModel!
+  state: String!
+}
+
+type AgentSessionOpenedModel {
+  capabilities: AgentSessionCapabilitiesModel!
+  pin: AgentSessionPinModel!
+  sessionId: ID!
+}
+
+type AgentSessionOperationResultModel {
+  result: AgentSessionTurnResult
+  state: String!
+}
+
+type AgentSessionOutputFilesModel {
+  manifest: String
+  stderr: String
+  stdout: String
+}
+
+type AgentSessionOutputModel {
+  error: AgentFaultModel
+  files: AgentSessionOutputFilesModel!
+  state: String!
+}
+
+input AgentSessionPinInput {
+  agentId: String!
+  agentVersion: String!
+  definitionDigest: String!
+}
+
+type AgentSessionPinModel {
+  agentId: String!
+  agentVersion: String!
+  definitionDigest: String!
+}
+
+input AgentSessionResumeTokenInput {
+  cursor: AgentSessionEventCursorInput!
+  eligibility: String!
+  payload: String!
+  pin: AgentSessionPinInput!
+  resumeTokenId: ID!
+  schemaVersion: String!
+  sessionId: ID!
+  sha256: String!
+}
+
+type AgentSessionResumeTokenModel {
+  cursor: AgentSessionEventCursorModel!
+  eligibility: String!
+  payload: String!
+  pin: AgentSessionPinModel!
+  resumeTokenId: ID!
+  schemaVersion: String!
+  sessionId: ID!
+  sha256: String!
+}
+
+type AgentSessionSnapshotEdge {
+  cursor: String!
+  node: AgentSessionSnapshotModel!
+}
+
+type AgentSessionSnapshotModel {
+  acceptedAt: String!
+  activeTurnId: ID
+  capabilities: AgentSessionCapabilitiesModel
+  cursor: AgentSessionEventCursorModel
+  metadata: JSON
+  openedAt: String
+  pendingInteractions: [AgentPendingInteractionModel!]!
+  pin: AgentSessionPinModel!
+  sessionId: ID!
+  status: String!
+}
+
+type AgentSessionTerminalEdge {
+  cursor: String!
+  node: AgentSessionTerminalModel!
+}
+
+type AgentSessionTerminalModel {
+  acceptedAt: String!
+  cleanup: String!
+  cursor: AgentSessionEventCursorModel
+  error: AgentFaultModel
+  finishedAt: String!
+  openedAt: String
+  output: AgentSessionOutputModel
+  pin: AgentSessionPinModel!
+  resumeToken: AgentSessionResumeTokenModel
+  sessionId: ID!
+  status: String!
+}
+
+type AgentSessionTurnModel {
+  result: AgentSessionTurnResult
+  sessionId: ID!
+  state: String!
+  turnId: ID!
+}
+
+union AgentSessionTurnResult = AgentCancelledTurnModel | AgentCompletedTurnModel | AgentFailedTurnModel | AgentInterruptedTurnModel | AgentTimedOutTurnModel
+
+type AgentSessionTurnStartedModel {
+  sessionId: ID!
+  turnId: ID!
+}
+
+type AgentTextQuestionModel {
+  input: String!
+  maxLength: Int!
+  minLength: Int
+  multiline: Boolean!
+  questionId: String!
+  required: Boolean!
+  title: String!
+}
+
+type AgentTimedOutTurnModel {
+  status: String!
+}
+
+type AgentTurnOutcomeModel {
+  error: AgentFaultModel
+  status: String!
+  usage: AgentUsageModel
+}
+
+type AgentUpdateCapabilitiesModel {
+  message: Boolean!
+  plan: Boolean!
+  progress: Boolean!
+  tool: Boolean!
+  usage: Boolean!
+}
+
+type AgentUsageModel {
+  inputTokens: Float
+  outputTokens: Float
+  scope: String!
+  totalTokens: Float
+}
+
+type AssistantMessageCompletedEventModel implements AgentSessionEventModel {
+  contentBytes: Int!
+  contentSha256: String!
+  eventId: ID!
+  observedAt: String!
+  role: String!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  turnId: ID!
+  type: String!
+}
+
+type AssistantMessageDeltaEventModel implements AgentSessionEventModel {
+  content: String!
+  eventId: ID!
+  observedAt: String!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  turnId: ID!
+  type: String!
+}
+
 type CatalogChangeEntryConnection {
   edges: [CatalogChangeEntryEdge!]!
   pageInfo: PageInfoModel!
@@ -141,6 +595,31 @@ enum CatalogTable {
   stacks
 }
 
+type InteractionRequestedEventModel implements AgentSessionEventModel {
+  eventId: ID!
+  observedAt: String!
+  request: AgentInteractionRequest!
+  schemaVersion: String!
+  scope: AgentInteractionScopeModel!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  type: String!
+}
+
+type InteractionResolvedEventModel implements AgentSessionEventModel {
+  eventId: ID!
+  observedAt: String!
+  requestId: String!
+  response: AgentInteractionResponseModel!
+  schemaVersion: String!
+  scope: AgentInteractionScopeModel!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  type: String!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -214,6 +693,10 @@ type MethodDocumentModel {
 
 type Mutation {
   archiveProject(data: ProjectInput!): Boolean!
+  cancelAgentSession(sessionId: ID!): AgentSessionOperationResultModel!
+  cancelAgentSessionTurn(turnId: ID!): AgentSessionOperationResultModel!
+  checkpointAgentSession(sessionId: ID!): AgentSessionCheckpointModel!
+  closeAgentSession(sessionId: ID!): AgentSessionOperationResultModel!
   commitCatalog(message: String!): CatalogCommitResultModel!
   createAdr(data: AdrInput!): AdrModel!
   createLaunchProfile(data: LaunchProfileInput!): LaunchProfileModel!
@@ -245,8 +728,14 @@ type Mutation {
   deleteWorkItem(data: RecordDeleteInput!): Boolean!
   deleteWorkPlan(data: RecordDeleteInput!): Boolean!
   discardCatalog: CatalogMutationResultModel!
+  hibernateAgentSession(sessionId: ID!): AgentSessionHibernateModel!
   importCatalog(data: JSON!): CatalogImportResultModel!
+  openAgentSession(agentId: String!, agentVersion: String!, configuration: AgentConfigurationSelectionInput): AgentSessionOpenedModel!
+  respondAgentSession(data: RespondAgentSessionInput!, sessionId: ID!): AgentSessionOperationResultModel!
   restoreProject(data: ProjectInput!): Boolean!
+  resumeAgentSession(configuration: AgentConfigurationSelectionInput, token: AgentSessionResumeTokenInput!): AgentSessionOpenedModel!
+  sendAgentSessionMessage(prompt: String!, sessionId: ID!): AgentSessionTurnResult!
+  startAgentSessionTurn(prompt: String!, sessionId: ID!): AgentSessionTurnStartedModel!
   startRun(data: StartRunInput!): StartRunResultModel!
   updateAdr(data: AdrInput!): AdrModel!
   updateLaunchProfile(data: LaunchProfileInput!): LaunchProfileModel!
@@ -262,6 +751,7 @@ type Mutation {
   updateStackRef(data: StackRefInput!): StackRefModel!
   updateWorkItem(data: WorkItemInput!): WorkItemModel!
   updateWorkPlan(data: WorkPlanInput!): WorkPlanModel!
+  waitForAgentSessionTurn(turnId: ID!): AgentSessionTurnResult!
 }
 
 type PageInfoModel {
@@ -327,6 +817,18 @@ type PipelineRoleModel {
   pipelineId: ID!
   revisionId: ID!
   roleId: ID!
+}
+
+type PlanUpdatedEventModel implements AgentSessionEventModel {
+  eventId: ID!
+  items: [AgentPlanItemModel!]!
+  observedAt: String!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  turnId: ID!
+  type: String!
 }
 
 type PlaybookConnection {
@@ -412,9 +914,15 @@ input ProjectUpdateInput {
 }
 
 type Query {
+  activeAgentSessions(after: String, first: Int): AgentSessionConnectionModel!
+  agentSession(sessionId: ID!): AgentSessionSnapshotModel
+  agentSessionAgent(agentId: String!, agentVersion: String!): AgentDescriptorModel
+  agentSessionAgents(after: String, first: Int): AgentDefinitionConnectionModel!
+  agentSessionTurn(turnId: ID!): AgentSessionTurnModel
   catalogChangeSet(after: String, first: Int!): CatalogChangeEntryConnection!
   catalogSnapshot(revisionId: ID!): CatalogSnapshotModel!
   catalogStatus: CatalogStatusModel!
+  inspectAgentConfiguration(agentId: String!, agentVersion: String!): AgentConfigurationCatalogModel!
   launchProfile(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): LaunchProfileModel!
   launchProfiles(after: String, first: Int!, pipelineId: ID, revisionId: ID, scope: CatalogScope! = HEAD): LaunchProfileConnection!
   methodDocument(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): MethodDocumentModel!
@@ -439,6 +947,8 @@ type Query {
   stackRefs(after: String, first: Int!, revisionId: ID, scope: CatalogScope! = HEAD, stackId: ID): StackRefConnection!
   stacks(after: String, first: Int!, playbookId: ID, revisionId: ID, scope: CatalogScope! = HEAD): StackConnection!
   systemInfo: SystemInfoModel!
+  terminalAgentSession(sessionId: ID!): AgentSessionTerminalModel
+  terminalAgentSessions(after: String, first: Int): TerminalAgentSessionConnectionModel!
 }
 
 input RecordDeleteInput {
@@ -486,6 +996,14 @@ enum RequirementStatus {
   deferred
   proposed
   rejected
+}
+
+input RespondAgentSessionInput {
+  kind: String!
+  optionId: String
+  outcome: String!
+  requestId: ID!
+  values: JSON
 }
 
 type RoleConnection {
@@ -545,6 +1063,67 @@ type RunModel {
   status: String!
   terminal: JSON
   updatedAt: String!
+}
+
+type SessionAcceptedEventModel implements AgentSessionEventModel {
+  eventId: ID!
+  observedAt: String!
+  pin: AgentSessionPinModel!
+  resumed: Boolean!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  type: String!
+}
+
+type SessionCheckpointedEventModel implements AgentSessionEventModel {
+  checkpointId: String!
+  checkpointSha256: String!
+  eventId: ID!
+  observedAt: String!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  type: String!
+}
+
+type SessionClosedEventModel implements AgentSessionEventModel {
+  error: AgentFaultModel
+  eventId: ID!
+  observedAt: String!
+  outcome: String!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  type: String!
+}
+
+type SessionHibernatedEventModel implements AgentSessionEventModel {
+  eventId: ID!
+  observedAt: String!
+  resumeTokenId: String!
+  resumeTokenSha256: String!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  type: String!
+}
+
+type SessionOpenedEventModel implements AgentSessionEventModel {
+  capabilities: AgentSessionCapabilitiesModel!
+  eventId: ID!
+  observedAt: String!
+  pin: AgentSessionPinModel!
+  resumed: Boolean!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  type: String!
 }
 
 type SharedReferenceConnection {
@@ -634,9 +1213,70 @@ type StartRunResultModel {
   runId: ID!
 }
 
+type Subscription {
+  agentSessionEvents(after: AgentSessionEventCursorInput, sessionId: ID!): AgentSessionEvent!
+}
+
 type SystemInfoModel {
   name: String!
   status: String!
+}
+
+type TerminalAgentSessionConnectionModel {
+  edges: [AgentSessionTerminalEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type ToolActivityEventModel implements AgentSessionEventModel {
+  eventId: ID!
+  kind: String!
+  observedAt: String!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  status: String!
+  streamId: String!
+  title: String!
+  toolCallId: String!
+  turnId: ID!
+  type: String!
+}
+
+type TurnCompletedEventModel implements AgentSessionEventModel {
+  eventId: ID!
+  observedAt: String!
+  outcome: AgentTurnOutcomeModel!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  turnId: ID!
+  type: String!
+}
+
+type TurnStartedEventModel implements AgentSessionEventModel {
+  eventId: ID!
+  metadata: JSON
+  observedAt: String!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  turnId: ID!
+  type: String!
+}
+
+type UsageUpdatedEventModel implements AgentSessionEventModel {
+  eventId: ID!
+  observedAt: String!
+  schemaVersion: String!
+  sequence: Int!
+  sessionId: ID!
+  streamId: String!
+  turnId: ID!
+  type: String!
+  usage: AgentUsageModel!
 }
 
 type WorkItemConnectionModel {
