@@ -11,8 +11,8 @@ allowBuilds:
 
 minimumReleaseAgeExclude:
   - unplugin-swc@1.5.10
-  - '@revisium/revo-run@0.2.0-alpha.4'
-  - '@revisium/revo-agent-runtime@0.2.0-alpha.0'
+  - '@revisium/revo-run@0.2.0-alpha.5'
+  - '@revisium/revo-agent-runtime@0.3.0-alpha.0'
 
 strictDepBuilds: true
 

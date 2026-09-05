@@ -1,0 +1,3 @@
+export const AGENT_MANAGER = Symbol('AGENT_MANAGER');
+export const AGENT_DEFINITIONS = Symbol('AGENT_DEFINITIONS');
+export const AGENT_LAUNCH_CONTEXT = Symbol('AGENT_LAUNCH_CONTEXT');

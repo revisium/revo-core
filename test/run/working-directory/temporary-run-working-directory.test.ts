@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { ConfigService } from '@nestjs/config';
 import type { CreateRunInput, RunProfile } from '@revisium/revo-run';
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { prepareRunProfile } from '../../../src/features/run/infrastructure/working-directory/run-profile-working-directory.js';
 import { RunWorkingDirectoryCoordinator } from '../../../src/features/run/infrastructure/working-directory/run-working-directory-coordinator.js';
@@ -20,6 +20,40 @@ afterEach(async () => {
 });
 
 describe('temporary run working directory', () => {
+  test('rejects admission after shutdown and cleans only tracked allocations after quiescence', async () => {
+    const root = await testRoot();
+    const host = createDirectoryHost(root);
+    const manager = new FakeRunManager();
+    const coordinator = new RunWorkingDirectoryCoordinator(manager, host);
+    await coordinator.createRun(createAgentRunInput('r_tracked'));
+    await host.allocate('r_external');
+    coordinator.beginShutdown();
+    await expect(coordinator.createRun(createAgentRunInput('r_late'))).rejects.toMatchObject({
+      code: 'manager_not_started',
+    });
+    await coordinator.waitForCleanup();
+    await coordinator.cleanupAllocatedWorkingDirectories();
+    await coordinator.cleanupAllocatedWorkingDirectories();
+    expect(await pathExists(join(root, 'r_tracked'))).toBe(false);
+    expect(await pathExists(join(root, 'r_external'))).toBe(true);
+  });
+
+  test('cleans a workspace when shutdown races with allocation without admitting the run', async () => {
+    const root = await testRoot();
+    const host = createDirectoryHost(root);
+    const allocate = host.allocate.bind(host);
+    const manager = new FakeRunManager();
+    const coordinator = new RunWorkingDirectoryCoordinator(manager, host);
+    vi.spyOn(host, 'allocate').mockImplementation(async (id) => {
+      await allocate(id);
+      coordinator.beginShutdown();
+    });
+    await expect(coordinator.createRun(createAgentRunInput('r_race'))).rejects.toMatchObject({
+      code: 'manager_not_started',
+    });
+    expect(manager.createdInput).toBeUndefined();
+    expect(await pathExists(join(root, 'r_race'))).toBe(false);
+  });
   test('copies the agent profile without mutating the selected profile', () => {
     const selectedProfile = profileWithAgentWorkingDirectory('selected-workspace');
 
