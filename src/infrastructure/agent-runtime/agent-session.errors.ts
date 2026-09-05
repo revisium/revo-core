@@ -31,7 +31,7 @@ export const mapAgentSessionError = (error: unknown): AgentSessionApplicationErr
   if (error instanceof AgentManagerError) {
     const code = error.fault.code;
     return new AgentSessionApplicationError(classifyRuntimeFault(code), error.fault.message, {
-      ...(error.fault.details ?? {}),
+      ...error.fault.details,
       runtimeCode: code,
       retryable: error.fault.retryable,
     });

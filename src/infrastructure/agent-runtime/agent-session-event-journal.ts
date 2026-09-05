@@ -84,66 +84,9 @@ export class AgentSessionEventJournal {
         this.claimedResumeTokens.add(claim);
       }
 
-      stored.push(event);
-      let bytes = (this.eventBytes.get(event.sessionId) ?? 0) + eventBytes;
-
-      while (
-        bytes > AgentSessionEventJournal.maxBytesPerSession ||
-        stored.length > AgentSessionEventJournal.maxEventsPerSession
-      ) {
-        const removed = stored.shift();
-        bytes -= Buffer.byteLength(JSON.stringify(removed));
-      }
-      this.eventBytes.set(event.sessionId, bytes);
-      this.events.set(event.sessionId, stored);
-
-      if (event.type === 'session.accepted' && event.resumed) {
-        this.terminalSessions.delete(event.sessionId);
-        this.removeTerminalOrder(event.sessionId);
-      }
-      const terminal = event.type === 'session.closed' || event.type === 'session.hibernated';
-
-      if (terminal) {
-        this.terminalSessions.add(event.sessionId);
-        this.removeTerminalOrder(event.sessionId);
-        this.terminalOrder.push(event.sessionId);
-      }
-
-      for (const subscriber of this.subscribers.get(event.sessionId) ?? []) {
-        if (subscriber.closed) {
-          continue;
-        }
-
-        if (subscriber.waiting === undefined) {
-          if (
-            subscriber.queue.length >= AgentSessionEventJournal.maxEventsPerSession ||
-            subscriber.bufferedBytes + eventBytes > AgentSessionEventJournal.maxBytesPerSession
-          ) {
-            subscriber.failure = new AgentSessionApplicationError(
-              AgentSessionErrorCode.expiredCursor,
-              'Subscriber fell behind retained events; reconnect using its last cursor.',
-            );
-            subscriber.closed = true;
-            subscriber.queue.length = 0;
-            this.subscribers.get(event.sessionId)?.delete(subscriber);
-            continue;
-          }
-          subscriber.queue.push(event);
-          subscriber.bufferedBytes += eventBytes;
-
-          if (terminal) {
-            subscriber.closed = true;
-          }
-          continue;
-        }
-        const resolve = subscriber.waiting;
-        subscriber.waiting = undefined;
-        resolve({ done: false, value: event });
-
-        if (terminal) {
-          subscriber.closed = true;
-        }
-      }
+      this.retainEvent(event, stored, eventBytes);
+      const terminal = this.recordSessionLifecycle(event);
+      this.publishEvent(event, eventBytes, terminal);
 
       if (terminal) {
         this.subscribers.delete(event.sessionId);
@@ -167,8 +110,7 @@ export class AgentSessionEventJournal {
 
     if (after !== undefined && start === 0) {
       const first = stored[0];
-      const expired =
-        first !== undefined && after.streamId === first.streamId && after.sequence < first.sequence;
+      const expired = after.streamId === first?.streamId && after.sequence < first.sequence;
       throw new AgentSessionApplicationError(
         expired ? AgentSessionErrorCode.expiredCursor : AgentSessionErrorCode.invalidCursor,
         expired
@@ -246,6 +188,74 @@ export class AgentSessionEventJournal {
         },
       }),
     };
+  }
+
+  private retainEvent(
+    event: AgentSessionEvent,
+    stored: AgentSessionEvent[],
+    eventBytes: number,
+  ): void {
+    stored.push(event);
+    let bytes = (this.eventBytes.get(event.sessionId) ?? 0) + eventBytes;
+
+    while (
+      bytes > AgentSessionEventJournal.maxBytesPerSession ||
+      stored.length > AgentSessionEventJournal.maxEventsPerSession
+    ) {
+      const removed = stored.shift();
+      bytes -= Buffer.byteLength(JSON.stringify(removed));
+    }
+    this.eventBytes.set(event.sessionId, bytes);
+    this.events.set(event.sessionId, stored);
+  }
+
+  private recordSessionLifecycle(event: AgentSessionEvent): boolean {
+    if (event.type === 'session.accepted' && event.resumed) {
+      this.terminalSessions.delete(event.sessionId);
+      this.removeTerminalOrder(event.sessionId);
+    }
+    const terminal = event.type === 'session.closed' || event.type === 'session.hibernated';
+
+    if (terminal) {
+      this.terminalSessions.add(event.sessionId);
+      this.removeTerminalOrder(event.sessionId);
+      this.terminalOrder.push(event.sessionId);
+    }
+
+    return terminal;
+  }
+
+  private publishEvent(event: AgentSessionEvent, eventBytes: number, terminal: boolean): void {
+    for (const subscriber of this.subscribers.get(event.sessionId) ?? []) {
+      if (subscriber.closed) {
+        continue;
+      }
+
+      if (subscriber.waiting !== undefined) {
+        const resolve = subscriber.waiting;
+        subscriber.waiting = undefined;
+        resolve({ done: false, value: event });
+        subscriber.closed = terminal;
+        continue;
+      }
+
+      if (
+        subscriber.queue.length >= AgentSessionEventJournal.maxEventsPerSession ||
+        subscriber.bufferedBytes + eventBytes > AgentSessionEventJournal.maxBytesPerSession
+      ) {
+        subscriber.failure = new AgentSessionApplicationError(
+          AgentSessionErrorCode.expiredCursor,
+          'Subscriber fell behind retained events; reconnect using its last cursor.',
+        );
+        subscriber.closed = true;
+        subscriber.queue.length = 0;
+        this.subscribers.get(event.sessionId)?.delete(subscriber);
+        continue;
+      }
+      subscriber.queue.push(event);
+      subscriber.bufferedBytes += eventBytes;
+      subscriber.closed = terminal;
+    }
   }
 
   private pruneTerminalJournals(): void {

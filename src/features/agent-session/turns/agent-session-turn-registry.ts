@@ -61,9 +61,9 @@ export class AgentSessionTurnRegistry {
         tracked.state = 'completed';
         tracked.result = result;
       },
-      (failure: unknown) => {
+      (error_: unknown) => {
         tracked.state = 'completed';
-        tracked.failure = failure;
+        tracked.failure = error_;
       },
     );
 
