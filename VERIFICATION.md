@@ -11,11 +11,6 @@ pnpm db:test:down
 
 This checks formatting, TypeScript, Oxlint, build, GraphQL and OpenAPI contracts,
 real DBOS-backed transport smoke tests, and produces the LCOV report consumed by Sonar.
-`build` generates the Prisma client from `prisma/schema.prisma` before compiling.
-The client is ignored build output; schema and migrations remain tracked.
-Standalone build requires `DATABASE_URL` through the environment or `.env` for
-Prisma configuration, but generation does not connect to the database.
-
 Disposable test configuration is committed in `.env.test`; local development continues to use
 `.env` or process environment variables.
 
