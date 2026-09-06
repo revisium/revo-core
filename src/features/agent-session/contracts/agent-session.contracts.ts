@@ -10,6 +10,7 @@ import type {
   AgentSessionSnapshot,
   AgentSessionTerminalRecord,
   AgentSessionTurnResult,
+  AgentSessionTurnSnapshot,
   CancelAgentSessionResult,
   CancelAgentSessionTurnResult,
   CloseAgentSessionResult,
@@ -38,12 +39,7 @@ export interface AgentSessionTurnStartedReadModel {
   readonly turnId: string;
 }
 
-export interface AgentSessionTrackedTurnReadModel {
-  readonly sessionId: string;
-  readonly turnId: string;
-  readonly state: 'running' | 'completed';
-  readonly result?: AgentSessionTurnResult;
-}
+export type AgentSessionTurnReadModel = AgentSessionTurnSnapshot;
 
 export type AgentSessionCheckpointReadModel = AgentSessionCheckpoint;
 export type AgentSessionHibernateReadModel = AgentSessionHibernateResult;

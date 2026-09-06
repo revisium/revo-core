@@ -56,6 +56,8 @@ export async function createAgentSessionGraphqlApp() {
     resume: vi.fn<AgentSessions['resume']>().mockResolvedValue(session),
     get: vi.fn<AgentSessions['get']>().mockReturnValue(session),
     inspect: vi.fn<AgentSessions['inspect']>(),
+    getTurn: vi.fn<AgentSessions['getTurn']>(),
+    inspectTurn: vi.fn<AgentSessions['inspectTurn']>(),
     list: vi.fn<AgentSessions['list']>().mockReturnValue([]),
     getTerminal: vi.fn<AgentSessions['getTerminal']>(),
     listTerminal: vi.fn<AgentSessions['listTerminal']>().mockReturnValue([]),

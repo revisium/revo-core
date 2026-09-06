@@ -17,12 +17,22 @@ describe('AgentSession turn control over GraphQL', () => {
 
   it('starts without waiting, then exposes the same result to later wait and inspect requests', async () => {
     const completion = Promise.withResolvers<AgentSessionTurnResult>();
-    fixture.session.send.mockImplementation(async ({ turnId }) => ({
-      sessionId: 'dlg_test',
-      turnId,
-      result: () => completion.promise,
-      cancel: async () => ({ state: 'requested' }),
-    }));
+    fixture.session.send.mockImplementation(async ({ turnId }) => {
+      const handle: AgentSessionTurn = {
+        sessionId: 'dlg_test',
+        turnId,
+        result: () => completion.promise,
+        cancel: async () => ({ state: 'requested' }),
+      };
+      fixture.sessions.getTurn.mockReturnValue(handle);
+      fixture.sessions.inspectTurn.mockReturnValue({
+        sessionId: handle.sessionId,
+        turnId,
+        state: 'running',
+      });
+
+      return handle;
+    });
 
     const started = await fixture.graphql(`
       mutation {
@@ -41,7 +51,7 @@ describe('AgentSession turn control over GraphQL', () => {
     const running = await fixture.graphql(
       `
         query ($turnId: ID!) {
-          agentSessionTurn(turnId: $turnId) {
+          agentSessionTurn(sessionId: "dlg_test", turnId: $turnId) {
             state
             result {
               __typename
@@ -60,9 +70,15 @@ describe('AgentSession turn control over GraphQL', () => {
       status: 'completed',
       message: { role: 'assistant', content: 'hello back' },
     });
+    fixture.sessions.inspectTurn.mockReturnValue({
+      sessionId: 'dlg_test',
+      turnId,
+      state: 'completed',
+      result: await completion.promise,
+    });
     const waitQuery = `
       mutation ($turnId: ID!) {
-        waitForAgentSessionTurn(turnId: $turnId) {
+        waitForAgentSessionTurn(sessionId: "dlg_test", turnId: $turnId) {
           ... on AgentCompletedTurnModel {
             status
             message {
@@ -77,7 +93,7 @@ describe('AgentSession turn control over GraphQL', () => {
     const completed = await fixture.graphql(
       `
         query ($turnId: ID!) {
-          agentSessionTurn(turnId: $turnId) {
+          agentSessionTurn(sessionId: "dlg_test", turnId: $turnId) {
             state
             result {
               ... on AgentCompletedTurnModel {
@@ -105,11 +121,18 @@ describe('AgentSession turn control over GraphQL', () => {
   it('targets the turn handle for cancellation and waits for confirmation before reporting completion', async () => {
     const completion = Promise.withResolvers<AgentSessionTurnResult>();
     const cancel = vi.fn<AgentSessionTurn['cancel']>().mockResolvedValue({ state: 'requested' });
-    fixture.session.send.mockResolvedValue({
+    const handle: AgentSessionTurn = {
       sessionId: 'dlg_test',
       turnId: 'trn_cancel',
       result: () => completion.promise,
       cancel,
+    };
+    fixture.session.send.mockResolvedValue(handle);
+    fixture.sessions.getTurn.mockReturnValue(handle);
+    fixture.sessions.inspectTurn.mockReturnValue({
+      sessionId: 'dlg_test',
+      turnId: 'trn_cancel',
+      state: 'running',
     });
     await fixture.graphql(`
       mutation {
@@ -121,14 +144,14 @@ describe('AgentSession turn control over GraphQL', () => {
 
     const cancellation = await fixture.graphql(`
       mutation {
-        cancelAgentSessionTurn(turnId: "trn_cancel") {
+        cancelAgentSessionTurn(sessionId: "dlg_test", turnId: "trn_cancel") {
           state
         }
       }
     `);
     const stillRunning = await fixture.graphql(`
       {
-        agentSessionTurn(turnId: "trn_cancel") {
+        agentSessionTurn(sessionId: "dlg_test", turnId: "trn_cancel") {
           state
         }
       }
@@ -142,7 +165,7 @@ describe('AgentSession turn control over GraphQL', () => {
     completion.resolve({ status: 'cancelled' });
     const settled = await fixture.graphql(`
       mutation {
-        waitForAgentSessionTurn(turnId: "trn_cancel") {
+        waitForAgentSessionTurn(sessionId: "dlg_test", turnId: "trn_cancel") {
           __typename
           ... on AgentCancelledTurnModel {
             status
@@ -163,12 +186,14 @@ describe('AgentSession turn control over GraphQL', () => {
       status: 'completed',
       message: { role: 'assistant', content: 'done' },
     };
-    fixture.session.send.mockResolvedValue({
+    const handle: AgentSessionTurn = {
       sessionId: 'dlg_test',
       turnId: 'trn_done',
       result: async () => result,
       cancel: async () => ({ state: 'already_completed', result }),
-    });
+    };
+    fixture.session.send.mockResolvedValue(handle);
+    fixture.sessions.getTurn.mockReturnValue(handle);
     await fixture.graphql(`
       mutation {
         sendAgentSessionMessage(sessionId: "dlg_test", prompt: "work") {
@@ -179,7 +204,7 @@ describe('AgentSession turn control over GraphQL', () => {
 
     const response = await fixture.graphql(`
       mutation {
-        cancelAgentSessionTurn(turnId: "trn_done") {
+        cancelAgentSessionTurn(sessionId: "dlg_test", turnId: "trn_done") {
           state
           result {
             ... on AgentCompletedTurnModel {
@@ -205,7 +230,7 @@ describe('AgentSession turn control over GraphQL', () => {
   it('returns null for an unknown turn without fabricating a running state', async () => {
     const response = await fixture.graphql(`
       {
-        agentSessionTurn(turnId: "missing") {
+        agentSessionTurn(sessionId: "dlg_test", turnId: "missing") {
           state
         }
       }
@@ -217,7 +242,7 @@ describe('AgentSession turn control over GraphQL', () => {
   it('returns NOT_FOUND when cancelling an unknown turn', async () => {
     const response = await fixture.graphql(`
       mutation {
-        cancelAgentSessionTurn(turnId: "missing") {
+        cancelAgentSessionTurn(sessionId: "dlg_test", turnId: "missing") {
           state
         }
       }
@@ -231,37 +256,24 @@ describe('AgentSession turn control over GraphQL', () => {
     expect(fixture.sessions.cancel).not.toHaveBeenCalled();
   });
 
-  it('normalizes a rejected result for both wait and inspect without leaking the raw exception', async () => {
-    const completion = Promise.withResolvers<AgentSessionTurnResult>();
-    fixture.session.send.mockResolvedValue({
+  it('normalizes runtime wait and inspect errors without leaking private diagnostics', async () => {
+    fixture.sessions.getTurn.mockReturnValue({
       sessionId: 'dlg_test',
       turnId: 'trn_failed',
-      result: () => completion.promise,
-      cancel: async () => ({ state: 'requested' }),
+      result: async () => {
+        throw new Error('Private provider diagnostic.');
+      },
+      cancel: async () => ({ state: 'session_terminal' }),
     });
-    await fixture.graphql(`
-      mutation {
-        startAgentSessionTurn(sessionId: "dlg_test", prompt: "work") {
-          turnId
-        }
-      }
-    `);
-    completion.reject(new Error('Private provider diagnostic.'));
-
-    const waited = await fixture.graphql(`
-      mutation {
-        waitForAgentSessionTurn(turnId: "trn_failed") {
-          __typename
-        }
-      }
-    `);
-    const inspected = await fixture.graphql(`
-      {
-        agentSessionTurn(turnId: "trn_failed") {
-          state
-        }
-      }
-    `);
+    fixture.sessions.inspectTurn.mockImplementation(() => {
+      throw new Error('Private provider diagnostic.');
+    });
+    const waited = await fixture.graphql(`mutation {
+      waitForAgentSessionTurn(sessionId: "dlg_test", turnId: "trn_failed") { __typename }
+    }`);
+    const inspected = await fixture.graphql(`query {
+      agentSessionTurn(sessionId: "dlg_test", turnId: "trn_failed") { state }
+    }`);
 
     for (const response of [waited, inspected]) {
       expect(response.body.errors).toHaveLength(1);
@@ -272,6 +284,71 @@ describe('AgentSession turn control over GraphQL', () => {
       expect(JSON.stringify(response.body)).not.toContain('Private provider diagnostic');
     }
   });
+
+  it('does not expose or cancel a turn through another session', async () => {
+    const cancel = vi.fn<AgentSessionTurn['cancel']>().mockResolvedValue({ state: 'requested' });
+    const result: AgentSessionTurnResult = {
+      status: 'completed',
+      message: { role: 'assistant', content: 'Owned reply' },
+    };
+    const handle: AgentSessionTurn = {
+      sessionId: 'dlg_owner',
+      turnId: 'trn_shared',
+      result: async () => result,
+      cancel,
+    };
+    fixture.sessions.getTurn.mockImplementation((sessionId, turnId) =>
+      sessionId === 'dlg_owner' && turnId === 'trn_shared' ? handle : undefined,
+    );
+    fixture.sessions.inspectTurn.mockImplementation((sessionId, turnId) =>
+      sessionId === 'dlg_owner' && turnId === 'trn_shared'
+        ? { sessionId, turnId, state: 'completed', result }
+        : undefined,
+    );
+    const inspected = await fixture.graphql(`query {
+      own: agentSessionTurn(sessionId: "dlg_owner", turnId: "trn_shared") { state }
+      other: agentSessionTurn(sessionId: "dlg_other", turnId: "trn_shared") { state }
+    }`);
+    expect(inspected.body).toEqual({ data: { own: { state: 'completed' }, other: null } });
+
+    const rejected = await Promise.all(
+      ['waitForAgentSessionTurn', 'cancelAgentSessionTurn'].map((operation) =>
+        fixture.graphql(
+          `mutation { ${operation}(sessionId: "dlg_other", turnId: "trn_shared") { __typename } }`,
+        ),
+      ),
+    );
+
+    for (const response of rejected) {
+      expect(response.body.errors[0].extensions.code).toBe(AgentSessionErrorCode.notFound);
+    }
+    expect(cancel).not.toHaveBeenCalled();
+    const waited =
+      await fixture.graphql(`mutation { waitForAgentSessionTurn(sessionId: "dlg_owner", turnId: "trn_shared") {
+      ... on AgentCompletedTurnModel { message { content } }
+    } }`);
+    expect(waited.body).toEqual({
+      data: { waitForAgentSessionTurn: { message: { content: 'Owned reply' } } },
+    });
+    await fixture.graphql(
+      `mutation { cancelAgentSessionTurn(sessionId: "dlg_owner", turnId: "trn_shared") { state } }`,
+    );
+    expect(cancel).toHaveBeenCalledExactlyOnceWith('revo_core_api_cancel_turn');
+    expect(fixture.session.send).not.toHaveBeenCalled();
+  });
+
+  it.each(['agentSessionTurn', 'waitForAgentSessionTurn', 'cancelAgentSessionTurn'])(
+    'requires sessionId for %s',
+    async (operation) => {
+      const kind = operation === 'agentSessionTurn' ? 'query' : 'mutation';
+      const response = await fixture.graphql(
+        `${kind} { ${operation}(turnId: "trn_test") { __typename } }`,
+      );
+      expect(response.body.errors[0].extensions.code).toBe('GRAPHQL_VALIDATION_FAILED');
+      expect(fixture.sessions.getTurn).not.toHaveBeenCalled();
+      expect(fixture.sessions.inspectTurn).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([
     { result: { status: 'timed_out' }, model: 'AgentTimedOutTurnModel' },

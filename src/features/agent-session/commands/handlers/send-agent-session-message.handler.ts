@@ -9,7 +9,6 @@ import {
   AgentSessionApplicationError,
   AgentSessionErrorCode,
 } from '../../../../infrastructure/agent-runtime/agent-session.errors.js';
-import { AgentSessionTurnRegistry } from '../../turns/agent-session-turn-registry.js';
 import {
   SendAgentSessionMessageCommand,
   type SendAgentSessionMessageCommandReturnType,
@@ -20,10 +19,7 @@ export class SendAgentSessionMessageHandler implements ICommandHandler<
   SendAgentSessionMessageCommand,
   SendAgentSessionMessageCommandReturnType
 > {
-  constructor(
-    @Inject(AGENT_MANAGER) private readonly manager: AgentManager,
-    private readonly turns: AgentSessionTurnRegistry,
-  ) {}
+  constructor(@Inject(AGENT_MANAGER) private readonly manager: AgentManager) {}
 
   async execute({
     data,
@@ -37,18 +33,11 @@ export class SendAgentSessionMessageHandler implements ICommandHandler<
       );
     }
 
-    const release = this.turns.reserve();
+    const handle = await session.send({
+      turnId: 'trn_' + randomUUID().replaceAll('-', ''),
+      prompt: data.prompt,
+    });
 
-    try {
-      const handle = await session.send({
-        turnId: 'trn_' + randomUUID().replaceAll('-', ''),
-        prompt: data.prompt,
-      });
-      const tracked = this.turns.add(handle);
-
-      return tracked.completion;
-    } finally {
-      release();
-    }
+    return handle.result();
   }
 }

@@ -2,7 +2,10 @@ import { Command } from '@nestjs/cqrs';
 
 import type { AgentSessionCancelTurnReadModel } from '../../contracts/agent-session.contracts.js';
 
-export type CancelAgentSessionTurnCommandData = { readonly turnId: string };
+export type CancelAgentSessionTurnCommandData = {
+  readonly sessionId: string;
+  readonly turnId: string;
+};
 
 export type CancelAgentSessionTurnCommandReturnType = AgentSessionCancelTurnReadModel;
 

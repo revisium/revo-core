@@ -1,6 +1,8 @@
+import { Inject } from '@nestjs/common';
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
+import type { AgentManager } from '@revisium/revo-agent-runtime';
 
-import { AgentSessionTurnRegistry } from '../../turns/agent-session-turn-registry.js';
+import { AGENT_MANAGER } from '../../../../infrastructure/agent-runtime/agent-runtime.tokens.js';
 import {
   GetAgentSessionTurnQuery,
   type GetAgentSessionTurnQueryReturnType,
@@ -11,24 +13,9 @@ export class GetAgentSessionTurnHandler implements IQueryHandler<
   GetAgentSessionTurnQuery,
   GetAgentSessionTurnQueryReturnType
 > {
-  constructor(private readonly turns: AgentSessionTurnRegistry) {}
+  constructor(@Inject(AGENT_MANAGER) private readonly manager: AgentManager) {}
 
   async execute({ data }: GetAgentSessionTurnQuery): Promise<GetAgentSessionTurnQueryReturnType> {
-    const turn = this.turns.get(data.turnId);
-
-    if (turn === undefined) {
-      return undefined;
-    }
-
-    if (turn.failure !== undefined) {
-      throw turn.failure;
-    }
-
-    return {
-      sessionId: turn.handle.sessionId,
-      turnId: turn.handle.turnId,
-      state: turn.state,
-      ...(turn.result === undefined ? {} : { result: turn.result }),
-    };
+    return this.manager.sessions.inspectTurn(data.sessionId, data.turnId);
   }
 }

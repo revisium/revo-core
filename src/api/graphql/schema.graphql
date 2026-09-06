@@ -694,7 +694,7 @@ type MethodDocumentModel {
 type Mutation {
   archiveProject(data: ProjectInput!): Boolean!
   cancelAgentSession(sessionId: ID!): AgentSessionOperationResultModel!
-  cancelAgentSessionTurn(turnId: ID!): AgentSessionOperationResultModel!
+  cancelAgentSessionTurn(sessionId: ID!, turnId: ID!): AgentSessionOperationResultModel!
   checkpointAgentSession(sessionId: ID!): AgentSessionCheckpointModel!
   closeAgentSession(sessionId: ID!): AgentSessionOperationResultModel!
   commitCatalog(message: String!): CatalogCommitResultModel!
@@ -751,7 +751,7 @@ type Mutation {
   updateStackRef(data: StackRefInput!): StackRefModel!
   updateWorkItem(data: WorkItemInput!): WorkItemModel!
   updateWorkPlan(data: WorkPlanInput!): WorkPlanModel!
-  waitForAgentSessionTurn(turnId: ID!): AgentSessionTurnResult!
+  waitForAgentSessionTurn(sessionId: ID!, turnId: ID!): AgentSessionTurnResult!
 }
 
 type PageInfoModel {
@@ -918,7 +918,7 @@ type Query {
   agentSession(sessionId: ID!): AgentSessionSnapshotModel
   agentSessionAgent(agentId: String!, agentVersion: String!): AgentDescriptorModel
   agentSessionAgents(after: String, first: Int): AgentDefinitionConnectionModel!
-  agentSessionTurn(turnId: ID!): AgentSessionTurnModel
+  agentSessionTurn(sessionId: ID!, turnId: ID!): AgentSessionTurnModel
   catalogChangeSet(after: String, first: Int!): CatalogChangeEntryConnection!
   catalogSnapshot(revisionId: ID!): CatalogSnapshotModel!
   catalogStatus: CatalogStatusModel!
