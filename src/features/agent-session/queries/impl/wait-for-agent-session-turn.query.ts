@@ -2,7 +2,10 @@ import { Query } from '@nestjs/cqrs';
 
 import type { AgentSessionTurnResultReadModel } from '../../contracts/agent-session.contracts.js';
 
-export type WaitForAgentSessionTurnQueryData = { readonly turnId: string };
+export type WaitForAgentSessionTurnQueryData = {
+  readonly sessionId: string;
+  readonly turnId: string;
+};
 
 export type WaitForAgentSessionTurnQueryReturnType = AgentSessionTurnResultReadModel;
 

@@ -1,10 +1,12 @@
+import { Inject } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
+import type { AgentManager } from '@revisium/revo-agent-runtime';
 
+import { AGENT_MANAGER } from '../../../../infrastructure/agent-runtime/agent-runtime.tokens.js';
 import {
   AgentSessionApplicationError,
   AgentSessionErrorCode,
 } from '../../../../infrastructure/agent-runtime/agent-session.errors.js';
-import { AgentSessionTurnRegistry } from '../../turns/agent-session-turn-registry.js';
 import {
   CancelAgentSessionTurnCommand,
   type CancelAgentSessionTurnCommandReturnType,
@@ -15,12 +17,12 @@ export class CancelAgentSessionTurnHandler implements ICommandHandler<
   CancelAgentSessionTurnCommand,
   CancelAgentSessionTurnCommandReturnType
 > {
-  constructor(private readonly turns: AgentSessionTurnRegistry) {}
+  constructor(@Inject(AGENT_MANAGER) private readonly manager: AgentManager) {}
 
   async execute({
     data,
   }: CancelAgentSessionTurnCommand): Promise<CancelAgentSessionTurnCommandReturnType> {
-    const turn = this.turns.get(data.turnId);
+    const turn = this.manager.sessions.getTurn(data.sessionId, data.turnId);
 
     if (turn === undefined) {
       throw new AgentSessionApplicationError(
@@ -29,6 +31,6 @@ export class CancelAgentSessionTurnHandler implements ICommandHandler<
       );
     }
 
-    return turn.handle.cancel('revo_core_api_cancel_turn');
+    return turn.cancel('revo_core_api_cancel_turn');
   }
 }

@@ -77,8 +77,11 @@ export class AgentSessionResolver {
   }
 
   @Query(() => AgentSessionTurnModel, { nullable: true })
-  agentSessionTurn(@Args('turnId', { type: () => ID }) turnId: string) {
-    return this.sessions.inspectTurn(turnId);
+  agentSessionTurn(
+    @Args('sessionId', { type: () => ID }) sessionId: string,
+    @Args('turnId', { type: () => ID }) turnId: string,
+  ) {
+    return this.sessions.inspectTurn(sessionId, turnId);
   }
 
   @Query(() => AgentConfigurationCatalogModel)
@@ -121,13 +124,19 @@ export class AgentSessionResolver {
   }
 
   @Mutation(() => AgentSessionTurnResultModel)
-  waitForAgentSessionTurn(@Args('turnId', { type: () => ID }) turnId: string) {
-    return this.sessions.waitForTurn(turnId);
+  waitForAgentSessionTurn(
+    @Args('sessionId', { type: () => ID }) sessionId: string,
+    @Args('turnId', { type: () => ID }) turnId: string,
+  ) {
+    return this.sessions.waitForTurn(sessionId, turnId);
   }
 
   @Mutation(() => AgentSessionOperationResultModel)
-  cancelAgentSessionTurn(@Args('turnId', { type: () => ID }) turnId: string) {
-    return this.sessions.cancelTurn(turnId);
+  cancelAgentSessionTurn(
+    @Args('sessionId', { type: () => ID }) sessionId: string,
+    @Args('turnId', { type: () => ID }) turnId: string,
+  ) {
+    return this.sessions.cancelTurn(sessionId, turnId);
   }
 
   @Mutation(() => AgentSessionCheckpointModel)

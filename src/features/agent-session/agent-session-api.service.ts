@@ -65,8 +65,10 @@ export class AgentSessionApiService {
     return this.execute(() => this.queries.execute(new ListTerminalAgentSessionsQuery(data)));
   }
 
-  inspectTurn(turnId: string) {
-    return this.execute(() => this.queries.execute(new GetAgentSessionTurnQuery({ turnId })));
+  inspectTurn(sessionId: string, turnId: string) {
+    return this.execute(() =>
+      this.queries.execute(new GetAgentSessionTurnQuery({ sessionId, turnId })),
+    );
   }
 
   inspectConfiguration(agentId: string, agentVersion: string) {
@@ -103,12 +105,16 @@ export class AgentSessionApiService {
     );
   }
 
-  waitForTurn(turnId: string) {
-    return this.execute(() => this.queries.execute(new WaitForAgentSessionTurnQuery({ turnId })));
+  waitForTurn(sessionId: string, turnId: string) {
+    return this.execute(() =>
+      this.queries.execute(new WaitForAgentSessionTurnQuery({ sessionId, turnId })),
+    );
   }
 
-  cancelTurn(turnId: string) {
-    return this.execute(() => this.commands.execute(new CancelAgentSessionTurnCommand({ turnId })));
+  cancelTurn(sessionId: string, turnId: string) {
+    return this.execute(() =>
+      this.commands.execute(new CancelAgentSessionTurnCommand({ sessionId, turnId })),
+    );
   }
 
   checkpoint(sessionId: string) {

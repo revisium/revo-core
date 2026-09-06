@@ -71,6 +71,8 @@ const manager = {
     ],
     open: vi.fn<AgentSessions['open']>().mockResolvedValue(session),
     get: () => session,
+    getTurn: vi.fn<AgentSessions['getTurn']>(),
+    inspectTurn: vi.fn<AgentSessions['inspectTurn']>(),
     respond: vi.fn<AgentSessions['respond']>().mockResolvedValue({ state: 'accepted' }),
   },
 };
@@ -367,7 +369,7 @@ describe('AgentSession GraphQL application contract', () => {
       .send({
         query: `
           mutation {
-            waitForAgentSessionTurn(turnId: "unknown") {
+            waitForAgentSessionTurn(sessionId: "dlg_test", turnId: "unknown") {
               __typename
             }
           }
