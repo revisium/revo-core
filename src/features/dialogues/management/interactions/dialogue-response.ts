@@ -3,9 +3,67 @@ import type {
   AgentSessionInteractiveRequest,
   AgentSessionInteractiveResponse,
 } from '@revisium/revo-agent-runtime';
+import { Type, type Static } from 'typebox';
+import { Compile } from 'typebox/compile';
 
-import { parseAgentSessionResponse } from '../../../agent-session/contracts/agent-session-response.js';
 import type { DialogueJson } from '../contracts/dialogue.contracts.js';
+
+const requestId = Type.String({ minLength: 1 });
+const inputValue = Type.Union([
+  Type.String(),
+  Type.Number(),
+  Type.Boolean(),
+  Type.Array(Type.String()),
+]);
+const dialogueResponseSchema = Type.Union([
+  Type.Object(
+    {
+      requestId,
+      kind: Type.Literal('permission'),
+      outcome: Type.Literal('selected'),
+      optionId: Type.String({ minLength: 1 }),
+    },
+    { additionalProperties: false },
+  ),
+  Type.Object(
+    {
+      requestId,
+      kind: Type.Literal('permission'),
+      outcome: Type.Literal('denied'),
+    },
+    { additionalProperties: false },
+  ),
+  Type.Object(
+    {
+      requestId,
+      kind: Type.Literal('input'),
+      outcome: Type.Literal('submitted'),
+      values: Type.Record(Type.String(), inputValue),
+    },
+    { additionalProperties: false },
+  ),
+  Type.Object(
+    {
+      requestId,
+      kind: Type.Literal('input'),
+      outcome: Type.Union([Type.Literal('declined'), Type.Literal('cancelled')]),
+    },
+    { additionalProperties: false },
+  ),
+]);
+type DialogueResponseData = Static<typeof dialogueResponseSchema>;
+const responseValidator = Compile(dialogueResponseSchema);
+
+function parseDialogueResponse(input: unknown): DialogueResponseData {
+  if (
+    !responseValidator.Check(input) ||
+    Buffer.byteLength(JSON.stringify(input), 'utf8') > 65_536
+  ) {
+    throw new BadRequestException('Invalid interaction response.');
+  }
+
+  return input;
+}
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -60,7 +118,7 @@ export function validateDialogueResponse(
     ...Object.entries(responseJson),
     ['requestId', interactionId],
   ]);
-  const { requestId: _requestId, ...response } = parseAgentSessionResponse(responseInput);
+  const { requestId: _requestId, ...response } = parseDialogueResponse(responseInput);
 
   if (!isRequest(requestJson)) {
     throw new BadRequestException('Stored interaction request is invalid.');
