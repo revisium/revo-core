@@ -12,7 +12,6 @@ import { ReconcileDialogueRuntimeStateHandler } from './commands/handlers/reconc
 import { ReopenDialogueHandler } from './commands/handlers/reopen-dialogue.handler.js';
 import { RespondDialogueHandler } from './commands/handlers/respond-dialogue.handler.js';
 import { SendDialogueMessageHandler } from './commands/handlers/send-dialogue-message.handler.js';
-import { DialogueTurnFinalizer } from './completion/dialogue-turn-finalizer.js';
 import { DialogueApiService } from './dialogue-api.service.js';
 import { DialogueStartupReconciliation } from './lifecycle/dialogue-startup-reconciliation.js';
 import { GetDialogueHistoryItemHandler } from './queries/handlers/get-dialogue-history-item.handler.js';
@@ -22,16 +21,13 @@ import { ListDialogueInteractionsHandler } from './queries/handlers/list-dialogu
 import { ListDialogueTurnsHandler } from './queries/handlers/list-dialogue-turns.handler.js';
 import { ListDialoguesHandler } from './queries/handlers/list-dialogues.handler.js';
 import { SubscribeDialogueChangesHandler } from './queries/handlers/subscribe-dialogue-changes.handler.js';
-import { DialogueExecution } from './runtime/dialogue-execution.js';
 import { DispatchDialogueTurnHandler } from './runtime/dispatch-dialogue-turn.handler.js';
 
 @Module({
   imports: [CqrsModule, DatabaseModule, DialogueEventIngestionModule, AgentRuntimeModule],
   providers: [
     DialogueApiService,
-    DialogueExecution,
     DialogueStartupReconciliation,
-    DialogueTurnFinalizer,
     CreateDialogueHandler,
     SendDialogueMessageHandler,
     RespondDialogueHandler,

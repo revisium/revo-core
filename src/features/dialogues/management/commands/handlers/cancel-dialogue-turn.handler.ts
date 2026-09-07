@@ -1,12 +1,13 @@
-import { NotFoundException } from '@nestjs/common';
+import { Inject, NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
+import type { AgentManager } from '@revisium/revo-agent-runtime';
 
 import type { Prisma } from '../../../../../__generated__/client/client.js';
+import { AGENT_MANAGER } from '../../../../../infrastructure/agent-runtime/agent-runtime.tokens.js';
 import { TransactionPrismaService } from '../../../../../infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../../../infrastructure/dialogue/dialogue-change-publisher.js';
 import { dialogueTurnView } from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
 import { DialogueDispatchState, type DialogueTurn } from '../../contracts/dialogue.contracts.js';
-import { DialogueExecution } from '../../runtime/dialogue-execution.js';
 import {
   CancelDialogueTurnCommand,
   type CancelDialogueTurnCommandReturnType,
@@ -25,7 +26,7 @@ export class CancelDialogueTurnHandler implements ICommandHandler<
   constructor(
     private readonly transactions: TransactionPrismaService,
     private readonly changes: DialogueChangePublisher,
-    private readonly execution: DialogueExecution,
+    @Inject(AGENT_MANAGER) private readonly manager: AgentManager,
   ) {}
 
   private get transaction(): Prisma.TransactionClient {
@@ -43,7 +44,7 @@ export class CancelDialogueTurnHandler implements ICommandHandler<
       intent.turn.dispatchState !== DialogueDispatchState.FINISHED &&
       intent.runtimeSessionId !== null
     ) {
-      await this.execution.cancel(intent.runtimeSessionId, data.turnId);
+      await this.cancelRuntimeTurn(intent.runtimeSessionId, data.turnId);
     }
 
     return intent.turn;
@@ -88,5 +89,11 @@ export class CancelDialogueTurnHandler implements ICommandHandler<
       where: { id: turnId },
       data: { cancelRequested: true },
     });
+  }
+
+  private async cancelRuntimeTurn(runtimeSessionId: string, turnId: string): Promise<void> {
+    const turn = this.manager.sessions.getTurn(runtimeSessionId, turnId);
+
+    await turn?.cancel('dialogue_api_cancel');
   }
 }

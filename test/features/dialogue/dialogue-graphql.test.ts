@@ -273,6 +273,27 @@ describe('Persistent dialogues over GraphQL', () => {
       runtimeSessionId: null,
       status: 'CANCELLED',
     });
+    const beforeRepeat = await Promise.all([
+      scenario.prisma.dialogueHistoryItem.count({
+        where: { dialogueId: dialogue.id, kind: 'RESULT' },
+      }),
+      scenario.prisma.dialogueChange.count({ where: { dialogueId: dialogue.id } }),
+    ]);
+    await expect(
+      scenario.ingestion.interruptTurn({
+        dialogueId: dialogue.id,
+        turnId: turn.id,
+        reason: { kind: 'PRE_ADMISSION_CANCEL' },
+      }),
+    ).resolves.toEqual({ state: 'ignored' });
+    expect(
+      await Promise.all([
+        scenario.prisma.dialogueHistoryItem.count({
+          where: { dialogueId: dialogue.id, kind: 'RESULT' },
+        }),
+        scenario.prisma.dialogueChange.count({ where: { dialogueId: dialogue.id } }),
+      ]),
+    ).toEqual(beforeRepeat);
     expect(scenario.agent.pendingExecutionCount).toBe(0);
   });
 

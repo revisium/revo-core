@@ -6,16 +6,20 @@ import { fileURLToPath } from 'node:url';
 
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import type { AgentDefinitionInput } from '@revisium/revo-agent-runtime';
+import { createAgentManager, type AgentDefinitionInput } from '@revisium/revo-agent-runtime';
 import request from 'supertest';
 
 import { AppModule } from '../../../src/app.module.js';
 import { agentRuntimeConfig } from '../../../src/config/agent-runtime.config.js';
 import { DialogueEventIngestionApiService } from '../../../src/features/dialogues/ingestion/dialogue-event-ingestion-api.service.js';
 import { DialogueApiService } from '../../../src/features/dialogues/management/dialogue-api.service.js';
-import { DialogueExecution } from '../../../src/features/dialogues/management/runtime/dialogue-execution.js';
 import { DispatchDialogueTurnHandler } from '../../../src/features/dialogues/management/runtime/dispatch-dialogue-turn.handler.js';
-import { AGENT_DEFINITIONS } from '../../../src/infrastructure/agent-runtime/agent-runtime.tokens.js';
+import { AgentActiveState } from '../../../src/infrastructure/agent-runtime/agent-active-state.js';
+import {
+  AGENT_DEFINITIONS,
+  AGENT_MANAGER,
+} from '../../../src/infrastructure/agent-runtime/agent-runtime.tokens.js';
+import { AgentSessionDirectories } from '../../../src/infrastructure/agent-runtime/agent-session-directories.js';
 import { AgentSessionEventJournal } from '../../../src/infrastructure/agent-runtime/agent-session-event-journal.js';
 import { PrismaService } from '../../../src/infrastructure/database/prisma.service.js';
 import { TransactionPrismaService } from '../../../src/infrastructure/database/transaction-prisma.service.js';
@@ -23,7 +27,7 @@ import { DialogueChangePublisher } from '../../../src/infrastructure/dialogue/di
 import { DialogueEventReader } from '../../../src/infrastructure/dialogue/dialogue-event-reader.js';
 import { ControllableDialogueChangePublisher } from './controllable-dialogue-change-publisher.js';
 import { ControllableDialogueDispatchHandler } from './controllable-dialogue-dispatch.handler.js';
-import { ControllableDialogueExecution } from './controllable-dialogue-execution.js';
+import { ControllableDialogueResponseDelivery } from './controllable-dialogue-response-delivery.js';
 import { ControllableTransactionPrismaService } from './controllable-transaction-prisma.service.js';
 import { DialogueChangeStream } from './dialogue-change-stream.js';
 import { DialogueScenarioAgent } from './dialogue-scenario-agent.js';
@@ -465,10 +469,11 @@ export interface DialogueScenario {
   readonly app: INestApplication;
   readonly agent: DialogueScenarioAgent;
   readonly client: DialogueScenarioClient;
+  readonly ingestion: DialogueEventIngestionApiService;
   readonly journal: AgentSessionEventJournal;
   readonly prisma: PrismaService;
   readonly storage: DialogueStorageProbe;
-  readonly execution: ControllableDialogueExecution;
+  readonly responseDelivery: ControllableDialogueResponseDelivery;
   readonly changes: ControllableDialogueChangePublisher;
   readonly dispatch: ControllableDialogueDispatchHandler;
   readonly transactions: ControllableTransactionPrismaService;
@@ -479,6 +484,7 @@ export interface DialogueScenario {
 export const startDialogueScenario = async (): Promise<DialogueScenario> => {
   const workspace = await mkdtemp(join(tmpdir(), 'revo-dialogue-scenario-'));
   const fake = new FakeAgentControl();
+  const responseDelivery = new ControllableDialogueResponseDelivery();
   let app: INestApplication | undefined;
   try {
     await fake.start();
@@ -487,14 +493,37 @@ export const startDialogueScenario = async (): Promise<DialogueScenario> => {
       .useValue([fakeAgentDefinition(fake)])
       .overrideProvider(agentRuntimeConfig.KEY)
       .useValue({ workspaceDirectory: workspace, inheritedEnvironmentNames: [] })
+      .overrideProvider(AGENT_MANAGER)
+      .useFactory({
+        factory: async (
+          definitions: readonly AgentDefinitionInput[],
+          state: AgentActiveState,
+          journal: AgentSessionEventJournal,
+          directories: AgentSessionDirectories,
+        ) => {
+          await directories.initialize();
+          const manager = createAgentManager({
+            definitions,
+            activeStateSink: state.invocationSink,
+            sessions: { activeStateSink: state.sessionSink, eventSink: journal.sink },
+          });
+          await manager.initialize({ invocations: [], sessions: [] });
+
+          return responseDelivery.wrap(manager);
+        },
+        inject: [
+          AGENT_DEFINITIONS,
+          AgentActiveState,
+          AgentSessionEventJournal,
+          AgentSessionDirectories,
+        ],
+      })
       .overrideProvider(TransactionPrismaService)
       .useClass(ControllableTransactionPrismaService)
       .overrideProvider(DialogueChangePublisher)
       .useClass(ControllableDialogueChangePublisher)
       .overrideProvider(DispatchDialogueTurnHandler)
       .useClass(ControllableDialogueDispatchHandler)
-      .overrideProvider(DialogueExecution)
-      .useClass(ControllableDialogueExecution)
       .overrideProvider(AgentSessionEventJournal)
       .useFactory({
         factory: (ingestion: DialogueEventIngestionApiService, reader: DialogueEventReader) =>
@@ -520,7 +549,8 @@ export const startDialogueScenario = async (): Promise<DialogueScenario> => {
     app,
     agent: new DialogueScenarioAgent(fake, prisma),
     client: new DialogueScenarioClient(app, endpoint),
-    execution: app.get<ControllableDialogueExecution>(DialogueExecution),
+    ingestion: app.get(DialogueEventIngestionApiService),
+    responseDelivery,
     journal: app.get(AgentSessionEventJournal),
     prisma,
     storage: new DialogueStorageProbe(prisma),

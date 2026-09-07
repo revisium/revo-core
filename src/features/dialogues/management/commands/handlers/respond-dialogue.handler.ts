@@ -1,12 +1,14 @@
 import { isDeepStrictEqual } from 'node:util';
 
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
+import type { AgentManager, AgentSessionInteractiveResponse } from '@revisium/revo-agent-runtime';
 
 import type {
   DialogueInteraction as StoredDialogueInteraction,
   Prisma,
 } from '../../../../../__generated__/client/client.js';
+import { AGENT_MANAGER } from '../../../../../infrastructure/agent-runtime/agent-runtime.tokens.js';
 import { PrismaService } from '../../../../../infrastructure/database/prisma.service.js';
 import { TransactionPrismaService } from '../../../../../infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../../../infrastructure/dialogue/dialogue-change-publisher.js';
@@ -15,19 +17,19 @@ import {
   dialogueJson,
   json,
 } from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
-import { DialogueTurnFinalizer } from '../../completion/dialogue-turn-finalizer.js';
+import { DialogueEventIngestionApiService } from '../../../ingestion/dialogue-event-ingestion-api.service.js';
 import type {
   DialogueInteraction,
   RespondDialogueInput,
 } from '../../contracts/dialogue.contracts.js';
 import { validateDialogueResponse } from '../../interactions/dialogue-response.js';
-import { DialogueExecution } from '../../runtime/dialogue-execution.js';
 import {
   RespondDialogueCommand,
   type RespondDialogueCommandReturnType,
 } from '../impl/respond-dialogue.command.js';
 
 interface SavedResponse {
+  readonly affectedTurnId: string | null;
   readonly duplicate: boolean;
   readonly interaction: DialogueInteraction;
   readonly runtimeSessionId: string;
@@ -43,8 +45,8 @@ export class RespondDialogueHandler implements ICommandHandler<
     private readonly prisma: PrismaService,
     private readonly transactions: TransactionPrismaService,
     private readonly changes: DialogueChangePublisher,
-    private readonly finalizer: DialogueTurnFinalizer,
-    private readonly execution: DialogueExecution,
+    private readonly ingestion: DialogueEventIngestionApiService,
+    @Inject(AGENT_MANAGER) private readonly manager: AgentManager,
   ) {}
 
   private get transaction(): Prisma.TransactionClient {
@@ -62,10 +64,15 @@ export class RespondDialogueHandler implements ICommandHandler<
 
     if (!saved.duplicate) {
       try {
-        await this.execution.respond(saved.runtimeSessionId, saved.runtimeRequestId, response);
+        await this.respondToRuntime(saved.runtimeSessionId, saved.runtimeRequestId, response);
       } catch (error) {
         await this.transactions.runReadCommitted(() =>
-          this.responseDeliveryFailed(data.dialogueId, data.interactionId, error),
+          this.responseDeliveryFailed(
+            data.dialogueId,
+            data.interactionId,
+            saved.affectedTurnId,
+            error,
+          ),
         );
         throw error;
       }
@@ -77,11 +84,13 @@ export class RespondDialogueHandler implements ICommandHandler<
   private async saveResponse(input: RespondDialogueInput): Promise<SavedResponse> {
     await this.changes.lockWriter();
     const interaction = await this.getStoredInteraction(input.dialogueId, input.interactionId);
+    const affectedTurnId = interaction.turnId ?? (await this.getActiveTurnId(input.dialogueId));
 
     if (interaction.responseCommandId !== null) {
       this.ensureDuplicateResponse(interaction.responseCommandId, interaction.response, input);
 
       return {
+        affectedTurnId,
         duplicate: true,
         interaction: dialogueInteractionView(interaction),
         runtimeSessionId: interaction.runtimeSessionId,
@@ -98,6 +107,7 @@ export class RespondDialogueHandler implements ICommandHandler<
     await this.publishInteraction(input.dialogueId, item);
 
     return {
+      affectedTurnId,
       duplicate: false,
       interaction: dialogueInteractionView(updated),
       runtimeSessionId: interaction.runtimeSessionId,
@@ -134,9 +144,25 @@ export class RespondDialogueHandler implements ICommandHandler<
   private async responseDeliveryFailed(
     dialogueId: string,
     interactionId: string,
+    affectedTurnId: string | null,
     error: unknown,
   ): Promise<void> {
     await this.changes.lockWriter();
+
+    if (affectedTurnId !== null) {
+      await this.ingestion.interruptTurn({
+        dialogueId,
+        turnId: affectedTurnId,
+        reason: {
+          kind: 'RESPONSE_DELIVERY_UNCONFIRMED',
+          interactionId,
+          message: error instanceof Error ? error.message : String(error),
+        },
+      });
+
+      return;
+    }
+
     const interaction = await this.findStoredInteraction(dialogueId, interactionId);
 
     if (interaction === null || interaction.status !== 'RESPONDING') {
@@ -144,17 +170,10 @@ export class RespondDialogueHandler implements ICommandHandler<
     }
     const dialogue = await this.getRuntimeBinding(dialogueId);
 
-    if (dialogue?.runtimeSessionId !== interaction.runtimeSessionId) {
-      return;
-    }
-    const affectedTurnId = interaction.turnId ?? dialogue.activeTurnId;
-
-    if (affectedTurnId !== null) {
-      await this.finalizer.finishWithoutRuntime(dialogueId, affectedTurnId, 'UNCERTAIN', {
-        reason: 'Interaction response delivery could not be confirmed.',
-        message: error instanceof Error ? error.message : String(error),
-      });
-
+    if (
+      dialogue?.runtimeSessionId !== interaction.runtimeSessionId ||
+      dialogue.activeTurnId !== null
+    ) {
       return;
     }
     await this.abandonInteraction(interaction.id);
@@ -175,6 +194,15 @@ export class RespondDialogueHandler implements ICommandHandler<
       where: { id: dialogueId },
       select: { activeTurnId: true, runtimeSessionId: true },
     });
+  }
+
+  private async getActiveTurnId(dialogueId: string): Promise<string | null> {
+    const dialogue = await this.transaction.dialogue.findUniqueOrThrow({
+      where: { id: dialogueId },
+      select: { activeTurnId: true },
+    });
+
+    return dialogue.activeTurnId;
   }
 
   private abandonInteraction(interactionId: string) {
@@ -254,5 +282,19 @@ export class RespondDialogueHandler implements ICommandHandler<
       itemKind: 'INTERACTION',
       itemSource: 'AGENT',
     });
+  }
+
+  private async respondToRuntime(
+    runtimeSessionId: string,
+    runtimeRequestId: string,
+    response: AgentSessionInteractiveResponse,
+  ): Promise<void> {
+    const session = this.manager.sessions.get(runtimeSessionId);
+
+    if (session === undefined) {
+      throw new Error('Runtime session is not active.');
+    }
+
+    await session.respond({ requestId: runtimeRequestId, response });
   }
 }

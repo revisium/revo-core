@@ -11,8 +11,10 @@ admission, idempotency, status, history, interactions, and client-facing subscri
 
 Shared runtime state has separate technical owners: active-state sinks, the durable event journal,
 and session output directories in Core, and turn-handle retention in `revo-agent-runtime`. Runtime
-events are durably recorded before the runtime receives acknowledgement, whether or not an SSE
-client is connected.
+events enter the Dialogue ingestion boundary, which records the raw receipt and updates history,
+summary, and feed in one transaction before the runtime receives acknowledgement. Core-reported
+interruptions enter the same boundary without inventing a runtime event. Persistence does not
+depend on an SSE client being connected.
 
 Run shutdown closes admission, drains the agent runtime, stops DBOS, and then releases owned
 resources. Unconfirmed execution shutdown retains working directories.

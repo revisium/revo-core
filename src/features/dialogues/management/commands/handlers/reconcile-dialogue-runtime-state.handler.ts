@@ -6,7 +6,7 @@ import type { Prisma } from '../../../../../__generated__/client/client.js';
 import { TransactionPrismaService } from '../../../../../infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../../../infrastructure/dialogue/dialogue-change-publisher.js';
 import { DialogueInteractionCleanup } from '../../../../../infrastructure/dialogue/dialogue-interaction-cleanup.js';
-import { DialogueTurnFinalizer } from '../../completion/dialogue-turn-finalizer.js';
+import { DialogueEventIngestionApiService } from '../../../ingestion/dialogue-event-ingestion-api.service.js';
 import {
   ReconcileDialogueRuntimeStateCommand,
   type ReconcileDialogueRuntimeStateCommandReturnType,
@@ -20,7 +20,7 @@ export class ReconcileDialogueRuntimeStateHandler implements ICommandHandler<
   constructor(
     private readonly transactions: TransactionPrismaService,
     private readonly changes: DialogueChangePublisher,
-    private readonly finalizer: DialogueTurnFinalizer,
+    private readonly ingestion: DialogueEventIngestionApiService,
     private readonly interactions: DialogueInteractionCleanup,
   ) {}
 
@@ -60,8 +60,10 @@ export class ReconcileDialogueRuntimeStateHandler implements ICommandHandler<
     if (turn === null || turn.dispatchState === 'FINISHED') {
       return false;
     }
-    await this.finalizer.finishWithoutRuntime(dialogueId, turn.id, 'UNCERTAIN', {
-      reason: 'Core restarted before runtime completion was durably observed.',
+    await this.ingestion.interruptTurn({
+      dialogueId,
+      turnId: turn.id,
+      reason: { kind: 'CORE_RESTART' },
     });
 
     return true;

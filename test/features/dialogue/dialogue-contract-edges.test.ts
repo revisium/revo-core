@@ -541,7 +541,7 @@ describe('Dialogue persistence edge contracts', () => {
     if (interaction === undefined) {
       throw new Error('Permission interaction was not persisted.');
     }
-    const barrier = scenario.execution.holdNextResponse();
+    const barrier = scenario.responseDelivery.holdNextResponse();
     const response = scenario.client.respond(dialogue.id, interaction.id, crypto.randomUUID(), {
       kind: 'permission',
       outcome: 'selected',
@@ -553,14 +553,12 @@ describe('Dialogue persistence edge contracts', () => {
       .toEqual([expect.objectContaining({ status: 'RESPONDING' })]);
     barrier.fail();
     await expect(response).rejects.toThrow('Controlled interaction response delivery failure.');
-    await expect
-      .poll(() => scenario.client.dialogue(dialogue.id))
-      .toMatchObject({
-        activeTurnId: null,
-        lastOutcome: 'UNCERTAIN',
-        pendingCount: 0,
-        status: 'UNCERTAIN',
-      });
+    expect(await scenario.client.dialogue(dialogue.id)).toMatchObject({
+      activeTurnId: null,
+      lastOutcome: 'UNCERTAIN',
+      pendingCount: 0,
+      status: 'UNCERTAIN',
+    });
     await expect
       .poll(() => scenario.client.interactions(dialogue.id))
       .toEqual([expect.objectContaining({ status: 'ABANDONED' })]);
@@ -570,5 +568,63 @@ describe('Dialogue persistence edge contracts', () => {
         expect.objectContaining({ kind: 'RESULT', status: 'INTERRUPTED' }),
       ]),
     );
+  }, 15_000);
+
+  test('ignores a late response failure after a newer turn becomes active', async () => {
+    const dialogue = await scenario.client.createDialogue({ title: 'Late response failure' });
+    const firstTurn = await scenario.client.send(dialogue.id, 'Request permission first');
+    const firstExecution = await scenario.agent.expectTurn(firstTurn);
+    await firstExecution.requestPermission();
+    await expect.poll(() => scenario.client.interactions(dialogue.id)).toHaveLength(1);
+    const interaction = (await scenario.client.interactions(dialogue.id))[0];
+
+    if (interaction === undefined) {
+      throw new Error('Permission interaction was not persisted.');
+    }
+
+    await scenario.client.respond(dialogue.id, interaction.id, crypto.randomUUID(), {
+      kind: 'permission',
+      outcome: 'selected',
+      optionId: 'allow-test-action',
+    });
+    await expect
+      .poll(() => scenario.client.interactions(dialogue.id))
+      .toEqual([expect.objectContaining({ id: interaction.id, status: 'RESOLVED' })]);
+    await firstExecution.complete();
+    await expect
+      .poll(() => scenario.client.dialogue(dialogue.id))
+      .toMatchObject({ lastOutcome: 'COMPLETED', status: 'READY' });
+
+    const secondTurn = await scenario.client.send(dialogue.id, 'Keep the newer turn active');
+    const secondExecution = await scenario.agent.expectTurn(secondTurn);
+    await secondExecution.text('Current response');
+    await expect
+      .poll(() => scenario.client.dialogue(dialogue.id))
+      .toMatchObject({ activeTurnId: secondTurn.id, status: 'RUNNING' });
+    const resultCount = await scenario.prisma.dialogueHistoryItem.count({
+      where: { dialogueId: dialogue.id, turnId: secondTurn.id, kind: 'RESULT' },
+    });
+
+    await expect(
+      scenario.ingestion.interruptTurn({
+        dialogueId: dialogue.id,
+        turnId: firstTurn.id,
+        reason: {
+          kind: 'RESPONSE_DELIVERY_UNCONFIRMED',
+          interactionId: interaction.id,
+          message: 'Late delivery failure.',
+        },
+      }),
+    ).resolves.toEqual({ state: 'ignored' });
+    expect(await scenario.client.dialogue(dialogue.id)).toMatchObject({
+      activeTurnId: secondTurn.id,
+      status: 'RUNNING',
+    });
+    expect(
+      await scenario.prisma.dialogueHistoryItem.count({
+        where: { dialogueId: dialogue.id, turnId: secondTurn.id, kind: 'RESULT' },
+      }),
+    ).toBe(resultCount);
+    await secondExecution.complete();
   }, 15_000);
 });

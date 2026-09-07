@@ -10,12 +10,17 @@ import { AppendDialogueTextDeltaCommand } from './commands/impl/append-dialogue-
 import { CloseDialogueSessionCommand } from './commands/impl/close-dialogue-session.command.js';
 import { CompleteDialogueAssistantMessageCommand } from './commands/impl/complete-dialogue-assistant-message.command.js';
 import { CompleteDialogueTurnCommand } from './commands/impl/complete-dialogue-turn.command.js';
+import { InterruptDialogueTurnCommand } from './commands/impl/interrupt-dialogue-turn.command.js';
 import { RecordDialogueActivityCommand } from './commands/impl/record-dialogue-activity.command.js';
 import { RecordDialogueLifecycleEventCommand } from './commands/impl/record-dialogue-lifecycle-event.command.js';
 import { RequestDialogueInteractionCommand } from './commands/impl/request-dialogue-interaction.command.js';
 import { ResolveDialogueInteractionCommand } from './commands/impl/resolve-dialogue-interaction.command.js';
 import { StartDialogueTurnCommand } from './commands/impl/start-dialogue-turn.command.js';
 import { UpdateDialogueProgressCommand } from './commands/impl/update-dialogue-progress.command.js';
+import type {
+  InterruptDialogueTurnInput,
+  InterruptDialogueTurnResult,
+} from './contracts/dialogue-interruption.contracts.js';
 
 type Event<T extends AgentSessionEvent['type']> = Extract<AgentSessionEvent, { readonly type: T }>;
 type LifecycleEvent = Event<
@@ -26,6 +31,10 @@ type ActivityEvent = Event<'tool.activity' | 'plan.updated' | 'usage.updated'>;
 @Injectable()
 export class DialogueEventIngestionApiService {
   constructor(private readonly commands: CommandBus) {}
+
+  interruptTurn(data: InterruptDialogueTurnInput): Promise<InterruptDialogueTurnResult> {
+    return this.commands.execute(new InterruptDialogueTurnCommand(data));
+  }
 
   appendTextDelta(
     event: Event<'assistant.message.delta'>,

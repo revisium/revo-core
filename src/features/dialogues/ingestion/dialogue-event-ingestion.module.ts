@@ -9,6 +9,7 @@ import { AppendDialogueTextDeltaHandler } from './commands/handlers/append-dialo
 import { CloseDialogueSessionHandler } from './commands/handlers/close-dialogue-session.handler.js';
 import { CompleteDialogueAssistantMessageHandler } from './commands/handlers/complete-dialogue-assistant-message.handler.js';
 import { CompleteDialogueTurnHandler } from './commands/handlers/complete-dialogue-turn.handler.js';
+import { InterruptDialogueTurnHandler } from './commands/handlers/interrupt-dialogue-turn.handler.js';
 import { RecordDialogueActivityHandler } from './commands/handlers/record-dialogue-activity.handler.js';
 import { RecordDialogueLifecycleEventHandler } from './commands/handlers/record-dialogue-lifecycle-event.handler.js';
 import { RequestDialogueInteractionHandler } from './commands/handlers/request-dialogue-interaction.handler.js';
@@ -23,6 +24,7 @@ const eventHandlers = [
   CompleteDialogueAssistantMessageHandler,
   StartDialogueTurnHandler,
   CompleteDialogueTurnHandler,
+  InterruptDialogueTurnHandler,
   UpdateDialogueProgressHandler,
   RecordDialogueActivityHandler,
   RequestDialogueInteractionHandler,

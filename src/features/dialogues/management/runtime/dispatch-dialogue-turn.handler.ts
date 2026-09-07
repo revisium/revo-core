@@ -1,16 +1,27 @@
 import { randomUUID } from 'node:crypto';
 
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { EventsHandler, type IEventHandler } from '@nestjs/cqrs';
+import type {
+  AgentConfigurationSelection,
+  AgentManager,
+  AgentSessionTurn,
+  AgentStartContext,
+} from '@revisium/revo-agent-runtime';
 
 import type { Prisma } from '../../../../__generated__/client/client.js';
+import {
+  AGENT_LAUNCH_CONTEXT,
+  AGENT_MANAGER,
+} from '../../../../infrastructure/agent-runtime/agent-runtime.tokens.js';
+import { AgentSessionDirectories } from '../../../../infrastructure/agent-runtime/agent-session-directories.js';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../../infrastructure/dialogue/dialogue-change-publisher.js';
 import { dialogueJson } from '../../../../infrastructure/dialogue/dialogue-persistence.js';
-import { DialogueTurnFinalizer } from '../completion/dialogue-turn-finalizer.js';
+import { DialogueEventIngestionApiService } from '../../ingestion/dialogue-event-ingestion-api.service.js';
+import type { DialogueJson } from '../contracts/dialogue.contracts.js';
 import { DialogueTurnSavedEvent } from '../events/dialogue-turn-saved.event.js';
-import { DialogueExecution } from '../runtime/dialogue-execution.js';
 
 @Injectable()
 @EventsHandler(DialogueTurnSavedEvent)
@@ -21,8 +32,10 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     private readonly prisma: PrismaService,
     private readonly transactions: TransactionPrismaService,
     private readonly changes: DialogueChangePublisher,
-    private readonly execution: DialogueExecution,
-    private readonly finalizer: DialogueTurnFinalizer,
+    private readonly ingestion: DialogueEventIngestionApiService,
+    @Inject(AGENT_MANAGER) private readonly manager: AgentManager,
+    @Inject(AGENT_LAUNCH_CONTEXT) private readonly launchContext: AgentStartContext,
+    private readonly directories: AgentSessionDirectories,
   ) {}
 
   private get transaction(): Prisma.TransactionClient {
@@ -54,7 +67,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
       );
       sessionId = newSessionId;
       runtimePrompt = await this.executionPrompt(dialogueId, turnId, prompt);
-      await this.execution.open(
+      await this.openRuntime(
         sessionId,
         dialogue.agentId,
         dialogue.agentVersion,
@@ -72,7 +85,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     ) {
       return;
     }
-    const turn = await this.execution.send(sessionId, turnId, runtimePrompt);
+    const turn = await this.sendToRuntime(sessionId, turnId, runtimePrompt);
 
     if (await this.isCancellationRequested(dialogueId, turnId)) {
       await turn.cancel('dialogue_api_cancel');
@@ -92,8 +105,10 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     }
 
     if (turn.cancelRequested) {
-      await this.finalizer.finishWithoutRuntime(dialogueId, turnId, 'CANCELLED', {
-        reason: 'Cancelled before runtime admission.',
+      await this.ingestion.interruptTurn({
+        dialogueId,
+        turnId,
+        reason: { kind: 'PRE_ADMISSION_CANCEL' },
       });
 
       return false;
@@ -132,8 +147,10 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     }
 
     if (turn.dispatchState !== 'FINISHED') {
-      await this.finalizer.finishWithoutRuntime(dialogueId, turnId, 'CANCELLED', {
-        reason: 'Cancelled before runtime admission.',
+      await this.ingestion.interruptTurn({
+        dialogueId,
+        turnId,
+        reason: { kind: 'PRE_ADMISSION_CANCEL' },
       });
     }
 
@@ -146,41 +163,20 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     error: unknown,
   ): Promise<void> {
     try {
-      await this.transactions.runReadCommitted(() =>
-        this.reconcileDispatchFailure(dialogueId, turnId, error),
-      );
+      await this.ingestion.interruptTurn({
+        dialogueId,
+        turnId,
+        reason: {
+          kind: 'DISPATCH_FAILURE',
+          message: error instanceof Error ? error.message : String(error),
+        },
+      });
     } catch (persistenceError) {
       this.logger.error(
         `Failed to persist dialogue dispatch failure for turn ${turnId}.`,
         persistenceError instanceof Error ? persistenceError.stack : String(persistenceError),
       );
     }
-  }
-
-  private async reconcileDispatchFailure(
-    dialogueId: string,
-    turnId: string,
-    error: unknown,
-  ): Promise<void> {
-    await this.changes.lockWriter();
-    const [turn, activeTurnId] = await Promise.all([
-      this.findTurn(dialogueId, turnId),
-      this.getActiveTurnId(dialogueId),
-    ]);
-
-    if (
-      turn === null ||
-      activeTurnId !== turnId ||
-      turn.dispatchState === 'FINISHED' ||
-      turn.dispatchState === 'UNCERTAIN'
-    ) {
-      return;
-    }
-
-    const outcome = turn.dispatchState === 'ADMITTED' ? 'UNCERTAIN' : 'FAILED';
-    await this.finalizer.finishWithoutRuntime(dialogueId, turnId, outcome, {
-      message: error instanceof Error ? error.message : String(error),
-    });
   }
 
   private getDialogue(dialogueId: string) {
@@ -199,15 +195,6 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
 
   private findTurn(dialogueId: string, turnId: string) {
     return this.transaction.dialogueTurn.findFirst({ where: { id: turnId, dialogueId } });
-  }
-
-  private async getActiveTurnId(dialogueId: string): Promise<string | null | undefined> {
-    const dialogue = await this.transaction.dialogue.findUnique({
-      where: { id: dialogueId },
-      select: { activeTurnId: true },
-    });
-
-    return dialogue?.activeTurnId;
   }
 
   private markDispatching(turnId: string) {
@@ -285,5 +272,72 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
       orderBy: { sequence: 'asc' },
       select: { source: true, text: true },
     });
+  }
+
+  private async openRuntime(
+    sessionId: string,
+    agentId: string,
+    agentVersion: string,
+    agentConfiguration: DialogueJson,
+  ): Promise<void> {
+    await this.manager.sessions.open(
+      {
+        sessionId,
+        agent: { id: agentId, version: agentVersion },
+        workspace: { directory: this.directories.workspaceDirectory },
+        output: { directory: this.directories.outputDirectory(sessionId) },
+        parameters: {},
+        permissions: {},
+        configuration: this.configuration(agentConfiguration),
+      },
+      this.launchContext,
+    );
+  }
+
+  private sendToRuntime(
+    sessionId: string,
+    turnId: string,
+    prompt: string,
+  ): Promise<AgentSessionTurn> {
+    const session = this.manager.sessions.get(sessionId);
+
+    if (session === undefined) {
+      throw new Error('Runtime session is not active.');
+    }
+
+    return session.send({ turnId, prompt });
+  }
+
+  private configuration(value: DialogueJson): AgentConfigurationSelection {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      throw new Error('Persisted dialogue agent configuration is invalid.');
+    }
+
+    if (
+      !('selections' in value) ||
+      typeof value.selections !== 'object' ||
+      value.selections === null ||
+      Array.isArray(value.selections) ||
+      Object.values(value.selections).some(
+        (selection) => typeof selection !== 'boolean' && typeof selection !== 'string',
+      )
+    ) {
+      throw new Error('Persisted dialogue agent configuration selections are invalid.');
+    }
+
+    const selections: Record<string, boolean | string> = {};
+
+    for (const [id, selection] of Object.entries(value.selections)) {
+      if (typeof selection === 'boolean' || typeof selection === 'string') {
+        selections[id] = selection;
+      }
+    }
+
+    const catalogRevision =
+      'catalogRevision' in value && typeof value.catalogRevision === 'string'
+        ? value.catalogRevision
+        : undefined;
+
+    return { selections, ...(catalogRevision === undefined ? {} : { catalogRevision }) };
   }
 }
