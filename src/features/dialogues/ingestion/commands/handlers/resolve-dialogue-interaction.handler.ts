@@ -148,12 +148,23 @@ export class ResolveDialogueInteractionHandler implements ICommandHandler<
     return this.transaction.dialogue.update({
       where: { id: dialogueId },
       data: {
-        status: pendingCount > 0 ? 'WAITING' : activeTurnId === null ? 'READY' : 'RUNNING',
+        status: this.dialogueStatus(activeTurnId, pendingCount),
         pendingCount,
         significantSequence: { increment: 1 },
         version: { increment: 1 },
       },
     });
+  }
+
+  private dialogueStatus(
+    activeTurnId: string | null | undefined,
+    pendingCount: number,
+  ): 'WAITING' | 'READY' | 'RUNNING' {
+    if (pendingCount > 0) {
+      return 'WAITING';
+    }
+
+    return activeTurnId === null ? 'READY' : 'RUNNING';
   }
 
   private async updateTurnAfterInteraction(

@@ -7,7 +7,10 @@ import type { DialogueHistoryItem, Prisma } from '../../../../../__generated__/c
 import { TransactionPrismaService } from '../../../../../infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../../../infrastructure/dialogue/dialogue-change-publisher.js';
 import { DialogueInteractionCleanup } from '../../../../../infrastructure/dialogue/dialogue-interaction-cleanup.js';
-import { dialogueSummaryView } from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
+import {
+  compareHistoryItemSequence,
+  dialogueSummaryView,
+} from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
 import {
   ReopenDialogueCommand,
   type ReopenDialogueCommandReturnType,
@@ -42,9 +45,7 @@ export class ReopenDialogueHandler implements ICommandHandler<
     const updatedItems = await this.interruptUnfinishedItems(dialogueId);
     const abandonedItems = await this.interactions.abandon(dialogueId, { kind: 'all' });
     updatedItems.push(...abandonedItems);
-    updatedItems.sort((left, right) =>
-      left.sequence < right.sequence ? -1 : left.sequence > right.sequence ? 1 : 0,
-    );
+    updatedItems.sort(compareHistoryItemSequence);
     const updated = await this.markReopened(dialogueId);
 
     for (const item of updatedItems) {

@@ -312,7 +312,7 @@ export class DialogueEventReader {
   private async isTerminalHead(sessionId: string, position: number): Promise<boolean> {
     const stream = await this.prisma.agentSessionEventStream.findUnique({ where: { sessionId } });
 
-    if (stream === null || stream.sequence !== position || stream.eventId === null) {
+    if (stream?.sequence !== position || stream.eventId === null) {
       return false;
     }
     const head = await this.prisma.agentSessionEvent.findUnique({

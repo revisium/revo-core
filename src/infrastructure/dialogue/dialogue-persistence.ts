@@ -37,6 +37,21 @@ export interface DialogueCursorPosition {
   readonly observed: string;
 }
 
+export function compareHistoryItemSequence(
+  left: Pick<StoredHistoryItem, 'sequence'>,
+  right: Pick<StoredHistoryItem, 'sequence'>,
+): number {
+  if (left.sequence < right.sequence) {
+    return -1;
+  }
+
+  if (left.sequence > right.sequence) {
+    return 1;
+  }
+
+  return 0;
+}
+
 const inputJson = (value: unknown): Prisma.InputJsonValue | null => {
   if (value === null || typeof value === 'string' || typeof value === 'boolean') {
     return value;

@@ -12,7 +12,10 @@ import type {
 import { TransactionPrismaService } from '../../../../../infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../../../infrastructure/dialogue/dialogue-change-publisher.js';
 import { DialogueInteractionCleanup } from '../../../../../infrastructure/dialogue/dialogue-interaction-cleanup.js';
-import { json } from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
+import {
+  compareHistoryItemSequence,
+  json,
+} from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
 import type {
   DialogueInterruptionReason,
   InterruptDialogueTurnInput,
@@ -68,9 +71,11 @@ export class InterruptDialogueTurnHandler implements ICommandHandler<
       this.findTurn(input.dialogueId, input.turnId),
     ]);
 
+    if (dialogue === null || turn === null) {
+      return null;
+    }
+
     if (
-      dialogue === null ||
-      turn === null ||
       dialogue.activeTurnId !== turn.id ||
       turn.dispatchState === 'FINISHED' ||
       turn.dispatchState === 'UNCERTAIN'
@@ -175,9 +180,7 @@ export class InterruptDialogueTurnHandler implements ICommandHandler<
     await this.finishTurn(turnId, target.outcome, target.payload, result.sequence);
     const abandonedItems = await this.interactions.abandon(dialogueId, { kind: 'all' });
     interruptedItems.push(...abandonedItems);
-    interruptedItems.sort((left, right) =>
-      left.sequence < right.sequence ? -1 : left.sequence > right.sequence ? 1 : 0,
-    );
+    interruptedItems.sort(compareHistoryItemSequence);
     await this.finishDialogue(dialogueId, target.outcome);
 
     for (const item of interruptedItems) {

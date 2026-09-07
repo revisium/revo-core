@@ -8,7 +8,10 @@ import type { DialogueHistoryItem, Prisma } from '../../../../../__generated__/c
 import { TransactionPrismaService } from '../../../../../infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../../../infrastructure/dialogue/dialogue-change-publisher.js';
 import { DialogueInteractionCleanup } from '../../../../../infrastructure/dialogue/dialogue-interaction-cleanup.js';
-import { json } from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
+import {
+  compareHistoryItemSequence,
+  json,
+} from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
 import { AgentSessionEventReceiptWriter } from '../../persistence/agent-session-event-receipt.js';
 import {
   CompleteDialogueTurnCommand,
@@ -71,9 +74,7 @@ export class CompleteDialogueTurnHandler implements ICommandHandler<
       kind: 'turn',
       turnId: event.turnId,
     });
-    const finalized = [...interrupted, ...abandoned].sort((left, right) =>
-      left.sequence < right.sequence ? -1 : left.sequence > right.sequence ? 1 : 0,
-    );
+    const finalized = [...interrupted, ...abandoned].sort(compareHistoryItemSequence);
     const remainingInteractions = await this.countPendingInteractions(dialogueId);
     const resultSequence = await this.reserveItemSequence(dialogueId);
     const outcome = this.turnOutcome(event);

@@ -165,7 +165,7 @@ export class RespondDialogueHandler implements ICommandHandler<
 
     const interaction = await this.findStoredInteraction(dialogueId, interactionId);
 
-    if (interaction === null || interaction.status !== 'RESPONDING') {
+    if (interaction?.status !== 'RESPONDING') {
       return;
     }
     const dialogue = await this.getRuntimeBinding(dialogueId);

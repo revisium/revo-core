@@ -8,7 +8,10 @@ import type { DialogueHistoryItem, Prisma } from '../../../../../__generated__/c
 import { TransactionPrismaService } from '../../../../../infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../../../infrastructure/dialogue/dialogue-change-publisher.js';
 import { DialogueInteractionCleanup } from '../../../../../infrastructure/dialogue/dialogue-interaction-cleanup.js';
-import { json } from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
+import {
+  compareHistoryItemSequence,
+  json,
+} from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
 import { AgentSessionEventReceiptWriter } from '../../persistence/agent-session-event-receipt.js';
 import {
   CloseDialogueSessionCommand,
@@ -102,9 +105,7 @@ export class CloseDialogueSessionHandler implements ICommandHandler<
     const abandoned = await this.interactions.abandon(dialogueId, { kind: 'all' });
     const interrupted = await this.interruptActivities(dialogueId);
     interrupted.push(...abandoned);
-    interrupted.sort((left, right) =>
-      left.sequence < right.sequence ? -1 : left.sequence > right.sequence ? 1 : 0,
-    );
+    interrupted.sort(compareHistoryItemSequence);
     await this.finishDialogue(dialogueId, outcome);
     await this.publishHistoryItem(dialogueId, result);
 
