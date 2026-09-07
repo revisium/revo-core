@@ -39,6 +39,10 @@ export class TransactionPrismaService {
     return this.run(handler, Prisma.TransactionIsolationLevel.ReadCommitted);
   }
 
+  runRepeatableRead<T>(handler: TransactionHandler<T>): Promise<T> {
+    return this.run(handler, Prisma.TransactionIsolationLevel.RepeatableRead);
+  }
+
   runSerializable<T>(handler: TransactionHandler<T>): Promise<T> {
     return this.runWithRetry(handler, Prisma.TransactionIsolationLevel.Serializable);
   }

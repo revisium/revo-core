@@ -2,11 +2,13 @@ import { mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { ConfigModule } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
 import * as runtime from '@revisium/revo-agent-runtime';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { agentRuntimeConfig } from '../../../src/config/agent-runtime.config.js';
+import { databaseConfig } from '../../../src/config/database.config.js';
 import { AgentRuntimeLifecycle } from '../../../src/infrastructure/agent-runtime/agent-runtime-lifecycle.js';
 import { AgentRuntimeModule } from '../../../src/infrastructure/agent-runtime/agent-runtime.module.js';
 import {
@@ -34,7 +36,11 @@ describe('Shared agent runtime composition', () => {
     vi.clearAllMocks();
     workspace = await mkdtemp(join(tmpdir(), 'revo-runtime-composition-test-'));
     module = await Test.createTestingModule({
-      imports: [AgentRuntimeModule, AgentRuntimeModule],
+      imports: [
+        ConfigModule.forRoot({ isGlobal: true, load: [databaseConfig] }),
+        AgentRuntimeModule,
+        AgentRuntimeModule,
+      ],
     })
       .overrideProvider(AGENT_DEFINITIONS)
       .useValue([])

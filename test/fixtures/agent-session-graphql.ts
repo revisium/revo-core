@@ -1,4 +1,5 @@
 import { YogaDriver, type YogaDriverConfig } from '@graphql-yoga/nestjs';
+import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { Test } from '@nestjs/testing';
 import type {
@@ -11,6 +12,7 @@ import request from 'supertest';
 import { vi } from 'vitest';
 
 import { AgentSessionResolver } from '../../src/api/graphql/agent-session/agent-session.resolver.js';
+import { databaseConfig } from '../../src/config/database.config.js';
 import { AgentSessionModule } from '../../src/features/agent-session/agent-session.module.js';
 import {
   AGENT_DEFINITIONS,
@@ -77,6 +79,7 @@ export async function createAgentSessionGraphqlApp() {
   };
   const module = await Test.createTestingModule({
     imports: [
+      ConfigModule.forRoot({ isGlobal: true, load: [databaseConfig] }),
       AgentSessionModule,
       GraphQLModule.forRoot<YogaDriverConfig>({
         driver: YogaDriver,

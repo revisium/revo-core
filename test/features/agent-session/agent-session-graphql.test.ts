@@ -1,5 +1,6 @@
 import { YogaDriver, type YogaDriverConfig } from '@graphql-yoga/nestjs';
 import type { INestApplication } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { Test } from '@nestjs/testing';
 import type { AgentSession, AgentSessions, AgentSessionTurn } from '@revisium/revo-agent-runtime';
@@ -7,6 +8,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AgentSessionResolver } from '../../../src/api/graphql/agent-session/agent-session.resolver.js';
+import { databaseConfig } from '../../../src/config/database.config.js';
 import { AgentSessionModule } from '../../../src/features/agent-session/agent-session.module.js';
 import {
   AGENT_MANAGER,
@@ -82,6 +84,7 @@ describe('AgentSession GraphQL application contract', () => {
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [
+        ConfigModule.forRoot({ isGlobal: true, load: [databaseConfig] }),
         AgentSessionModule,
         GraphQLModule.forRoot<YogaDriverConfig>({
           driver: YogaDriver,
