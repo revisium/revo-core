@@ -11,10 +11,10 @@ import request from 'supertest';
 
 import { AppModule } from '../../../src/app.module.js';
 import { agentRuntimeConfig } from '../../../src/config/agent-runtime.config.js';
-import { DialogueEventIngestionApiService } from '../../../src/features/dialogue-event-ingestion/dialogue-event-ingestion-api.service.js';
-import { DialogueExecution } from '../../../src/features/dialogue/application/dialogue-execution.js';
-import { DialogueApiService } from '../../../src/features/dialogue/dialogue-api.service.js';
-import { DispatchDialogueTurnHandler } from '../../../src/features/dialogue/events/dispatch-dialogue-turn.handler.js';
+import { DialogueEventIngestionApiService } from '../../../src/features/dialogues/ingestion/dialogue-event-ingestion-api.service.js';
+import { DialogueApiService } from '../../../src/features/dialogues/management/dialogue-api.service.js';
+import { DialogueExecution } from '../../../src/features/dialogues/management/runtime/dialogue-execution.js';
+import { DispatchDialogueTurnHandler } from '../../../src/features/dialogues/management/runtime/dispatch-dialogue-turn.handler.js';
 import { AGENT_DEFINITIONS } from '../../../src/infrastructure/agent-runtime/agent-runtime.tokens.js';
 import { AgentSessionEventJournal } from '../../../src/infrastructure/agent-runtime/agent-session-event-journal.js';
 import { PrismaService } from '../../../src/infrastructure/database/prisma.service.js';
@@ -527,7 +527,7 @@ export const startDialogueScenario = async (): Promise<DialogueScenario> => {
     changes: app.get<ControllableDialogueChangePublisher>(DialogueChangePublisher),
     dispatch: app.get<ControllableDialogueDispatchHandler>(DispatchDialogueTurnHandler),
     transactions: app.get<ControllableTransactionPrismaService>(TransactionPrismaService),
-    recover: () => app.get(DialogueApiService).recover(),
+    recover: () => app.get(DialogueApiService).reconcileRuntimeState(),
     close: async () => {
       await fake.close();
       await app.close();

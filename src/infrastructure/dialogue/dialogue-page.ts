@@ -1,7 +1,7 @@
 import type {
   DialoguePage,
   DialoguePageInput,
-} from '../../features/dialogue/contracts/dialogue.contracts.js';
+} from '../../features/dialogues/management/contracts/dialogue.contracts.js';
 import { pageSize } from '../../features/shared/pagination/page-size.js';
 import { decodeDialogueCursor, encodeDialogueCursor } from './dialogue-persistence.js';
 

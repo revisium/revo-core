@@ -1,7 +1,7 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { GraphQLJSON } from 'graphql-scalars';
 
-import type { DialogueJson } from '../../../../features/dialogue/contracts/dialogue.contracts.js';
+import type { DialogueJson } from '../../../../features/dialogues/management/contracts/dialogue.contracts.js';
 
 @InputType()
 export class CreateDialogueInput {

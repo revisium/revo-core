@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-import { DialogueTurnSavedEvent } from '../../../src/features/dialogue/events/dialogue-turn-saved.event.js';
-import { DispatchDialogueTurnHandler } from '../../../src/features/dialogue/events/dispatch-dialogue-turn.handler.js';
+import { DialogueTurnSavedEvent } from '../../../src/features/dialogues/management/events/dialogue-turn-saved.event.js';
+import { DispatchDialogueTurnHandler } from '../../../src/features/dialogues/management/runtime/dispatch-dialogue-turn.handler.js';
 
 @Injectable()
 export class ControllableDialogueDispatchHandler extends DispatchDialogueTurnHandler {

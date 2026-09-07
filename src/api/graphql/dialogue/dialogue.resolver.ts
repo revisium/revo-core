@@ -1,6 +1,6 @@
 import { Args, ID, Int, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 
-import { DialogueApiService } from '../../../features/dialogue/dialogue-api.service.js';
+import { DialogueApiService } from '../../../features/dialogues/management/dialogue-api.service.js';
 import { CreateDialogueInput } from './input/create-dialogue.input.js';
 import { ForkDialogueInput } from './input/fork-dialogue.input.js';
 import { RespondDialogueInput } from './input/respond-dialogue.input.js';

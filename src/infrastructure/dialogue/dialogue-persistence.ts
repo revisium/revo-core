@@ -19,14 +19,14 @@ import {
   DialogueOutcome,
   DialogueStatus,
   DialogueTurnStatus,
-} from '../../features/dialogue/contracts/dialogue.contracts.js';
+} from '../../features/dialogues/management/contracts/dialogue.contracts.js';
 import type {
   DialogueHistoryItem,
   DialogueInteraction,
   DialogueJson,
   DialogueSummary,
   DialogueTurn,
-} from '../../features/dialogue/contracts/dialogue.contracts.js';
+} from '../../features/dialogues/management/contracts/dialogue.contracts.js';
 
 export type DialogueTransaction = Prisma.TransactionClient;
 

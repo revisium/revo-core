@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type { AgentSessionEvent, AgentSessionEventCursor } from '@revisium/revo-agent-runtime';
 
-import type { DialogueChange } from '../../features/dialogue/contracts/dialogue.contracts.js';
+import type { DialogueChange } from '../../features/dialogues/management/contracts/dialogue.contracts.js';
 import { PrismaService } from '../database/prisma.service.js';
 import {
   decodeDialogueCursor,

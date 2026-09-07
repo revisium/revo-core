@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 
 import { AgentSessionModule } from '../../features/agent-session/agent-session.module.js';
-import { DialogueModule } from '../../features/dialogue/dialogue.module.js';
+import { DialogueManagementModule } from '../../features/dialogues/management/dialogue-management.module.js';
 import { PlaybookCatalogModule } from '../../features/playbook-catalog/playbook-catalog.module.js';
 import { ProjectModule } from '../../features/project/project.module.js';
 import { RunModule } from '../../features/run/run.module.js';
@@ -23,7 +23,7 @@ initRegisterEnumTypes();
 @Module({
   imports: [
     AgentSessionModule,
-    DialogueModule,
+    DialogueManagementModule,
     ProjectModule,
     PlaybookCatalogModule,
     RunModule,

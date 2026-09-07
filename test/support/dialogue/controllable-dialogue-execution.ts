@@ -5,7 +5,7 @@ import type {
   AgentStartContext,
 } from '@revisium/revo-agent-runtime';
 
-import { DialogueExecution } from '../../../src/features/dialogue/application/dialogue-execution.js';
+import { DialogueExecution } from '../../../src/features/dialogues/management/runtime/dialogue-execution.js';
 import {
   AGENT_LAUNCH_CONTEXT,
   AGENT_MANAGER,
