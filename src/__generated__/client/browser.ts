@@ -82,3 +82,43 @@ export type DbosWorkflowStatus = Prisma.DbosWorkflowStatusModel
  * 
  */
 export type DbosOperationOutput = Prisma.DbosOperationOutputModel
+/**
+ * Model Dialogue
+ * 
+ */
+export type Dialogue = Prisma.DialogueModel
+/**
+ * Model DialogueTurn
+ * 
+ */
+export type DialogueTurn = Prisma.DialogueTurnModel
+/**
+ * Model DialogueHistoryItem
+ * 
+ */
+export type DialogueHistoryItem = Prisma.DialogueHistoryItemModel
+/**
+ * Model DialogueInteraction
+ * 
+ */
+export type DialogueInteraction = Prisma.DialogueInteractionModel
+/**
+ * Model AgentSessionEventStream
+ * 
+ */
+export type AgentSessionEventStream = Prisma.AgentSessionEventStreamModel
+/**
+ * Model AgentSessionEvent
+ * 
+ */
+export type AgentSessionEvent = Prisma.AgentSessionEventModel
+/**
+ * Model DialogueChange
+ * 
+ */
+export type DialogueChange = Prisma.DialogueChangeModel
+/**
+ * Model DialogueFeedPosition
+ * 
+ */
+export type DialogueFeedPosition = Prisma.DialogueFeedPositionModel

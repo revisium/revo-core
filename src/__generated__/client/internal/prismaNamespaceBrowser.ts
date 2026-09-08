@@ -63,7 +63,15 @@ export const ModelName = {
   ProjectFileUsage: 'ProjectFileUsage',
   TableMigration: 'TableMigration',
   DbosWorkflowStatus: 'DbosWorkflowStatus',
-  DbosOperationOutput: 'DbosOperationOutput'
+  DbosOperationOutput: 'DbosOperationOutput',
+  Dialogue: 'Dialogue',
+  DialogueTurn: 'DialogueTurn',
+  DialogueHistoryItem: 'DialogueHistoryItem',
+  DialogueInteraction: 'DialogueInteraction',
+  AgentSessionEventStream: 'AgentSessionEventStream',
+  AgentSessionEvent: 'AgentSessionEvent',
+  DialogueChange: 'DialogueChange',
+  DialogueFeedPosition: 'DialogueFeedPosition'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -269,6 +277,141 @@ export const DbosOperationOutputScalarFieldEnum = {
 export type DbosOperationOutputScalarFieldEnum = (typeof DbosOperationOutputScalarFieldEnum)[keyof typeof DbosOperationOutputScalarFieldEnum]
 
 
+export const DialogueScalarFieldEnum = {
+  id: 'id',
+  ordinal: 'ordinal',
+  title: 'title',
+  agentId: 'agentId',
+  agentVersion: 'agentVersion',
+  agentConfiguration: 'agentConfiguration',
+  metadata: 'metadata',
+  systemContext: 'systemContext',
+  status: 'status',
+  progress: 'progress',
+  pendingCount: 'pendingCount',
+  lastOutcome: 'lastOutcome',
+  activeTurnId: 'activeTurnId',
+  runtimeSessionId: 'runtimeSessionId',
+  contextMode: 'contextMode',
+  originDialogueId: 'originDialogueId',
+  originTurnId: 'originTurnId',
+  originItemSequence: 'originItemSequence',
+  itemSequence: 'itemSequence',
+  significantSequence: 'significantSequence',
+  readSignificantSequence: 'readSignificantSequence',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DialogueScalarFieldEnum = (typeof DialogueScalarFieldEnum)[keyof typeof DialogueScalarFieldEnum]
+
+
+export const DialogueTurnScalarFieldEnum = {
+  id: 'id',
+  dialogueId: 'dialogueId',
+  commandId: 'commandId',
+  userItemId: 'userItemId',
+  inputSha256: 'inputSha256',
+  status: 'status',
+  dispatchState: 'dispatchState',
+  cancelRequested: 'cancelRequested',
+  runtimeSessionId: 'runtimeSessionId',
+  outcome: 'outcome',
+  createdAt: 'createdAt',
+  completedAt: 'completedAt',
+  endItemSequence: 'endItemSequence'
+} as const
+
+export type DialogueTurnScalarFieldEnum = (typeof DialogueTurnScalarFieldEnum)[keyof typeof DialogueTurnScalarFieldEnum]
+
+
+export const DialogueHistoryItemScalarFieldEnum = {
+  id: 'id',
+  dialogueId: 'dialogueId',
+  sequence: 'sequence',
+  turnId: 'turnId',
+  sourceKey: 'sourceKey',
+  kind: 'kind',
+  source: 'source',
+  text: 'text',
+  payload: 'payload',
+  status: 'status',
+  version: 'version',
+  createdAt: 'createdAt',
+  historical: 'historical'
+} as const
+
+export type DialogueHistoryItemScalarFieldEnum = (typeof DialogueHistoryItemScalarFieldEnum)[keyof typeof DialogueHistoryItemScalarFieldEnum]
+
+
+export const DialogueInteractionScalarFieldEnum = {
+  id: 'id',
+  dialogueId: 'dialogueId',
+  turnId: 'turnId',
+  runtimeSessionId: 'runtimeSessionId',
+  runtimeRequestId: 'runtimeRequestId',
+  status: 'status',
+  request: 'request',
+  response: 'response',
+  responseCommandId: 'responseCommandId'
+} as const
+
+export type DialogueInteractionScalarFieldEnum = (typeof DialogueInteractionScalarFieldEnum)[keyof typeof DialogueInteractionScalarFieldEnum]
+
+
+export const AgentSessionEventStreamScalarFieldEnum = {
+  sessionId: 'sessionId',
+  dialogueId: 'dialogueId',
+  streamId: 'streamId',
+  sequence: 'sequence',
+  eventId: 'eventId'
+} as const
+
+export type AgentSessionEventStreamScalarFieldEnum = (typeof AgentSessionEventStreamScalarFieldEnum)[keyof typeof AgentSessionEventStreamScalarFieldEnum]
+
+
+export const AgentSessionEventScalarFieldEnum = {
+  eventId: 'eventId',
+  sessionId: 'sessionId',
+  streamId: 'streamId',
+  sequence: 'sequence',
+  type: 'type',
+  payload: 'payload',
+  observedAt: 'observedAt',
+  claimedResumeTokenId: 'claimedResumeTokenId',
+  createdAt: 'createdAt'
+} as const
+
+export type AgentSessionEventScalarFieldEnum = (typeof AgentSessionEventScalarFieldEnum)[keyof typeof AgentSessionEventScalarFieldEnum]
+
+
+export const DialogueChangeScalarFieldEnum = {
+  sequence: 'sequence',
+  dialogueId: 'dialogueId',
+  kind: 'kind',
+  itemId: 'itemId',
+  itemVersion: 'itemVersion',
+  baseItemVersion: 'baseItemVersion',
+  itemSequence: 'itemSequence',
+  turnId: 'turnId',
+  itemKind: 'itemKind',
+  itemSource: 'itemSource',
+  textDelta: 'textDelta',
+  createdAt: 'createdAt'
+} as const
+
+export type DialogueChangeScalarFieldEnum = (typeof DialogueChangeScalarFieldEnum)[keyof typeof DialogueChangeScalarFieldEnum]
+
+
+export const DialogueFeedPositionScalarFieldEnum = {
+  id: 'id',
+  sequence: 'sequence'
+} as const
+
+export type DialogueFeedPositionScalarFieldEnum = (typeof DialogueFeedPositionScalarFieldEnum)[keyof typeof DialogueFeedPositionScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -282,6 +425,14 @@ export const JsonNullValueInput = {
 } as const
 
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {

@@ -21,6 +21,14 @@ pnpm generate:api-contracts
 pnpm verify
 ```
 
+The default dialogue replay test crosses the 100-row reader batch boundary with
+101 events. Run the full 10,050-event persistence and SSE replay stress scenario
+separately when changing the dialogue journal, projection, or subscription path:
+
+```bash
+pnpm test:dialogue:stress
+```
+
 To reproduce the complete CI and Sonar flow locally, Docker must be running.
 Create the ignored `.env.sonar` file with the SonarCloud token:
 

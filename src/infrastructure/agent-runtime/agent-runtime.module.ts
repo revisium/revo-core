@@ -9,6 +9,7 @@ import {
 } from '@revisium/revo-agent-runtime';
 
 import { agentRuntimeConfig } from '../../config/agent-runtime.config.js';
+import { DialogueEventIngestionModule } from '../../features/dialogues/ingestion/dialogue-event-ingestion.module.js';
 import { AgentActiveState } from './agent-active-state.js';
 import { AgentRuntimeLifecycle } from './agent-runtime-lifecycle.js';
 import { AGENT_DEFINITIONS, AGENT_LAUNCH_CONTEXT, AGENT_MANAGER } from './agent-runtime.tokens.js';
@@ -16,7 +17,7 @@ import { AgentSessionDirectories } from './agent-session-directories.js';
 import { AgentSessionEventJournal } from './agent-session-event-journal.js';
 
 @Module({
-  imports: [ConfigModule.forFeature(agentRuntimeConfig)],
+  imports: [ConfigModule.forFeature(agentRuntimeConfig), DialogueEventIngestionModule],
   providers: [
     AgentActiveState,
     AgentSessionDirectories,

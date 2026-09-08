@@ -40,9 +40,9 @@ enum ProjectKind {
 }
 
 model Repository {
-  id        String  @id @default(nanoid())
+  id        String   @id @default(nanoid())
   projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   name      String
   remoteUrl String?
   localPath String?
@@ -101,7 +101,6 @@ model Branch {
   revisions Revision[]
 
   @@unique([name, projectId])
-
   @@schema("public")
 }
 
@@ -123,7 +122,6 @@ model Revision {
   tables   Table[]
 
   @@index([branchId])
-
   @@schema("public")
 }
 
@@ -143,7 +141,6 @@ model Table {
   rows      Row[]
 
   @@index([id])
-
   @@schema("public")
 }
 
@@ -171,7 +168,6 @@ model Row {
   @@index([hash])
   @@index([schemaHash])
   @@index([publishedAt])
-
   @@schema("public")
 }
 
@@ -190,7 +186,6 @@ model FileBlob {
   @@index([projectId])
   @@index([hash])
   @@index([deletedAt])
-
   @@schema("public")
 }
 
@@ -235,30 +230,292 @@ model TableMigration {
   @@index([status])
   @@index([lockedBy])
   @@index([status, heartbeatAt])
-
   @@schema("public")
 }
+
 // END @revisium/engine 0.7.0 Prisma models
 
 // DBOS owns and migrates these tables. Revo only exposes the fields needed by
 // operational queries; Prisma Migrate ignores both models via prisma.config.ts.
 model DbosWorkflowStatus {
-  workflowUuid String @id @map("workflow_uuid")
+  workflowUuid String  @id @map("workflow_uuid")
   status       String
   name         String?
-  createdAt    BigInt @map("created_at")
-  updatedAt    BigInt @map("updated_at")
+  createdAt    BigInt  @map("created_at")
+  updatedAt    BigInt  @map("updated_at")
 
   @@map("workflow_status")
   @@schema("dbos")
 }
 
 model DbosOperationOutput {
-  workflowUuid String @map("workflow_uuid")
-  functionId   Int    @map("function_id")
+  workflowUuid String  @map("workflow_uuid")
+  functionId   Int     @map("function_id")
   functionName String? @map("function_name")
 
   @@id([workflowUuid, functionId])
   @@map("operation_outputs")
   @@schema("dbos")
+}
+
+model Dialogue {
+  id                      String                    @id
+  ordinal                 BigInt                    @unique @default(autoincrement())
+  title                   String
+  agentId                 String
+  agentVersion            String
+  agentConfiguration      Json                      @default("{}")
+  metadata                Json                      @default("{}")
+  systemContext           String                    @default("")
+  status                  DialogueStatus            @default(READY)
+  progress                String                    @default("")
+  pendingCount            Int                       @default(0)
+  lastOutcome             DialogueOutcome?
+  activeTurnId            String?
+  runtimeSessionId        String?                   @unique
+  contextMode             DialogueContextMode       @default(NEW)
+  originDialogueId        String?
+  originTurnId            String?
+  originItemSequence      BigInt?
+  itemSequence            BigInt                    @default(0)
+  significantSequence     BigInt                    @default(0)
+  readSignificantSequence BigInt                    @default(0)
+  version                 BigInt                    @default(0)
+  createdAt               DateTime                  @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime                  @updatedAt @db.Timestamptz(3)
+  turns                   DialogueTurn[]
+  items                   DialogueHistoryItem[]
+  interactions            DialogueInteraction[]
+  changes                 DialogueChange[]
+  eventStreams            AgentSessionEventStream[]
+
+  @@map("dialogues")
+  @@schema("public")
+}
+
+enum DialogueStatus {
+  READY
+  QUEUED
+  RUNNING
+  WAITING
+  UNCERTAIN
+  CLOSED
+
+  @@schema("public")
+}
+
+enum DialogueOutcome {
+  COMPLETED
+  CANCELLED
+  INTERRUPTED
+  FAILED
+  UNCERTAIN
+
+  @@schema("public")
+}
+
+enum DialogueContextMode {
+  NEW
+  CONTINUED
+  FORK
+
+  @@schema("public")
+}
+
+model DialogueTurn {
+  id               String                @id
+  dialogueId       String
+  dialogue         Dialogue              @relation(fields: [dialogueId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  commandId        String
+  userItemId       String                @unique
+  inputSha256      String
+  status           DialogueTurnStatus    @default(QUEUED)
+  dispatchState    DialogueDispatchState @default(SAVED)
+  cancelRequested  Boolean               @default(false)
+  runtimeSessionId String?
+  outcome          Json                  @default("{}")
+  createdAt        DateTime              @default(now()) @db.Timestamptz(3)
+  completedAt      DateTime?             @db.Timestamptz(3)
+  endItemSequence  BigInt?
+
+  @@unique([dialogueId, commandId])
+  @@index([dialogueId, createdAt, id])
+  @@map("dialogue_turns")
+  @@schema("public")
+}
+
+enum DialogueTurnStatus {
+  QUEUED
+  RUNNING
+  WAITING
+  COMPLETED
+  CANCELLED
+  INTERRUPTED
+  FAILED
+  UNCERTAIN
+
+  @@schema("public")
+}
+
+enum DialogueDispatchState {
+  SAVED
+  DISPATCHING
+  ADMITTED
+  FINISHED
+  UNCERTAIN
+
+  @@schema("public")
+}
+
+model DialogueHistoryItem {
+  id         String                    @id
+  dialogueId String
+  dialogue   Dialogue                  @relation(fields: [dialogueId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  sequence   BigInt
+  turnId     String?
+  sourceKey  String?
+  kind       DialogueHistoryItemKind
+  source     DialogueHistoryItemSource
+  text       String                    @default("")
+  payload    Json                      @default("{}")
+  status     DialogueHistoryItemStatus @default(COMPLETED)
+  version    BigInt                    @default(0)
+  createdAt  DateTime                  @default(now()) @db.Timestamptz(3)
+  historical Boolean                   @default(false)
+
+  @@unique([dialogueId, sequence])
+  @@unique([dialogueId, sourceKey])
+  @@index([dialogueId, turnId, kind])
+  @@map("dialogue_history_items")
+  @@schema("public")
+}
+
+enum DialogueHistoryItemKind {
+  MESSAGE
+  OPERATION
+  INTERACTION
+  RESULT
+  PLAN
+  USAGE
+  CHECKPOINT
+
+  @@schema("public")
+}
+
+enum DialogueHistoryItemSource {
+  USER
+  AGENT
+  SYSTEM
+
+  @@schema("public")
+}
+
+enum DialogueHistoryItemStatus {
+  STREAMING
+  COMPLETED
+  PARTIAL
+  STARTED
+  IN_PROGRESS
+  FAILED
+  INTERRUPTED
+  PENDING
+  RESPONDING
+  RESOLVED
+  ABANDONED
+  CANCELLED
+
+  @@schema("public")
+}
+
+model DialogueInteraction {
+  id                String                    @id
+  dialogueId        String
+  dialogue          Dialogue                  @relation(fields: [dialogueId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  turnId            String?
+  runtimeSessionId  String
+  runtimeRequestId  String
+  status            DialogueInteractionStatus @default(PENDING)
+  request           Json
+  response          Json?
+  responseCommandId String?
+
+  @@unique([runtimeSessionId, runtimeRequestId])
+  @@index([dialogueId, status])
+  @@map("dialogue_interactions")
+  @@schema("public")
+}
+
+enum DialogueInteractionStatus {
+  PENDING
+  RESPONDING
+  RESOLVED
+  ABANDONED
+
+  @@schema("public")
+}
+
+model AgentSessionEventStream {
+  sessionId  String              @id
+  dialogueId String?
+  dialogue   Dialogue?           @relation(fields: [dialogueId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  streamId   String?
+  sequence   Int                 @default(0)
+  eventId    String?
+  events     AgentSessionEvent[]
+
+  @@map("agent_session_event_streams")
+  @@schema("public")
+}
+
+model AgentSessionEvent {
+  eventId              String                  @id
+  sessionId            String
+  session              AgentSessionEventStream @relation(fields: [sessionId], references: [sessionId], onDelete: Restrict, onUpdate: Restrict)
+  streamId             String
+  sequence             Int
+  type                 String
+  payload              Json
+  observedAt           DateTime                @db.Timestamptz(3)
+  claimedResumeTokenId String?                 @unique
+  createdAt            DateTime                @default(now()) @db.Timestamptz(3)
+
+  @@unique([sessionId, streamId, sequence])
+  @@map("agent_session_events")
+  @@schema("public")
+}
+
+model DialogueChange {
+  sequence        BigInt                     @id
+  dialogueId      String
+  dialogue        Dialogue                   @relation(fields: [dialogueId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  kind            DialogueChangeKind
+  itemId          String?
+  itemVersion     BigInt?
+  baseItemVersion BigInt?
+  itemSequence    BigInt?
+  turnId          String?
+  itemKind        DialogueHistoryItemKind?
+  itemSource      DialogueHistoryItemSource?
+  textDelta       String?
+  createdAt       DateTime                   @default(now()) @db.Timestamptz(3)
+
+  @@index([dialogueId, sequence])
+  @@map("dialogue_changes")
+  @@schema("public")
+}
+
+enum DialogueChangeKind {
+  SUMMARY_UPDATED
+  HISTORY_ITEM_UPSERTED
+  HISTORY_TEXT_APPENDED
+
+  @@schema("public")
+}
+
+model DialogueFeedPosition {
+  id       Int    @id
+  sequence BigInt @default(0)
+
+  @@map("dialogue_feed_positions")
+  @@schema("public")
 }

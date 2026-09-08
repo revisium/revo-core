@@ -409,7 +409,15 @@ export const ModelName = {
   ProjectFileUsage: 'ProjectFileUsage',
   TableMigration: 'TableMigration',
   DbosWorkflowStatus: 'DbosWorkflowStatus',
-  DbosOperationOutput: 'DbosOperationOutput'
+  DbosOperationOutput: 'DbosOperationOutput',
+  Dialogue: 'Dialogue',
+  DialogueTurn: 'DialogueTurn',
+  DialogueHistoryItem: 'DialogueHistoryItem',
+  DialogueInteraction: 'DialogueInteraction',
+  AgentSessionEventStream: 'AgentSessionEventStream',
+  AgentSessionEvent: 'AgentSessionEvent',
+  DialogueChange: 'DialogueChange',
+  DialogueFeedPosition: 'DialogueFeedPosition'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -425,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "project" | "repository" | "reviewThread" | "reviewMessage" | "branch" | "revision" | "table" | "row" | "fileBlob" | "projectFileUsage" | "tableMigration" | "dbosWorkflowStatus" | "dbosOperationOutput"
+    modelProps: "project" | "repository" | "reviewThread" | "reviewMessage" | "branch" | "revision" | "table" | "row" | "fileBlob" | "projectFileUsage" | "tableMigration" | "dbosWorkflowStatus" | "dbosOperationOutput" | "dialogue" | "dialogueTurn" | "dialogueHistoryItem" | "dialogueInteraction" | "agentSessionEventStream" | "agentSessionEvent" | "dialogueChange" | "dialogueFeedPosition"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1391,6 +1399,598 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Dialogue: {
+      payload: Prisma.$DialoguePayload<ExtArgs>
+      fields: Prisma.DialogueFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DialogueFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialoguePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DialogueFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialoguePayload>
+        }
+        findFirst: {
+          args: Prisma.DialogueFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialoguePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DialogueFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialoguePayload>
+        }
+        findMany: {
+          args: Prisma.DialogueFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialoguePayload>[]
+        }
+        create: {
+          args: Prisma.DialogueCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialoguePayload>
+        }
+        createMany: {
+          args: Prisma.DialogueCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DialogueCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialoguePayload>[]
+        }
+        delete: {
+          args: Prisma.DialogueDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialoguePayload>
+        }
+        update: {
+          args: Prisma.DialogueUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialoguePayload>
+        }
+        deleteMany: {
+          args: Prisma.DialogueDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DialogueUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DialogueUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialoguePayload>[]
+        }
+        upsert: {
+          args: Prisma.DialogueUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialoguePayload>
+        }
+        aggregate: {
+          args: Prisma.DialogueAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDialogue>
+        }
+        groupBy: {
+          args: Prisma.DialogueGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DialogueGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DialogueCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DialogueCountAggregateOutputType> | number
+        }
+      }
+    }
+    DialogueTurn: {
+      payload: Prisma.$DialogueTurnPayload<ExtArgs>
+      fields: Prisma.DialogueTurnFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DialogueTurnFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueTurnPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DialogueTurnFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueTurnPayload>
+        }
+        findFirst: {
+          args: Prisma.DialogueTurnFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueTurnPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DialogueTurnFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueTurnPayload>
+        }
+        findMany: {
+          args: Prisma.DialogueTurnFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueTurnPayload>[]
+        }
+        create: {
+          args: Prisma.DialogueTurnCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueTurnPayload>
+        }
+        createMany: {
+          args: Prisma.DialogueTurnCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DialogueTurnCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueTurnPayload>[]
+        }
+        delete: {
+          args: Prisma.DialogueTurnDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueTurnPayload>
+        }
+        update: {
+          args: Prisma.DialogueTurnUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueTurnPayload>
+        }
+        deleteMany: {
+          args: Prisma.DialogueTurnDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DialogueTurnUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DialogueTurnUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueTurnPayload>[]
+        }
+        upsert: {
+          args: Prisma.DialogueTurnUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueTurnPayload>
+        }
+        aggregate: {
+          args: Prisma.DialogueTurnAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDialogueTurn>
+        }
+        groupBy: {
+          args: Prisma.DialogueTurnGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DialogueTurnGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DialogueTurnCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DialogueTurnCountAggregateOutputType> | number
+        }
+      }
+    }
+    DialogueHistoryItem: {
+      payload: Prisma.$DialogueHistoryItemPayload<ExtArgs>
+      fields: Prisma.DialogueHistoryItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DialogueHistoryItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueHistoryItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DialogueHistoryItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueHistoryItemPayload>
+        }
+        findFirst: {
+          args: Prisma.DialogueHistoryItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueHistoryItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DialogueHistoryItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueHistoryItemPayload>
+        }
+        findMany: {
+          args: Prisma.DialogueHistoryItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueHistoryItemPayload>[]
+        }
+        create: {
+          args: Prisma.DialogueHistoryItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueHistoryItemPayload>
+        }
+        createMany: {
+          args: Prisma.DialogueHistoryItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DialogueHistoryItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueHistoryItemPayload>[]
+        }
+        delete: {
+          args: Prisma.DialogueHistoryItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueHistoryItemPayload>
+        }
+        update: {
+          args: Prisma.DialogueHistoryItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueHistoryItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.DialogueHistoryItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DialogueHistoryItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DialogueHistoryItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueHistoryItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.DialogueHistoryItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueHistoryItemPayload>
+        }
+        aggregate: {
+          args: Prisma.DialogueHistoryItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDialogueHistoryItem>
+        }
+        groupBy: {
+          args: Prisma.DialogueHistoryItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DialogueHistoryItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DialogueHistoryItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DialogueHistoryItemCountAggregateOutputType> | number
+        }
+      }
+    }
+    DialogueInteraction: {
+      payload: Prisma.$DialogueInteractionPayload<ExtArgs>
+      fields: Prisma.DialogueInteractionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DialogueInteractionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueInteractionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DialogueInteractionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueInteractionPayload>
+        }
+        findFirst: {
+          args: Prisma.DialogueInteractionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueInteractionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DialogueInteractionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueInteractionPayload>
+        }
+        findMany: {
+          args: Prisma.DialogueInteractionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueInteractionPayload>[]
+        }
+        create: {
+          args: Prisma.DialogueInteractionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueInteractionPayload>
+        }
+        createMany: {
+          args: Prisma.DialogueInteractionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DialogueInteractionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueInteractionPayload>[]
+        }
+        delete: {
+          args: Prisma.DialogueInteractionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueInteractionPayload>
+        }
+        update: {
+          args: Prisma.DialogueInteractionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueInteractionPayload>
+        }
+        deleteMany: {
+          args: Prisma.DialogueInteractionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DialogueInteractionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DialogueInteractionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueInteractionPayload>[]
+        }
+        upsert: {
+          args: Prisma.DialogueInteractionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueInteractionPayload>
+        }
+        aggregate: {
+          args: Prisma.DialogueInteractionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDialogueInteraction>
+        }
+        groupBy: {
+          args: Prisma.DialogueInteractionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DialogueInteractionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DialogueInteractionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DialogueInteractionCountAggregateOutputType> | number
+        }
+      }
+    }
+    AgentSessionEventStream: {
+      payload: Prisma.$AgentSessionEventStreamPayload<ExtArgs>
+      fields: Prisma.AgentSessionEventStreamFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AgentSessionEventStreamFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventStreamPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AgentSessionEventStreamFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventStreamPayload>
+        }
+        findFirst: {
+          args: Prisma.AgentSessionEventStreamFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventStreamPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AgentSessionEventStreamFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventStreamPayload>
+        }
+        findMany: {
+          args: Prisma.AgentSessionEventStreamFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventStreamPayload>[]
+        }
+        create: {
+          args: Prisma.AgentSessionEventStreamCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventStreamPayload>
+        }
+        createMany: {
+          args: Prisma.AgentSessionEventStreamCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AgentSessionEventStreamCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventStreamPayload>[]
+        }
+        delete: {
+          args: Prisma.AgentSessionEventStreamDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventStreamPayload>
+        }
+        update: {
+          args: Prisma.AgentSessionEventStreamUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventStreamPayload>
+        }
+        deleteMany: {
+          args: Prisma.AgentSessionEventStreamDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AgentSessionEventStreamUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AgentSessionEventStreamUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventStreamPayload>[]
+        }
+        upsert: {
+          args: Prisma.AgentSessionEventStreamUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventStreamPayload>
+        }
+        aggregate: {
+          args: Prisma.AgentSessionEventStreamAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAgentSessionEventStream>
+        }
+        groupBy: {
+          args: Prisma.AgentSessionEventStreamGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AgentSessionEventStreamGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AgentSessionEventStreamCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AgentSessionEventStreamCountAggregateOutputType> | number
+        }
+      }
+    }
+    AgentSessionEvent: {
+      payload: Prisma.$AgentSessionEventPayload<ExtArgs>
+      fields: Prisma.AgentSessionEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AgentSessionEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AgentSessionEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventPayload>
+        }
+        findFirst: {
+          args: Prisma.AgentSessionEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AgentSessionEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventPayload>
+        }
+        findMany: {
+          args: Prisma.AgentSessionEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventPayload>[]
+        }
+        create: {
+          args: Prisma.AgentSessionEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventPayload>
+        }
+        createMany: {
+          args: Prisma.AgentSessionEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AgentSessionEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventPayload>[]
+        }
+        delete: {
+          args: Prisma.AgentSessionEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventPayload>
+        }
+        update: {
+          args: Prisma.AgentSessionEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.AgentSessionEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AgentSessionEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AgentSessionEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.AgentSessionEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentSessionEventPayload>
+        }
+        aggregate: {
+          args: Prisma.AgentSessionEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAgentSessionEvent>
+        }
+        groupBy: {
+          args: Prisma.AgentSessionEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AgentSessionEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AgentSessionEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AgentSessionEventCountAggregateOutputType> | number
+        }
+      }
+    }
+    DialogueChange: {
+      payload: Prisma.$DialogueChangePayload<ExtArgs>
+      fields: Prisma.DialogueChangeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DialogueChangeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueChangePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DialogueChangeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueChangePayload>
+        }
+        findFirst: {
+          args: Prisma.DialogueChangeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueChangePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DialogueChangeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueChangePayload>
+        }
+        findMany: {
+          args: Prisma.DialogueChangeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueChangePayload>[]
+        }
+        create: {
+          args: Prisma.DialogueChangeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueChangePayload>
+        }
+        createMany: {
+          args: Prisma.DialogueChangeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DialogueChangeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueChangePayload>[]
+        }
+        delete: {
+          args: Prisma.DialogueChangeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueChangePayload>
+        }
+        update: {
+          args: Prisma.DialogueChangeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueChangePayload>
+        }
+        deleteMany: {
+          args: Prisma.DialogueChangeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DialogueChangeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DialogueChangeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueChangePayload>[]
+        }
+        upsert: {
+          args: Prisma.DialogueChangeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueChangePayload>
+        }
+        aggregate: {
+          args: Prisma.DialogueChangeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDialogueChange>
+        }
+        groupBy: {
+          args: Prisma.DialogueChangeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DialogueChangeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DialogueChangeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DialogueChangeCountAggregateOutputType> | number
+        }
+      }
+    }
+    DialogueFeedPosition: {
+      payload: Prisma.$DialogueFeedPositionPayload<ExtArgs>
+      fields: Prisma.DialogueFeedPositionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DialogueFeedPositionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueFeedPositionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DialogueFeedPositionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueFeedPositionPayload>
+        }
+        findFirst: {
+          args: Prisma.DialogueFeedPositionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueFeedPositionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DialogueFeedPositionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueFeedPositionPayload>
+        }
+        findMany: {
+          args: Prisma.DialogueFeedPositionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueFeedPositionPayload>[]
+        }
+        create: {
+          args: Prisma.DialogueFeedPositionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueFeedPositionPayload>
+        }
+        createMany: {
+          args: Prisma.DialogueFeedPositionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DialogueFeedPositionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueFeedPositionPayload>[]
+        }
+        delete: {
+          args: Prisma.DialogueFeedPositionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueFeedPositionPayload>
+        }
+        update: {
+          args: Prisma.DialogueFeedPositionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueFeedPositionPayload>
+        }
+        deleteMany: {
+          args: Prisma.DialogueFeedPositionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DialogueFeedPositionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DialogueFeedPositionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueFeedPositionPayload>[]
+        }
+        upsert: {
+          args: Prisma.DialogueFeedPositionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DialogueFeedPositionPayload>
+        }
+        aggregate: {
+          args: Prisma.DialogueFeedPositionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDialogueFeedPosition>
+        }
+        groupBy: {
+          args: Prisma.DialogueFeedPositionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DialogueFeedPositionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DialogueFeedPositionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DialogueFeedPositionCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1617,6 +2217,141 @@ export const DbosOperationOutputScalarFieldEnum = {
 export type DbosOperationOutputScalarFieldEnum = (typeof DbosOperationOutputScalarFieldEnum)[keyof typeof DbosOperationOutputScalarFieldEnum]
 
 
+export const DialogueScalarFieldEnum = {
+  id: 'id',
+  ordinal: 'ordinal',
+  title: 'title',
+  agentId: 'agentId',
+  agentVersion: 'agentVersion',
+  agentConfiguration: 'agentConfiguration',
+  metadata: 'metadata',
+  systemContext: 'systemContext',
+  status: 'status',
+  progress: 'progress',
+  pendingCount: 'pendingCount',
+  lastOutcome: 'lastOutcome',
+  activeTurnId: 'activeTurnId',
+  runtimeSessionId: 'runtimeSessionId',
+  contextMode: 'contextMode',
+  originDialogueId: 'originDialogueId',
+  originTurnId: 'originTurnId',
+  originItemSequence: 'originItemSequence',
+  itemSequence: 'itemSequence',
+  significantSequence: 'significantSequence',
+  readSignificantSequence: 'readSignificantSequence',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DialogueScalarFieldEnum = (typeof DialogueScalarFieldEnum)[keyof typeof DialogueScalarFieldEnum]
+
+
+export const DialogueTurnScalarFieldEnum = {
+  id: 'id',
+  dialogueId: 'dialogueId',
+  commandId: 'commandId',
+  userItemId: 'userItemId',
+  inputSha256: 'inputSha256',
+  status: 'status',
+  dispatchState: 'dispatchState',
+  cancelRequested: 'cancelRequested',
+  runtimeSessionId: 'runtimeSessionId',
+  outcome: 'outcome',
+  createdAt: 'createdAt',
+  completedAt: 'completedAt',
+  endItemSequence: 'endItemSequence'
+} as const
+
+export type DialogueTurnScalarFieldEnum = (typeof DialogueTurnScalarFieldEnum)[keyof typeof DialogueTurnScalarFieldEnum]
+
+
+export const DialogueHistoryItemScalarFieldEnum = {
+  id: 'id',
+  dialogueId: 'dialogueId',
+  sequence: 'sequence',
+  turnId: 'turnId',
+  sourceKey: 'sourceKey',
+  kind: 'kind',
+  source: 'source',
+  text: 'text',
+  payload: 'payload',
+  status: 'status',
+  version: 'version',
+  createdAt: 'createdAt',
+  historical: 'historical'
+} as const
+
+export type DialogueHistoryItemScalarFieldEnum = (typeof DialogueHistoryItemScalarFieldEnum)[keyof typeof DialogueHistoryItemScalarFieldEnum]
+
+
+export const DialogueInteractionScalarFieldEnum = {
+  id: 'id',
+  dialogueId: 'dialogueId',
+  turnId: 'turnId',
+  runtimeSessionId: 'runtimeSessionId',
+  runtimeRequestId: 'runtimeRequestId',
+  status: 'status',
+  request: 'request',
+  response: 'response',
+  responseCommandId: 'responseCommandId'
+} as const
+
+export type DialogueInteractionScalarFieldEnum = (typeof DialogueInteractionScalarFieldEnum)[keyof typeof DialogueInteractionScalarFieldEnum]
+
+
+export const AgentSessionEventStreamScalarFieldEnum = {
+  sessionId: 'sessionId',
+  dialogueId: 'dialogueId',
+  streamId: 'streamId',
+  sequence: 'sequence',
+  eventId: 'eventId'
+} as const
+
+export type AgentSessionEventStreamScalarFieldEnum = (typeof AgentSessionEventStreamScalarFieldEnum)[keyof typeof AgentSessionEventStreamScalarFieldEnum]
+
+
+export const AgentSessionEventScalarFieldEnum = {
+  eventId: 'eventId',
+  sessionId: 'sessionId',
+  streamId: 'streamId',
+  sequence: 'sequence',
+  type: 'type',
+  payload: 'payload',
+  observedAt: 'observedAt',
+  claimedResumeTokenId: 'claimedResumeTokenId',
+  createdAt: 'createdAt'
+} as const
+
+export type AgentSessionEventScalarFieldEnum = (typeof AgentSessionEventScalarFieldEnum)[keyof typeof AgentSessionEventScalarFieldEnum]
+
+
+export const DialogueChangeScalarFieldEnum = {
+  sequence: 'sequence',
+  dialogueId: 'dialogueId',
+  kind: 'kind',
+  itemId: 'itemId',
+  itemVersion: 'itemVersion',
+  baseItemVersion: 'baseItemVersion',
+  itemSequence: 'itemSequence',
+  turnId: 'turnId',
+  itemKind: 'itemKind',
+  itemSource: 'itemSource',
+  textDelta: 'textDelta',
+  createdAt: 'createdAt'
+} as const
+
+export type DialogueChangeScalarFieldEnum = (typeof DialogueChangeScalarFieldEnum)[keyof typeof DialogueChangeScalarFieldEnum]
+
+
+export const DialogueFeedPositionScalarFieldEnum = {
+  id: 'id',
+  sequence: 'sequence'
+} as const
+
+export type DialogueFeedPositionScalarFieldEnum = (typeof DialogueFeedPositionScalarFieldEnum)[keyof typeof DialogueFeedPositionScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1630,6 +2365,14 @@ export const JsonNullValueInput = {
 } as const
 
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -1765,6 +2508,146 @@ export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
  * Reference to a field of type 'BigInt[]'
  */
 export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueStatus'
+ */
+export type EnumDialogueStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueStatus[]'
+ */
+export type ListEnumDialogueStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueOutcome'
+ */
+export type EnumDialogueOutcomeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueOutcome'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueOutcome[]'
+ */
+export type ListEnumDialogueOutcomeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueOutcome[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueContextMode'
+ */
+export type EnumDialogueContextModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueContextMode'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueContextMode[]'
+ */
+export type ListEnumDialogueContextModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueContextMode[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueTurnStatus'
+ */
+export type EnumDialogueTurnStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueTurnStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueTurnStatus[]'
+ */
+export type ListEnumDialogueTurnStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueTurnStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueDispatchState'
+ */
+export type EnumDialogueDispatchStateFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueDispatchState'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueDispatchState[]'
+ */
+export type ListEnumDialogueDispatchStateFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueDispatchState[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueHistoryItemKind'
+ */
+export type EnumDialogueHistoryItemKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueHistoryItemKind'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueHistoryItemKind[]'
+ */
+export type ListEnumDialogueHistoryItemKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueHistoryItemKind[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueHistoryItemSource'
+ */
+export type EnumDialogueHistoryItemSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueHistoryItemSource'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueHistoryItemSource[]'
+ */
+export type ListEnumDialogueHistoryItemSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueHistoryItemSource[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueHistoryItemStatus'
+ */
+export type EnumDialogueHistoryItemStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueHistoryItemStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueHistoryItemStatus[]'
+ */
+export type ListEnumDialogueHistoryItemStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueHistoryItemStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueInteractionStatus'
+ */
+export type EnumDialogueInteractionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueInteractionStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueInteractionStatus[]'
+ */
+export type ListEnumDialogueInteractionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueInteractionStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueChangeKind'
+ */
+export type EnumDialogueChangeKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueChangeKind'>
+    
+
+
+/**
+ * Reference to a field of type 'DialogueChangeKind[]'
+ */
+export type ListEnumDialogueChangeKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DialogueChangeKind[]'>
     
 
 
@@ -1945,6 +2828,14 @@ export type GlobalOmitConfig = {
   tableMigration?: Prisma.TableMigrationOmit
   dbosWorkflowStatus?: Prisma.DbosWorkflowStatusOmit
   dbosOperationOutput?: Prisma.DbosOperationOutputOmit
+  dialogue?: Prisma.DialogueOmit
+  dialogueTurn?: Prisma.DialogueTurnOmit
+  dialogueHistoryItem?: Prisma.DialogueHistoryItemOmit
+  dialogueInteraction?: Prisma.DialogueInteractionOmit
+  agentSessionEventStream?: Prisma.AgentSessionEventStreamOmit
+  agentSessionEvent?: Prisma.AgentSessionEventOmit
+  dialogueChange?: Prisma.DialogueChangeOmit
+  dialogueFeedPosition?: Prisma.DialogueFeedPositionOmit
 }
 
 /* Types for Logging */

@@ -24,3 +24,119 @@ export const ProjectKind = {
 } as const
 
 export type ProjectKind = (typeof ProjectKind)[keyof typeof ProjectKind]
+
+
+export const DialogueStatus = {
+  READY: 'READY',
+  QUEUED: 'QUEUED',
+  RUNNING: 'RUNNING',
+  WAITING: 'WAITING',
+  UNCERTAIN: 'UNCERTAIN',
+  CLOSED: 'CLOSED'
+} as const
+
+export type DialogueStatus = (typeof DialogueStatus)[keyof typeof DialogueStatus]
+
+
+export const DialogueOutcome = {
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  INTERRUPTED: 'INTERRUPTED',
+  FAILED: 'FAILED',
+  UNCERTAIN: 'UNCERTAIN'
+} as const
+
+export type DialogueOutcome = (typeof DialogueOutcome)[keyof typeof DialogueOutcome]
+
+
+export const DialogueContextMode = {
+  NEW: 'NEW',
+  CONTINUED: 'CONTINUED',
+  FORK: 'FORK'
+} as const
+
+export type DialogueContextMode = (typeof DialogueContextMode)[keyof typeof DialogueContextMode]
+
+
+export const DialogueTurnStatus = {
+  QUEUED: 'QUEUED',
+  RUNNING: 'RUNNING',
+  WAITING: 'WAITING',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  INTERRUPTED: 'INTERRUPTED',
+  FAILED: 'FAILED',
+  UNCERTAIN: 'UNCERTAIN'
+} as const
+
+export type DialogueTurnStatus = (typeof DialogueTurnStatus)[keyof typeof DialogueTurnStatus]
+
+
+export const DialogueDispatchState = {
+  SAVED: 'SAVED',
+  DISPATCHING: 'DISPATCHING',
+  ADMITTED: 'ADMITTED',
+  FINISHED: 'FINISHED',
+  UNCERTAIN: 'UNCERTAIN'
+} as const
+
+export type DialogueDispatchState = (typeof DialogueDispatchState)[keyof typeof DialogueDispatchState]
+
+
+export const DialogueHistoryItemKind = {
+  MESSAGE: 'MESSAGE',
+  OPERATION: 'OPERATION',
+  INTERACTION: 'INTERACTION',
+  RESULT: 'RESULT',
+  PLAN: 'PLAN',
+  USAGE: 'USAGE',
+  CHECKPOINT: 'CHECKPOINT'
+} as const
+
+export type DialogueHistoryItemKind = (typeof DialogueHistoryItemKind)[keyof typeof DialogueHistoryItemKind]
+
+
+export const DialogueHistoryItemSource = {
+  USER: 'USER',
+  AGENT: 'AGENT',
+  SYSTEM: 'SYSTEM'
+} as const
+
+export type DialogueHistoryItemSource = (typeof DialogueHistoryItemSource)[keyof typeof DialogueHistoryItemSource]
+
+
+export const DialogueHistoryItemStatus = {
+  STREAMING: 'STREAMING',
+  COMPLETED: 'COMPLETED',
+  PARTIAL: 'PARTIAL',
+  STARTED: 'STARTED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  FAILED: 'FAILED',
+  INTERRUPTED: 'INTERRUPTED',
+  PENDING: 'PENDING',
+  RESPONDING: 'RESPONDING',
+  RESOLVED: 'RESOLVED',
+  ABANDONED: 'ABANDONED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type DialogueHistoryItemStatus = (typeof DialogueHistoryItemStatus)[keyof typeof DialogueHistoryItemStatus]
+
+
+export const DialogueInteractionStatus = {
+  PENDING: 'PENDING',
+  RESPONDING: 'RESPONDING',
+  RESOLVED: 'RESOLVED',
+  ABANDONED: 'ABANDONED'
+} as const
+
+export type DialogueInteractionStatus = (typeof DialogueInteractionStatus)[keyof typeof DialogueInteractionStatus]
+
+
+export const DialogueChangeKind = {
+  SUMMARY_UPDATED: 'SUMMARY_UPDATED',
+  HISTORY_ITEM_UPSERTED: 'HISTORY_ITEM_UPSERTED',
+  HISTORY_TEXT_APPENDED: 'HISTORY_TEXT_APPENDED'
+} as const
+
+export type DialogueChangeKind = (typeof DialogueChangeKind)[keyof typeof DialogueChangeKind]
