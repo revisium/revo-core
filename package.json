@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@graphql-yoga/nestjs": "3.22.2",
+    "@graphql-yoga/plugin-graphql-sse": "3.22.0",
     "@nestjs/common": "11.1.28",
     "@nestjs/config": "4.0.4",
     "@nestjs/core": "11.1.28",

@@ -16,6 +16,8 @@ import { PlaybookCatalogResolver } from './playbook-catalog/playbook-catalog.res
 import { ProjectRecordsResolver } from './project/project-records.resolver.js';
 import { ProjectResolver } from './project/project.resolver.js';
 import { RunResolver } from './run/run.resolver.js';
+import { GraphqlSubscriptionTransport } from './subscriptions/graphql-subscription-transport.js';
+import { GraphqlSubscriptionsModule } from './subscriptions/graphql-subscriptions.module.js';
 import { SystemResolver } from './system/system.resolver.js';
 
 initRegisterEnumTypes();
@@ -28,11 +30,16 @@ initRegisterEnumTypes();
     PlaybookCatalogModule,
     RunModule,
     SystemModule,
-    GraphQLModule.forRoot<YogaDriverConfig>({
+    GraphQLModule.forRootAsync<YogaDriverConfig>({
       driver: YogaDriver,
-      autoSchemaFile: true,
-      sortSchema: true,
-      path: '/graphql',
+      imports: [GraphqlSubscriptionsModule],
+      inject: [GraphqlSubscriptionTransport],
+      useFactory: (transport: GraphqlSubscriptionTransport) => ({
+        autoSchemaFile: true,
+        sortSchema: true,
+        path: '/graphql',
+        plugins: transport.plugins,
+      }),
     }),
   ],
   providers: [

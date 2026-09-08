@@ -6,6 +6,7 @@ import {
   startDialogueScenario,
   type DialogueScenario,
 } from '../../support/dialogue/dialogue-scenario.js';
+import { GraphqlMultiplexClient } from '../../support/graphql-multiplex-client.js';
 
 describe('Persistent dialogues over GraphQL', () => {
   let scenario: DialogueScenario;
@@ -25,6 +26,95 @@ describe('Persistent dialogues over GraphQL', () => {
     const dialogue = await scenario.client.dialogue(created.id);
 
     expect(dialogue).toMatchObject({ status: 'READY', unreadCount: 0 });
+  });
+
+  test('delivers summaries and selected dialogue details through the production multiplex endpoint', async () => {
+    const dialogue = await scenario.client.createDialogue({ title: 'Multiplex dialogue' });
+    const snapshot = await scenario.client.historyPage(dialogue.id);
+    const client = new GraphqlMultiplexClient(`${await scenario.app.getUrl()}/graphql/stream`);
+    await client.connect();
+
+    try {
+      const summaries = await client.subscribe(
+        'summaries',
+        `
+        subscription Summaries($after: String!) {
+          dialogueSummaryChanges(after: $after) { kind dialogueId summary { id status unreadCount } }
+        }
+      `,
+        { after: snapshot.snapshotCursor },
+      );
+      const details = await client.subscribe(
+        'details',
+        `
+        subscription Details($after: String!, $ids: [ID!]!) {
+          dialogueChanges(after: $after, dialogueIds: $ids) { kind dialogueId textDelta }
+        }
+      `,
+        { after: snapshot.snapshotCursor, ids: [dialogue.id] },
+      );
+      expect(summaries.status).toBe(202);
+      expect(details.status).toBe(202);
+      const turn = await scenario.client.send(dialogue.id, 'Send through one stream');
+      const execution = await scenario.agent.expectTurn(turn);
+      await execution.text('Multiplex response');
+      await execution.complete();
+      await expect
+        .poll(() => client.events)
+        .toContainEqual({
+          event: 'next',
+          data: {
+            id: 'details',
+            payload: {
+              data: {
+                dialogueChanges: {
+                  kind: 'HISTORY_TEXT_APPENDED',
+                  dialogueId: dialogue.id,
+                  textDelta: 'Multiplex response',
+                },
+              },
+            },
+          },
+        });
+      await expect
+        .poll(() => client.events)
+        .toContainEqual({
+          event: 'next',
+          data: {
+            id: 'summaries',
+            payload: {
+              data: {
+                dialogueSummaryChanges: {
+                  kind: 'SUMMARY_UPDATED',
+                  dialogueId: dialogue.id,
+                  summary: expect.objectContaining({ id: dialogue.id, status: 'READY' }),
+                },
+              },
+            },
+          },
+        });
+      expect((await client.cancel('details')).status).toBe(200);
+      const other = await scenario.client.createDialogue({ title: 'Still in the sidebar' });
+      await expect
+        .poll(() => client.events)
+        .toContainEqual({
+          event: 'next',
+          data: {
+            id: 'summaries',
+            payload: {
+              data: {
+                dialogueSummaryChanges: {
+                  kind: 'SUMMARY_UPDATED',
+                  dialogueId: other.id,
+                  summary: expect.objectContaining({ id: other.id }),
+                },
+              },
+            },
+          },
+        });
+    } finally {
+      await client.close();
+    }
   });
 
   test('applies the persisted agent configuration when opening the runtime session', async () => {
