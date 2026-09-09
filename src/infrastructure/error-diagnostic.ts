@@ -134,21 +134,33 @@ function sanitizeText(value: string, maximumLength: number): string {
       /-----BEGIN (?:[A-Z0-9]+ )?PRIVATE KEY-----[\s\S]*?(?:-----END (?:[A-Z0-9]+ )?PRIVATE KEY-----|$)/giu,
       '[REDACTED PRIVATE KEY]',
     )
-    .replace(/\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]+/giu, '$1 [REDACTED]')
+    .replace(/\b(Bearer|Basic)\s+[a-z0-9._~+/=-]+/giu, '$1 [REDACTED]')
     .replace(/\b([a-z][a-z0-9+.-]*:\/\/)[^\s/:@]+:[^\s/@]+@/giu, '$1[REDACTED]@')
     .replace(
-      /(^|[\s,;([{?&])(["']?)([a-z][a-z0-9._-]*)\2(\s*[:=]\s*)("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,;}\])]+)/gimu,
-      (
-        match: string,
-        prefix: string,
-        keyQuote: string,
-        key: string,
-        separator: string,
-        assignmentValue: string,
-      ) =>
+      /"([a-z][a-z0-9._-]*)"(\s*:\s*)("(?:\\.|[^"\\])*")/gimu,
+      (match: string, key: string, separator: string, assignmentValue: string) =>
         isSensitiveAssignmentKey(key)
-          ? `${prefix}${keyQuote}${key}${keyQuote}${separator}${redactedAssignmentValue(assignmentValue)}`
+          ? `"${key}"${separator}${redactedAssignmentValue(assignmentValue)}`
           : match,
+    )
+    .replace(
+      /'([a-z][a-z0-9._-]*)'(\s*:\s*)('(?:\\.|[^'\\])*')/gimu,
+      (match: string, key: string, separator: string, assignmentValue: string) =>
+        isSensitiveAssignmentKey(key)
+          ? `'${key}'${separator}${redactedAssignmentValue(assignmentValue)}`
+          : match,
+    )
+    .replace(
+      /\b([a-z][a-z0-9._-]*)(\s*[:=]\s*)("(?:\\.|[^"\\])*")/gimu,
+      redactUnquotedKeyAssignment,
+    )
+    .replace(
+      /\b([a-z][a-z0-9._-]*)(\s*[:=]\s*)('(?:\\.|[^'\\])*')/gimu,
+      redactUnquotedKeyAssignment,
+    )
+    .replace(
+      /\b([a-z][a-z0-9._-]*)(\s*[:=]\s*)([^"'\s,;}\]][^\s,;}\]]*)/gimu,
+      redactUnquotedKeyAssignment,
     );
 
   if (redacted.length <= maximumLength) {
@@ -156,6 +168,17 @@ function sanitizeText(value: string, maximumLength: number): string {
   }
 
   return `${redacted.slice(0, maximumLength)}[TRUNCATED]`;
+}
+
+function redactUnquotedKeyAssignment(
+  match: string,
+  key: string,
+  separator: string,
+  assignmentValue: string,
+): string {
+  return isSensitiveAssignmentKey(key)
+    ? `${key}${separator}${redactedAssignmentValue(assignmentValue)}`
+    : match;
 }
 
 function redactedAssignmentValue(value: string): string {
