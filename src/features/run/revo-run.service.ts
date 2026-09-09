@@ -25,6 +25,7 @@ import {
   AGENT_MANAGER,
   AGENT_DEFINITIONS,
 } from '../../infrastructure/agent-runtime/agent-runtime.tokens.js';
+import { reportErrorDiagnostic } from '../../infrastructure/error-diagnostic.js';
 import { RunWorkingDirectoryCoordinator } from './infrastructure/working-directory/run-working-directory-coordinator.js';
 import { TemporaryRunDirectoryHost } from './infrastructure/working-directory/temporary-run-directory-host.js';
 
@@ -57,7 +58,7 @@ export class RevoRunService implements OnModuleInit, OnApplicationShutdown {
     this.workingDirectoryCoordinator = new RunWorkingDirectoryCoordinator(
       this.manager,
       this.workingDirectoryHost,
-      (error) => this.logger.error('Temporary run working directory cleanup failed.', error),
+      (operation, runId, error) => reportErrorDiagnostic(this.logger, { operation, runId }, error),
     );
     await this.manager.start();
   }

@@ -31,9 +31,9 @@ export const mapAgentDefinitionsError = (error: unknown): AgentDefinitionsApplic
 
   if (error instanceof AgentManagerError) {
     const code = error.fault.code;
+    const publicCode = classifyRuntimeFault(code);
 
-    return new AgentDefinitionsApplicationError(classifyRuntimeFault(code), error.fault.message, {
-      ...error.fault.details,
+    return new AgentDefinitionsApplicationError(publicCode, publicAgentErrorMessage(publicCode), {
       runtimeCode: code,
       retryable: error.fault.retryable,
     });
@@ -71,4 +71,28 @@ function classifyRuntimeFault(code: AgentFault['code']): AgentDefinitionsErrorCo
   }
 
   return AgentDefinitionsErrorCode.internal;
+}
+
+function publicAgentErrorMessage(code: AgentDefinitionsErrorCode): string {
+  if (code === AgentDefinitionsErrorCode.notFound) {
+    return 'Agent definition was not found.';
+  }
+
+  if (code === AgentDefinitionsErrorCode.invalidInput) {
+    return 'Agent definition input is invalid.';
+  }
+
+  if (code === AgentDefinitionsErrorCode.unsupported) {
+    return 'Agent definition operation is unsupported.';
+  }
+
+  if (code === AgentDefinitionsErrorCode.unavailable) {
+    return 'Agent definition operation is unavailable.';
+  }
+
+  if (code === AgentDefinitionsErrorCode.conflict) {
+    return 'Agent definition operation conflicts with current state.';
+  }
+
+  return 'Agent definition operation failed.';
 }

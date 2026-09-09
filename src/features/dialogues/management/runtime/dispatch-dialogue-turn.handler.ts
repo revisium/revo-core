@@ -4,6 +4,7 @@ import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { EventsHandler, type IEventHandler } from '@nestjs/cqrs';
 import type {
   AgentConfigurationSelection,
+  AgentFault,
   AgentManager,
   AgentSessionTurn,
   AgentStartContext,
@@ -19,9 +20,22 @@ import { PrismaService } from '../../../../infrastructure/database/prisma.servic
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../../infrastructure/dialogue/dialogue-change-publisher.js';
 import { dialogueJson } from '../../../../infrastructure/dialogue/dialogue-persistence.js';
+import {
+  reportErrorDiagnostic,
+  type ErrorDiagnosticContext,
+} from '../../../../infrastructure/error-diagnostic.js';
 import { DialogueEventIngestionApiService } from '../../ingestion/dialogue-event-ingestion-api.service.js';
 import type { DialogueJson } from '../contracts/dialogue.contracts.js';
 import { DialogueTurnSavedEvent } from '../events/dialogue-turn-saved.event.js';
+
+const DIALOGUE_RUNTIME_OPERATION_ERROR = Symbol('dialogue-runtime-operation-error');
+
+type DialogueRuntimeOperationError = Readonly<{
+  [DIALOGUE_RUNTIME_OPERATION_ERROR]: true;
+  operation: string;
+  error: unknown;
+  context: Omit<ErrorDiagnosticContext, 'operation'>;
+}>;
 
 @Injectable()
 @EventsHandler(DialogueTurnSavedEvent)
@@ -44,7 +58,10 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
 
   handle(event: DialogueTurnSavedEvent): void {
     void this.dispatch(event).catch((error: unknown) => {
-      void this.persistDispatchFailure(event.dialogueId, event.turnId, error);
+      const failure = isDialogueRuntimeOperationError(error)
+        ? error
+        : dialogueRuntimeOperationError('dialogue.turn.dispatch', error, {});
+      void this.persistDispatchFailure(event.dialogueId, event.turnId, failure);
     });
   }
 
@@ -67,11 +84,17 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
       );
       sessionId = newSessionId;
       runtimePrompt = await this.executionPrompt(dialogueId, turnId, prompt);
-      await this.openRuntime(
-        sessionId,
+      await this.runtimeOperation(
+        'dialogue.runtime.open',
         dialogue.agentId,
         dialogue.agentVersion,
-        dialogueJson(dialogue.agentConfiguration),
+        () =>
+          this.openRuntime(
+            newSessionId,
+            dialogue.agentId,
+            dialogue.agentVersion,
+            dialogueJson(dialogue.agentConfiguration),
+          ),
       );
     } else {
       const existingSessionId = sessionId;
@@ -85,15 +108,46 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     ) {
       return;
     }
-    const turn = await this.sendToRuntime(sessionId, turnId, runtimePrompt);
+    const turn = await this.runtimeOperation(
+      'dialogue.runtime.send',
+      dialogue.agentId,
+      dialogue.agentVersion,
+      () => this.sendToRuntime(sessionId, turnId, runtimePrompt),
+    );
 
     if (await this.isCancellationRequested(dialogueId, turnId)) {
-      await turn.cancel('dialogue_api_cancel');
+      await this.runtimeOperation(
+        'dialogue.runtime.cancel',
+        dialogue.agentId,
+        dialogue.agentVersion,
+        () => turn.cancel('dialogue_api_cancel'),
+      );
     }
 
-    void turn.result().catch((error: unknown) => {
-      void this.persistDispatchFailure(dialogueId, turnId, error);
-    });
+    void turn.result().then(
+      (result) => {
+        if (result.status === 'failed') {
+          this.reportRuntimeFault(
+            'dialogue.runtime.turn_result',
+            dialogueId,
+            turnId,
+            dialogue.agentId,
+            dialogue.agentVersion,
+            result.error,
+          );
+        }
+      },
+      (error: unknown) => {
+        void this.persistDispatchFailure(
+          dialogueId,
+          turnId,
+          dialogueRuntimeOperationError('dialogue.runtime.turn_result', error, {
+            agentId: dialogue.agentId,
+            agentVersion: dialogue.agentVersion,
+          }),
+        );
+      },
+    );
   }
 
   private async beginDispatch(dialogueId: string, turnId: string): Promise<boolean> {
@@ -160,23 +214,72 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
   private async persistDispatchFailure(
     dialogueId: string,
     turnId: string,
-    error: unknown,
+    failure: DialogueRuntimeOperationError,
   ): Promise<void> {
+    reportErrorDiagnostic(
+      this.logger,
+      { operation: failure.operation, dialogueId, turnId, ...failure.context },
+      failure.error,
+    );
+
     try {
       await this.ingestion.interruptTurn({
         dialogueId,
         turnId,
         reason: {
           kind: 'DISPATCH_FAILURE',
-          message: error instanceof Error ? error.message : String(error),
+          message: 'Dialogue turn dispatch failed.',
         },
       });
     } catch (persistenceError) {
-      this.logger.error(
-        `Failed to persist dialogue dispatch failure for turn ${turnId}.`,
-        persistenceError instanceof Error ? persistenceError.stack : String(persistenceError),
+      reportErrorDiagnostic(
+        this.logger,
+        {
+          operation: 'dialogue.dispatch_failure.persist',
+          dialogueId,
+          turnId,
+          ...failure.context,
+        },
+        persistenceError,
       );
     }
+  }
+
+  private async runtimeOperation<T>(
+    operation: string,
+    agentId: string,
+    agentVersion: string,
+    action: () => Promise<T>,
+  ): Promise<T> {
+    try {
+      return await action();
+    } catch (error) {
+      throw dialogueRuntimeOperationError(operation, error, { agentId, agentVersion });
+    }
+  }
+
+  private reportRuntimeFault(
+    operation: string,
+    dialogueId: string,
+    turnId: string,
+    agentId: string,
+    agentVersion: string,
+    fault: AgentFault,
+  ): void {
+    reportErrorDiagnostic(
+      this.logger,
+      {
+        operation,
+        dialogueId,
+        turnId,
+        agentId,
+        agentVersion,
+        runtimeCode: fault.code,
+        phase: fault.phase,
+        retryable: fault.retryable,
+      },
+      fault,
+    );
   }
 
   private getDialogue(dialogueId: string) {
@@ -340,4 +443,21 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
 
     return { selections, ...(catalogRevision === undefined ? {} : { catalogRevision }) };
   }
+}
+
+function dialogueRuntimeOperationError(
+  operation: string,
+  error: unknown,
+  context: Omit<ErrorDiagnosticContext, 'operation'>,
+): DialogueRuntimeOperationError {
+  return { [DIALOGUE_RUNTIME_OPERATION_ERROR]: true, operation, error, context };
+}
+
+function isDialogueRuntimeOperationError(value: unknown): value is DialogueRuntimeOperationError {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    DIALOGUE_RUNTIME_OPERATION_ERROR in value &&
+    value[DIALOGUE_RUNTIME_OPERATION_ERROR] === true
+  );
 }

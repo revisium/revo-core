@@ -1,7 +1,9 @@
-import type { AgentSessionEvent } from '@revisium/revo-agent-runtime';
-import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import { Logger } from '@nestjs/common';
+import type { AgentManager, AgentSessionEvent } from '@revisium/revo-agent-runtime';
+import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 /* oxlint-disable no-await-in-loop -- Scenario steps consume ordered GraphQL and SSE state. */
 
+import { AGENT_MANAGER } from '../../../src/infrastructure/agent-runtime/agent-runtime.tokens.js';
 import {
   startDialogueScenario,
   type DialogueScenario,
@@ -343,6 +345,7 @@ describe('Persistent dialogues over GraphQL', () => {
   });
 
   test('persists an agent failure after partial output', async () => {
+    const logged = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     const dialogue = await scenario.client.createDialogue({ title: 'Agent failure' });
     const turn = await scenario.client.send(dialogue.id, 'Fail after writing');
     const execution = await scenario.agent.expectTurn(turn);
@@ -360,7 +363,89 @@ describe('Persistent dialogues over GraphQL', () => {
         (await scenario.client.history(dialogue.id)).find(({ source }) => source === 'AGENT'),
       )
       .toMatchObject({ status: 'PARTIAL', text: 'Before failure' });
+    const result = (await scenario.client.history(dialogue.id)).find(
+      ({ kind }) => kind === 'RESULT',
+    );
+    expect(result).toMatchObject({
+      status: 'FAILED',
+      payload: {
+        status: 'failed',
+        error: {
+          message: 'Agent turn failed.',
+          code: expect.any(String),
+          phase: expect.any(String),
+          retryable: false,
+        },
+      },
+    });
+    expect(JSON.stringify(result)).not.toContain('Controlled fake agent failure.');
+    await expect
+      .poll(
+        () =>
+          logged.mock.calls.filter(
+            ([entry]) =>
+              typeof entry === 'object' &&
+              entry !== null &&
+              'operation' in entry &&
+              entry.operation === 'dialogue.runtime.turn_result',
+          ),
+        { timeout: 5_000 },
+      )
+      .toHaveLength(1);
+    logged.mockRestore();
   });
+
+  test('logs a detached runtime-open failure and persists only a stable public reason', async () => {
+    const manager = scenario.app.get<AgentManager>(AGENT_MANAGER);
+    const failure = new Error('provider failed authorization=Bearer private-token');
+    failure.stack = 'open stack password=private-password';
+    const open = vi.spyOn(manager.sessions, 'open').mockRejectedValueOnce(failure);
+    const logged = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+
+    try {
+      const dialogue = await scenario.client.createDialogue({ title: 'Runtime open failure' });
+      const turn = await scenario.client.send(dialogue.id, 'Do not expose this prompt');
+
+      await expect
+        .poll(
+          async () =>
+            (await scenario.client.history(dialogue.id)).find(
+              ({ kind, turnId }) => kind === 'RESULT' && turnId === turn.id,
+            ),
+          { timeout: 5_000 },
+        )
+        .toMatchObject({
+          status: 'FAILED',
+          payload: { message: 'Dialogue turn dispatch failed.' },
+        });
+      const diagnostics = logged.mock.calls
+        .map(([entry]) => entry)
+        .filter(
+          (entry) =>
+            typeof entry === 'object' &&
+            entry !== null &&
+            'operation' in entry &&
+            entry.operation === 'dialogue.runtime.open',
+        );
+      expect(diagnostics).toHaveLength(1);
+      expect(diagnostics[0]).toMatchObject({
+        dialogueId: dialogue.id,
+        turnId: turn.id,
+        agentId: 'test-acp',
+        agentVersion: '1.0.0',
+        error: {
+          message: 'provider failed authorization=[REDACTED] [REDACTED]',
+          stack: 'open stack password=[REDACTED]',
+        },
+      });
+      expect(JSON.stringify(await scenario.client.history(dialogue.id))).not.toContain(
+        'private-token',
+      );
+    } finally {
+      open.mockRestore();
+      logged.mockRestore();
+    }
+  }, 15_000);
 
   test('persists and resolves a permission with idempotent response commands', async () => {
     const dialogue = await scenario.client.createDialogue({ title: 'Permission' });

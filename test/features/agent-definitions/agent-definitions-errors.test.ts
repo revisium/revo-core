@@ -37,7 +37,6 @@ describe('Agent definition application errors', () => {
 
     expect(mapAgentDefinitionsError(failure)).toMatchObject({
       code: expectedCode,
-      message: 'Runtime rejected the operation.',
       details: { runtimeCode, retryable: false },
     });
   });
