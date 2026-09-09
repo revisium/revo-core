@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
 import { GraphQLError, type ExecutionResult } from 'graphql';
 import { describe, expect, test, vi } from 'vitest';
 
@@ -32,6 +32,11 @@ describe('subscription operation isolation', () => {
       await Promise.all([isolated.return?.(), isolated.return?.()]);
 
       expect(cleanup).toHaveBeenCalledTimes(1);
+      expect(log).toHaveBeenCalledTimes(2);
+      expect(log.mock.calls.map(([entry]) => entry)).toEqual([
+        expect.objectContaining({ operation: 'graphql.subscription.iterator' }),
+        expect.objectContaining({ operation: 'graphql.subscription.source_cleanup' }),
+      ]);
     } finally {
       log.mockRestore();
     }
@@ -53,17 +58,126 @@ describe('subscription operation isolation', () => {
     await expect(reading).resolves.toEqual({ done: true, value: undefined });
   });
 
-  test('preserves a domain error code with a private underlying cause', () => {
-    const error = new GraphQLError('Cursor expired.', {
-      extensions: { code: 'CURSOR_EXPIRED' },
+  test('preserves a known public error code with a private underlying cause', () => {
+    const error = new GraphQLError('Invalid cursor.', {
+      extensions: { code: 'BAD_USER_INPUT' },
       originalError: new Error('private database details'),
     });
 
     const result = subscriptionError(error);
 
     expect(result).toMatchObject({
-      message: 'Cursor expired.',
-      extensions: { code: 'CURSOR_EXPIRED' },
+      message: 'Invalid cursor.',
+      extensions: { code: 'BAD_USER_INPUT' },
     });
+  });
+
+  test('logs and masks an internal GraphQL error from next()', async () => {
+    const internal = new GraphQLError('database password=private', {
+      extensions: { code: 'INTERNAL_SERVER_ERROR' },
+      originalError: new Error('driver access_token=private-token'),
+    });
+    const isolated = isolateSubscriptionResult(
+      source(
+        () => Promise.reject(internal),
+        () => Promise.resolve({ done: true, value: undefined }),
+      ),
+    );
+    const log = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+
+    await expect(isolated.next()).resolves.toMatchObject({
+      value: {
+        errors: [
+          expect.objectContaining({
+            message: 'Subscription failed.',
+            extensions: { code: 'INTERNAL_SERVER_ERROR' },
+          }),
+        ],
+      },
+    });
+    expect(log).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ operation: 'graphql.subscription.iterator' }),
+    );
+    expect(JSON.stringify(log.mock.calls)).not.toContain('private-token');
+
+    log.mockRestore();
+  });
+
+  test('logs and masks an internal failure passed to throw()', async () => {
+    const isolated = isolateSubscriptionResult(
+      source(
+        () => Promise.resolve({ done: true, value: undefined }),
+        () => Promise.resolve({ done: true, value: undefined }),
+      ),
+    );
+    const log = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+
+    await expect(
+      isolated.throw?.(
+        new GraphQLError('private password=private', {
+          extensions: { code: 'INTERNAL_SERVER_ERROR' },
+        }),
+      ),
+    ).resolves.toMatchObject({
+      value: {
+        errors: [
+          expect.objectContaining({
+            message: 'Subscription failed.',
+            extensions: { code: 'INTERNAL_SERVER_ERROR' },
+          }),
+        ],
+      },
+    });
+    expect(log).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ operation: 'graphql.subscription.iterator_throw' }),
+    );
+    expect(JSON.stringify(log.mock.calls)).not.toContain('password=private');
+
+    log.mockRestore();
+  });
+
+  test('keeps a known public GraphQL failure from throw() without logging it', async () => {
+    const isolated = isolateSubscriptionResult(
+      source(
+        () => Promise.resolve({ done: true, value: undefined }),
+        () => Promise.resolve({ done: true, value: undefined }),
+      ),
+    );
+    const log = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+
+    await expect(
+      isolated.throw?.(new GraphQLError('Unknown probe.', { extensions: { code: 'NOT_FOUND' } })),
+    ).resolves.toMatchObject({
+      value: {
+        errors: [
+          expect.objectContaining({ message: 'Unknown probe.', extensions: { code: 'NOT_FOUND' } }),
+        ],
+      },
+    });
+    expect(log).not.toHaveBeenCalled();
+
+    log.mockRestore();
+  });
+
+  test('does not log an expected client failure from the source', async () => {
+    const isolated = isolateSubscriptionResult(
+      source(
+        () => Promise.reject(new BadRequestException('Invalid cursor.')),
+        () => Promise.resolve({ done: true, value: undefined }),
+      ),
+    );
+    const log = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+
+    await expect(isolated.next()).resolves.toMatchObject({
+      value: {
+        errors: [
+          expect.objectContaining({
+            message: 'Invalid cursor.',
+            extensions: { code: 'BAD_USER_INPUT' },
+          }),
+        ],
+      },
+    });
+    expect(log).not.toHaveBeenCalled();
   });
 });

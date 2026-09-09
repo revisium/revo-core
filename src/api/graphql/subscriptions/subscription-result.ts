@@ -1,19 +1,25 @@
 import { HttpException, Logger } from '@nestjs/common';
 import { GraphQLError, type ExecutionResult } from 'graphql';
 
+import { reportErrorDiagnostic } from '../../../infrastructure/error-diagnostic.js';
+
 const logger = new Logger('GraphqlSubscriptions');
+const PUBLIC_GRAPHQL_ERROR_CODES = new Set([
+  'BAD_USER_INPUT',
+  'FORBIDDEN',
+  'GRAPHQL_PARSE_FAILED',
+  'GRAPHQL_VALIDATION_FAILED',
+  'NOT_FOUND',
+  'UNAUTHENTICATED',
+]);
 
 export function subscriptionError(error: unknown): GraphQLError {
-  if (isGraphqlError(error) && typeof error.extensions.code === 'string') {
+  if (isPublicGraphqlError(error)) {
     return error;
   }
 
   if (isGraphqlError(error) && error.originalError !== undefined) {
     return subscriptionError(error.originalError);
-  }
-
-  if (isGraphqlError(error)) {
-    return error;
   }
 
   if (error instanceof HttpException && error.getStatus() < 500) {
@@ -45,7 +51,7 @@ export function isolateSubscriptionResult(
     try {
       await iterator.return?.();
     } catch (error) {
-      logger.error('Subscription source cleanup failed.', error);
+      reportErrorDiagnostic(logger, { operation: 'graphql.subscription.source_cleanup' }, error);
     }
   };
 
@@ -67,6 +73,7 @@ export function isolateSubscriptionResult(
           return { done: true, value: undefined };
         }
         stopped = true;
+        reportInternalSubscriptionError('graphql.subscription.iterator', error);
         await close();
 
         return { done: false, value: { errors: [subscriptionError(error)] } };
@@ -80,9 +87,45 @@ export function isolateSubscriptionResult(
     },
     async throw(error: unknown) {
       stopped = true;
+      reportInternalSubscriptionError('graphql.subscription.iterator_throw', error);
       await close();
 
       return { done: false, value: { errors: [subscriptionError(error)] } };
     },
   };
+}
+
+function reportInternalSubscriptionError(operation: string, error: unknown): void {
+  if (isPublicGraphqlError(error)) {
+    return;
+  }
+
+  if (isGraphqlError(error) && error.originalError !== undefined) {
+    reportInternalSubscriptionError(operation, error.originalError);
+
+    return;
+  }
+
+  if (error instanceof HttpException && error.getStatus() < 500) {
+    return;
+  }
+
+  reportErrorDiagnostic(logger, { operation }, error);
+}
+
+function isPublicGraphqlError(error: unknown): error is GraphQLError {
+  if (!isGraphqlError(error) || typeof error.extensions.code !== 'string') {
+    return false;
+  }
+
+  if (PUBLIC_GRAPHQL_ERROR_CODES.has(error.extensions.code)) {
+    return true;
+  }
+
+  return (
+    typeof error.extensions.statusCode === 'number' &&
+    (typeof error.extensions.path === 'string' || error.extensions.path === null) &&
+    typeof error.extensions.details === 'object' &&
+    error.extensions.details !== null
+  );
 }

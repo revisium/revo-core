@@ -1,12 +1,13 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import type { PipelineSourcePackage, RunProfile } from '@revisium/revo-run';
 import { nanoid } from 'nanoid';
 
+import { reportErrorDiagnostic } from '../../../../infrastructure/error-diagnostic.js';
 import { isCatalogRecordId } from '../../../playbook-catalog/contracts/catalog-record-id.js';
 import { PlaybookCatalogApiService } from '../../../playbook-catalog/playbook-catalog-api.service.js';
 import { RevoRunService } from '../../revo-run.service.js';
-import { rethrowPublicRunError } from '../../run-manager-error.mapper.js';
+import { isReportableRunError, rethrowPublicRunError } from '../../run-manager-error.mapper.js';
 import {
   StartRunCommand,
   type StartRunCommandData,
@@ -18,6 +19,8 @@ export class StartRunHandler implements ICommandHandler<
   StartRunCommand,
   StartRunCommandReturnType
 > {
+  private readonly logger = new Logger(StartRunHandler.name);
+
   constructor(
     private readonly catalog: PlaybookCatalogApiService,
     private readonly runs: RevoRunService,
@@ -45,15 +48,20 @@ export class StartRunHandler implements ICommandHandler<
 
     const pipeline = await this.selectedPipeline(data, hasPipelineId);
     const profile = await this.selectedProfile(data, hasProfileId);
+    const runId = `r${nanoid()}`;
 
     try {
       return await this.runs.createRun({
-        runId: `r${nanoid()}`,
+        runId,
         pipeline,
         profile,
         input: data.input,
       });
     } catch (error) {
+      if (isReportableRunError(error)) {
+        reportErrorDiagnostic(this.logger, { operation: 'run.create', runId }, error);
+      }
+
       return rethrowPublicRunError(error);
     }
   }

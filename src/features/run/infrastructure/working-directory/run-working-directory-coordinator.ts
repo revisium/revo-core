@@ -9,6 +9,7 @@ import { prepareRunProfile } from './run-profile-working-directory.js';
 import { TemporaryRunDirectoryHost } from './temporary-run-directory-host.js';
 
 type RunManagerForWorkingDirectory = Pick<RunManager, 'createRun' | 'waitForTerminal'>;
+type WorkingDirectoryErrorReporter = (operation: string, runId: string, error: unknown) => void;
 
 export class RunWorkingDirectoryCoordinator {
   private readonly cleanups = new Set<Promise<void>>();
@@ -19,7 +20,7 @@ export class RunWorkingDirectoryCoordinator {
   constructor(
     private readonly manager: RunManagerForWorkingDirectory,
     private readonly workingDirectoryHost: TemporaryRunDirectoryHost,
-    private readonly reportError: (error: unknown) => void = () => undefined,
+    private readonly reportError: WorkingDirectoryErrorReporter = () => undefined,
   ) {}
 
   async createRun(input: CreateRunInput): Promise<CreateRunResult> {
@@ -82,11 +83,18 @@ export class RunWorkingDirectoryCoordinator {
   private async cleanupAfterTerminal(runId: string): Promise<void> {
     try {
       await this.manager.waitForTerminal(runId, { signal: this.shutdown.signal });
-      await this.cleanupRun(runId);
     } catch (error) {
       if (!this.shutdown.signal.aborted) {
-        this.reportError(error);
+        this.reportError('run.working_directory.wait_terminal', runId, error);
       }
+
+      return;
+    }
+
+    try {
+      await this.cleanupRun(runId);
+    } catch (error) {
+      this.reportError('run.working_directory.cleanup', runId, error);
     }
   }
 
@@ -98,7 +106,7 @@ export class RunWorkingDirectoryCoordinator {
     try {
       await this.cleanupRun(runId);
     } catch (error) {
-      this.reportError(error);
+      this.reportError('run.working_directory.admission_cleanup', runId, error);
     }
   }
 

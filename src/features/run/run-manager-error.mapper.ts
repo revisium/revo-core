@@ -6,23 +6,24 @@ type RunErrorMapping = Readonly<{
   code?: string;
   message?: string;
   sanitizeDetails?: boolean;
+  report?: boolean;
 }>;
 
 const RUN_MANAGER_ERROR_MAPPING = {
-  agent_runtime_unavailable: { status: HttpStatus.SERVICE_UNAVAILABLE },
+  agent_runtime_unavailable: { status: HttpStatus.SERVICE_UNAVAILABLE, report: true },
   invalid_create_run_input: { status: HttpStatus.BAD_REQUEST },
   invalid_list_runs_filter: { status: HttpStatus.BAD_REQUEST },
   invalid_run_event_page_input: { status: HttpStatus.BAD_REQUEST },
   invalid_run_event_subscription_input: { status: HttpStatus.BAD_REQUEST },
   invalid_run_id: { status: HttpStatus.BAD_REQUEST },
   invalid_wait_for_terminal_input: { status: HttpStatus.BAD_REQUEST },
-  manager_not_started: { status: HttpStatus.SERVICE_UNAVAILABLE },
-  manager_start_failed: { status: HttpStatus.SERVICE_UNAVAILABLE },
-  manager_stop_failed: { status: HttpStatus.SERVICE_UNAVAILABLE },
+  manager_not_started: { status: HttpStatus.SERVICE_UNAVAILABLE, report: true },
+  manager_start_failed: { status: HttpStatus.SERVICE_UNAVAILABLE, report: true },
+  manager_stop_failed: { status: HttpStatus.SERVICE_UNAVAILABLE, report: true },
   pipeline_compilation_failed: { status: HttpStatus.UNPROCESSABLE_ENTITY },
-  run_admission_failed: { status: HttpStatus.SERVICE_UNAVAILABLE },
+  run_admission_failed: { status: HttpStatus.SERVICE_UNAVAILABLE, report: true },
   run_event_cursor_invalid: { status: HttpStatus.BAD_REQUEST },
-  run_event_subscription_failed: { status: HttpStatus.SERVICE_UNAVAILABLE },
+  run_event_subscription_failed: { status: HttpStatus.SERVICE_UNAVAILABLE, report: true },
   run_gate_already_resolved: { status: HttpStatus.CONFLICT },
   run_gate_answer_invalid: { status: HttpStatus.BAD_REQUEST },
   run_gate_not_found: { status: HttpStatus.NOT_FOUND },
@@ -33,19 +34,20 @@ const RUN_MANAGER_ERROR_MAPPING = {
     code: 'RUN_ID_ALLOCATION_CONFLICT',
     message: 'A run ID could not be allocated.',
     sanitizeDetails: true,
+    report: true,
   },
-  run_interaction_failed: { status: HttpStatus.SERVICE_UNAVAILABLE },
+  run_interaction_failed: { status: HttpStatus.SERVICE_UNAVAILABLE, report: true },
   run_not_found: { status: HttpStatus.NOT_FOUND },
   run_profile_invalid: { status: HttpStatus.UNPROCESSABLE_ENTITY },
-  run_read_failed: { status: HttpStatus.SERVICE_UNAVAILABLE },
+  run_read_failed: { status: HttpStatus.SERVICE_UNAVAILABLE, report: true },
   run_recovery_required: { status: HttpStatus.CONFLICT },
   run_requirement_unresolved: { status: HttpStatus.UNPROCESSABLE_ENTITY },
   run_signal_invalid: { status: HttpStatus.BAD_REQUEST },
   run_signal_payload_invalid: { status: HttpStatus.BAD_REQUEST },
-  run_wait_aborted: { status: HttpStatus.SERVICE_UNAVAILABLE },
+  run_wait_aborted: { status: HttpStatus.SERVICE_UNAVAILABLE, report: true },
   run_wait_already_resolved: { status: HttpStatus.CONFLICT },
   run_wait_not_found: { status: HttpStatus.NOT_FOUND },
-  run_wait_timed_out: { status: HttpStatus.GATEWAY_TIMEOUT },
+  run_wait_timed_out: { status: HttpStatus.GATEWAY_TIMEOUT, report: true },
 } as const satisfies Record<RunManagerErrorCode, RunErrorMapping>;
 
 export type PublicRunError = Readonly<{
@@ -55,6 +57,15 @@ export type PublicRunError = Readonly<{
   path: string | null;
   details: JsonObject;
 }>;
+
+export function isReportableRunError(error: unknown): error is RunManagerError {
+  if (!(error instanceof RunManagerError)) {
+    return false;
+  }
+  const mapping: RunErrorMapping = RUN_MANAGER_ERROR_MAPPING[error.code];
+
+  return mapping.report === true;
+}
 
 export function rethrowPublicRunError(error: unknown): never {
   if (!(error instanceof RunManagerError)) {

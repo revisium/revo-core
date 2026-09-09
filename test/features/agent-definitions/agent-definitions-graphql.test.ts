@@ -1,4 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { Logger } from '@nestjs/common';
+import { AgentManagerError } from '@revisium/revo-agent-runtime';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createAgentDefinitionsGraphqlApp } from '../../fixtures/agent-definitions-graphql.js';
 
@@ -11,6 +13,7 @@ describe('Agent definitions over GraphQL', () => {
 
   afterEach(async () => {
     await fixture.app.close();
+    vi.restoreAllMocks();
   });
 
   it('lists and gets agent definitions through the feature API', async () => {
@@ -99,6 +102,63 @@ describe('Agent definitions over GraphQL', () => {
       { agent: { id: 'test', version: '1' }, workspace: { directory: '/test/workspace' } },
       fixture.launchContext,
     );
+  });
+
+  it('logs safe inspection diagnostics while preserving the GraphQL error contract', async () => {
+    const logged = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    fixture.manager.inspectConfiguration.mockRejectedValue(
+      new AgentManagerError({
+        code: 'revo.agent.protocol_failed',
+        phase: 'execution',
+        retryable: false,
+        message: 'Private provider error.',
+        details: { stderr: 'Private process output.' },
+      }),
+    );
+
+    const response = await fixture.graphql(`
+      {
+        inspectAgentConfiguration(agentId: "test", agentVersion: "1") { catalogRevision }
+      }
+    `);
+
+    expect(logged).toHaveBeenCalledExactlyOnceWith({
+      message: 'Library operation failed.',
+      operation: 'agent.configuration.inspect',
+      agentId: 'test',
+      agentVersion: '1',
+      runtimeCode: 'revo.agent.protocol_failed',
+      phase: 'execution',
+      retryable: false,
+      error: expect.objectContaining({
+        type: 'error',
+        name: 'AgentManagerError',
+        message: 'Private provider error.',
+        stack: expect.any(String),
+      }),
+    });
+    expect(logged.mock.calls[0]?.[0]).not.toHaveProperty('error.cause');
+    expect(response.body).toEqual({
+      data: null,
+      errors: [
+        {
+          message: 'Agent definition operation failed.',
+          locations: [{ line: 3, column: 9 }],
+          path: ['inspectAgentConfiguration'],
+          extensions: {
+            statusCode: 500,
+            code: 'REVO_AGENT_SESSION_INTERNAL',
+            path: null,
+            details: {
+              runtimeCode: 'revo.agent.protocol_failed',
+              retryable: false,
+            },
+          },
+        },
+      ],
+    });
+    expect(JSON.stringify(response.body)).not.toContain('Private provider error.');
+    expect(JSON.stringify(response.body)).not.toContain('Private process output.');
   });
 
   it('treats explicit null pagination arguments as omitted', async () => {

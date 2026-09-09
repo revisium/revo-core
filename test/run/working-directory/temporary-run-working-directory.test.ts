@@ -178,6 +178,46 @@ describe('temporary run working directory', () => {
     );
     expect(await pathExists(join(root, 'r_workspace_123'))).toBe(false);
   });
+
+  test('reports a detached terminal wait failure with its run and operation', async () => {
+    const root = await testRoot();
+    const directoryHost = createDirectoryHost(root);
+    const manager = new FakeRunManager();
+    manager.waitForTerminal = () => Promise.reject(new Error('terminal wait failed'));
+    const report = vi.fn<(operation: string, runId: string, error: unknown) => void>();
+    const coordinator = new RunWorkingDirectoryCoordinator(manager, directoryHost, report);
+
+    await coordinator.createRun(createAgentRunInput('r_wait_failure'));
+    await coordinator.waitForCleanup();
+
+    expect(report).toHaveBeenCalledExactlyOnceWith(
+      'run.working_directory.wait_terminal',
+      'r_wait_failure',
+      expect.objectContaining({ message: 'terminal wait failed' }),
+    );
+    expect(await pathExists(join(root, 'r_wait_failure'))).toBe(true);
+  });
+
+  test('reports admission cleanup separately while preserving the primary failure', async () => {
+    const root = await testRoot();
+    const directoryHost = createDirectoryHost(root);
+    const manager = new FakeRunManager();
+    const primary = new Error('admission failed');
+    const cleanup = new Error('cleanup failed');
+    manager.createError = primary;
+    vi.spyOn(directoryHost, 'cleanup').mockRejectedValue(cleanup);
+    const report = vi.fn<(operation: string, runId: string, error: unknown) => void>();
+    const coordinator = new RunWorkingDirectoryCoordinator(manager, directoryHost, report);
+
+    await expect(coordinator.createRun(createAgentRunInput('r_cleanup_failure'))).rejects.toBe(
+      primary,
+    );
+    expect(report).toHaveBeenCalledExactlyOnceWith(
+      'run.working_directory.admission_cleanup',
+      'r_cleanup_failure',
+      cleanup,
+    );
+  });
 });
 
 function createDirectoryHost(root: string): TemporaryRunDirectoryHost {

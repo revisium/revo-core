@@ -2,7 +2,10 @@
 
 import { Injectable } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
-import type { AgentSessionEventAppendResult } from '@revisium/revo-agent-runtime';
+import type {
+  AgentSessionEventAppendResult,
+  AgentSessionTurnOutcome,
+} from '@revisium/revo-agent-runtime';
 
 import type { DialogueHistoryItem, Prisma } from '../../../../../__generated__/client/client.js';
 import { TransactionPrismaService } from '../../../../../infrastructure/database/transaction-prisma.service.js';
@@ -78,9 +81,17 @@ export class CompleteDialogueTurnHandler implements ICommandHandler<
     const remainingInteractions = await this.countPendingInteractions(dialogueId);
     const resultSequence = await this.reserveItemSequence(dialogueId);
     const outcome = this.turnOutcome(event);
+    const publicOutcome = this.publicTurnOutcome(event.outcome);
     const resultId = `${dialogueId}:${event.turnId}:result`;
-    await this.createTurnResult(resultId, dialogueId, event, resultSequence, outcome);
-    await this.finishTurn(dialogueId, event, resultSequence, outcome);
+    await this.createTurnResult(
+      resultId,
+      dialogueId,
+      event,
+      resultSequence,
+      outcome,
+      publicOutcome,
+    );
+    await this.finishTurn(dialogueId, event, resultSequence, outcome, publicOutcome);
     await this.finishDialogue(dialogueId, remainingInteractions, outcome);
 
     for (const item of finalized) {
@@ -181,12 +192,29 @@ export class CompleteDialogueTurnHandler implements ICommandHandler<
     return 'FAILED';
   }
 
+  private publicTurnOutcome(outcome: AgentSessionTurnOutcome): AgentSessionTurnOutcome {
+    if (outcome.status !== 'failed') {
+      return outcome;
+    }
+
+    return {
+      status: 'failed',
+      error: {
+        code: outcome.error.code,
+        message: 'Agent turn failed.',
+        phase: outcome.error.phase,
+        retryable: outcome.error.retryable,
+      },
+    };
+  }
+
   private createTurnResult(
     resultId: string,
     dialogueId: string,
     event: TurnCompletionEvent,
     sequence: bigint,
     outcome: ProjectedTurnOutcome,
+    publicOutcome: AgentSessionTurnOutcome,
   ) {
     return this.transaction.dialogueHistoryItem.create({
       data: {
@@ -197,7 +225,7 @@ export class CompleteDialogueTurnHandler implements ICommandHandler<
         sourceKey: `result:${event.turnId}`,
         kind: 'RESULT',
         source: 'SYSTEM',
-        payload: json(event.outcome),
+        payload: json(publicOutcome),
         status: outcome,
       },
     });
@@ -208,13 +236,14 @@ export class CompleteDialogueTurnHandler implements ICommandHandler<
     event: TurnCompletionEvent,
     endItemSequence: bigint,
     outcome: ProjectedTurnOutcome,
+    publicOutcome: AgentSessionTurnOutcome,
   ) {
     return this.transaction.dialogueTurn.updateMany({
       where: { id: event.turnId, dialogueId },
       data: {
         status: outcome,
         dispatchState: 'FINISHED',
-        outcome: json(event.outcome),
+        outcome: json(publicOutcome),
         completedAt: new Date(event.observedAt),
         endItemSequence,
       },
