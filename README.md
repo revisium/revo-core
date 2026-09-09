@@ -1,98 +1,74 @@
-<div align="center">
-
 # @revisium/revo-core
 
-**Target independently deployable, long-running NestJS daemon and service owner for Revo orchestration.**
+Revo's backend for persistent agent dialogues and durable pipeline runs. Core owns
+PostgreSQL data, agent execution, and the GraphQL and REST APIs used by
+[revo-admin](https://github.com/revisium/revo-admin).
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+## Local development
 
-</div>
+Install Node.js 24 (24.15 or newer), pnpm, and Docker with Compose. With `nvm`,
+`nvm install && nvm use` selects the version in `.nvmrc`. Run `corepack enable`
+to use the pnpm version declared in `package.json`.
 
-> Initial architecture stage. The first DBOS-backed run slice is implemented.
-
-## Current foundation
-
-- NestJS application lifecycle.
-- Application CQRS shared by GraphQL and REST.
-- GraphQL Yoga at `/graphql`, including subscriptions over GraphQL SSE.
-- REST and Swagger at `/api`.
-- Committed GraphQL and OpenAPI contracts.
-- Durable pipeline execution through `@revisium/revo-run`.
-- Agent discovery, configuration inspection, and execution through
-  `@revisium/revo-agent-runtime`.
-- Persistent Dialogue APIs backed by PostgreSQL.
-- PostgreSQL with Prisma-owned product data and DBOS-owned workflow state.
-
-## Boundaries
-
-- Does not own embedded PostgreSQL packaging.
-- Does not own terminal UX.
-- Does not own standalone installation or service lifecycle.
-
-Method planning, MCP, installation packaging, and the product UI are not implemented yet.
-
-## Current API
-
-```graphql
-query {
-  systemInfo {
-    name
-    status
-  }
-}
-```
-
-```http
-GET /api/system
-```
-
-Both return:
-
-```json
-{
-  "name": "revo-core",
-  "status": "ok"
-}
-```
-
-## Runs
-
-Run APIs are available through REST and GraphQL. The generated OpenAPI and GraphQL schemas are the
-current contracts.
-
-## GraphQL subscriptions
-
-GraphQL Yoga serves multiplexed subscriptions at `/graphql/stream`: clients can carry independent
-subscriptions over one event stream per browser tab. Queries, mutations, and distinct-connection
-subscriptions remain available at `/graphql`.
-
-See [subscription registration and contracts](docs/architecture/graphql-subscriptions.md)
-for producer ownership, recovery, and deployment requirements.
-
-## Agents and dialogues
-
-GraphQL exposes agent definitions and configuration catalogs for selecting a runtime provider and
-model. Runtime sessions are an internal execution detail. Persistent Dialogue APIs own multi-turn
-history, status, interactions, read state, idempotent commands, and resumable SSE delivery
-independently of pipeline Runs.
-
-## Development
+From this checkout, install dependencies:
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
+```
+
+Create an ignored `.env` file:
+
+```dotenv
+DATABASE_URL=postgresql://revo:revo@127.0.0.1:55433/revo
+REVO_HOST=127.0.0.1
+REVO_PORT=19222
+```
+
+Start the supplied disposable PostgreSQL database, generate the Prisma client,
+apply migrations, and start Core:
+
+```bash
 pnpm db:test:up
+pnpm db:generate
 pnpm db:migrate:deploy
-pnpm verify
 pnpm start:dev
 ```
 
-Run `pnpm generate:api-contracts` only when intentionally changing a public API.
+The supplied database stores data in memory: stopping its container loses dialogues
+and runs. Stop Core with Ctrl+C and remove the database with `pnpm db:test:down`.
+For persistent development data, use a separate PostgreSQL 17 database with durable
+storage, set its `DATABASE_URL` in `.env`, and skip `db:test:up`. Apply migrations
+with the same command above. Verification uses the separate disposable `.env.test`
+configuration; do not point tests at data you want to keep.
 
-## Composition
+Core listens at `http://127.0.0.1:19222`. Check `GET /api/system` for readiness;
+open `/graphql` for GraphQL or `/api` for Swagger. `start:dev` builds and starts the
+server once; rerun it after source changes.
 
-- `revo-run`
-- `revo-agent-runtime`
-- PostgreSQL and Prisma
+Keep Core running, then follow the
+[Admin setup](https://github.com/revisium/revo-admin#local-development) in a second
+terminal. Admin's development server proxies backend requests to port `19222`.
 
-Core owns one agent manager shared by sessions and pipeline Attempts.
-See [runtime composition and configuration](docs/architecture/agent-runtime.md).
+## Agent access
+
+Authenticate the chosen agent provider on the machine running Core and make its
+required executables available on `PATH`. Agent processes inherit `HOME` and `PATH`
+by default. If a provider needs API-key environment variables, set them for Core
+and add their names to the comma-separated `REVO_AGENT_INHERIT_ENV` allowlist while
+keeping `HOME,PATH`.
+
+The runtime workspace defaults to `~/.revo/sessions` and must be writable. Override
+it with `REVO_AGENT_WORKSPACE_ROOT` in `.env` when needed. See
+[runtime configuration](docs/architecture/agent-runtime.md) for execution and
+recovery behavior.
+
+## API and verification
+
+The committed GraphQL schema and OpenAPI document define the API contracts.
+Queries and mutations use `/graphql`; multiplexed subscriptions use
+`/graphql/stream`. See [subscription registration and contracts](docs/architecture/graphql-subscriptions.md)
+for adding a feed and deploying SSE.
+
+Follow [VERIFICATION.md](VERIFICATION.md) for the local checks and
+[REVIEW.md](REVIEW.md) for repository conventions. Regenerate API contracts only
+when intentionally changing a public API.
