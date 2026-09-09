@@ -1,18 +1,25 @@
 packages: []
 
+catalog:
+  '@revisium/revo-agent-runtime': 0.3.0-alpha.2
+
 allowBuilds:
   '@nestjs/core': true
   '@prisma/engines': true
   '@scarf/scarf': false
   '@swc/core': true
   esbuild: true
+  koffi: false
   prisma: true
   sharp: false
 
 minimumReleaseAgeExclude:
   - unplugin-swc@1.5.10
   - '@revisium/revo-run@0.2.0-alpha.5'
-  - '@revisium/revo-agent-runtime@0.3.0-alpha.0 || 0.3.0-alpha.1'
+  - '@revisium/revo-agent-runtime@0.3.0-alpha.2'
+
+overrides:
+  '@revisium/revo-agent-runtime': 'catalog:'
 
 strictDepBuilds: true
 
