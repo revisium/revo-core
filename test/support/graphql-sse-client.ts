@@ -60,7 +60,7 @@ const requestSubscription = async (
   return response;
 };
 
-const parseEvent = (block: string): GraphqlSseEvent | undefined => {
+export const parseGraphqlSseEvent = (block: string): GraphqlSseEvent | undefined => {
   const lines = block.split('\n');
   const event = lines
     .find((line) => line.startsWith('event:'))
@@ -93,7 +93,7 @@ export const collectGraphqlSseEvents = async (
 
     return body
       .split('\n\n')
-      .map(parseEvent)
+      .map(parseGraphqlSseEvent)
       .filter((event): event is GraphqlSseEvent => event !== undefined);
   }, 'Timed out while collecting GraphQL SSE events.');
 

@@ -27,6 +27,51 @@ describe('Persistent dialogues over GraphQL', () => {
     expect(dialogue).toMatchObject({ status: 'READY', unreadCount: 0 });
   });
 
+  test('delivers selected dialogue details and sidebar status on the same stream', async () => {
+    const dialogue = await scenario.client.createDialogue({ title: 'Multiplex dialogue' });
+    const snapshot = await scenario.client.historyPage(dialogue.id);
+    const feed = await scenario.client.watchDialogue(dialogue.id, snapshot.snapshotCursor);
+
+    try {
+      const turn = await scenario.client.send(dialogue.id, 'Send through one stream');
+      const execution = await scenario.agent.expectTurn(turn);
+      await execution.text('Multiplex response');
+      await execution.complete();
+
+      await expect.poll(feed.changes).toContainEqual({
+        kind: 'HISTORY_TEXT_APPENDED',
+        dialogueId: dialogue.id,
+        textDelta: 'Multiplex response',
+      });
+      await expect.poll(feed.summaries).toContainEqual({
+        kind: 'SUMMARY_UPDATED',
+        dialogueId: dialogue.id,
+        summary: { id: dialogue.id, status: 'READY', unreadCount: 1 },
+      });
+    } finally {
+      await feed.close();
+    }
+  });
+
+  test('keeps sidebar updates subscribed after leaving the selected dialogue', async () => {
+    const selected = await scenario.client.createDialogue({ title: 'Selected dialogue' });
+    const snapshot = await scenario.client.historyPage(selected.id);
+    const feed = await scenario.client.watchDialogue(selected.id, snapshot.snapshotCursor);
+
+    try {
+      await feed.closeDetails();
+      const other = await scenario.client.createDialogue({ title: 'New sidebar entry' });
+
+      await expect.poll(feed.summaries).toContainEqual({
+        kind: 'SUMMARY_UPDATED',
+        dialogueId: other.id,
+        summary: { id: other.id, status: 'READY', unreadCount: 0 },
+      });
+    } finally {
+      await feed.close();
+    }
+  });
+
   test('applies the persisted agent configuration when opening the runtime session', async () => {
     const dialogue = await scenario.client.createDialogue({
       title: 'Configured runtime',
