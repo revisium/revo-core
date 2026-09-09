@@ -41,7 +41,7 @@
     "@prisma/adapter-pg": "7.9.1",
     "@prisma/client": "7.9.1",
     "@revisium/engine": "0.7.0",
-    "@revisium/revo-agent-runtime": "0.3.0-alpha.1",
+    "@revisium/revo-agent-runtime": "catalog:",
     "@revisium/revo-run": "0.2.0-alpha.5",
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
@@ -74,7 +74,7 @@
     "vitest": "4.1.10"
   },
   "engines": {
-    "node": ">=24.11.1 <25"
+    "node": ">=24.15.0 <25"
   },
   "packageManager": "pnpm@11.13.0"
 }
