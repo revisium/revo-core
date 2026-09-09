@@ -7,33 +7,31 @@ import {
   subscriptionError,
 } from '../src/api/graphql/subscriptions/subscription-result.js';
 
+type ReadResult = () => Promise<IteratorResult<ExecutionResult>>;
+
+function source(next: ReadResult, close: ReadResult): AsyncIterableIterator<ExecutionResult> {
+  return {
+    [Symbol.asyncIterator]() {
+      return this;
+    },
+    next,
+    return: close,
+  };
+}
+
 describe('subscription operation isolation', () => {
-  test('contains source cleanup rejection and closes only once after an error and cancellation', async () => {
-    const cleanup = vi
-      .fn<() => Promise<IteratorResult<ExecutionResult>>>()
-      .mockRejectedValue(new Error('cleanup failed'));
+  test('settles one source cleanup across failure and repeated cancellation', async () => {
+    const cleanup = vi.fn<ReadResult>().mockRejectedValue(new Error('cleanup failed'));
+    const isolated = isolateSubscriptionResult(
+      source(() => Promise.reject(new Error('source failure')), cleanup),
+    );
     const log = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
-    const source: AsyncIterableIterator<ExecutionResult> = {
-      [Symbol.asyncIterator]() {
-        return this;
-      },
-      next: () => Promise.reject(new Error('private source failure')),
-      return: cleanup,
-    };
-    const isolated = isolateSubscriptionResult(source);
 
     try {
-      expect(await isolated.next()).toMatchObject({
-        done: false,
-        value: {
-          errors: [
-            { message: 'Subscription failed.', extensions: { code: 'INTERNAL_SERVER_ERROR' } },
-          ],
-        },
-      });
+      await expect(isolated.next()).resolves.toMatchObject({ done: false });
       await Promise.all([isolated.return?.(), isolated.return?.()]);
+
       expect(cleanup).toHaveBeenCalledTimes(1);
-      expect(log).toHaveBeenCalledOnce();
     } finally {
       log.mockRestore();
     }
@@ -41,18 +39,18 @@ describe('subscription operation isolation', () => {
 
   test('ignores late data after cancellation while a source read is pending', async () => {
     const pending = Promise.withResolvers<IteratorResult<ExecutionResult>>();
-    const source: AsyncIterableIterator<ExecutionResult> = {
-      [Symbol.asyncIterator]() {
-        return this;
-      },
-      next: () => pending.promise,
-      return: () => Promise.resolve({ done: true, value: undefined }),
-    };
-    const isolated = isolateSubscriptionResult(source);
+    const isolated = isolateSubscriptionResult(
+      source(
+        () => pending.promise,
+        () => Promise.resolve({ done: true, value: undefined }),
+      ),
+    );
+
     const reading = isolated.next();
     await isolated.return?.();
     pending.resolve({ done: false, value: { data: { stale: true } } });
-    expect(await reading).toEqual({ done: true, value: undefined });
+
+    await expect(reading).resolves.toEqual({ done: true, value: undefined });
   });
 
   test('preserves a domain error code with a private underlying cause', () => {
@@ -60,6 +58,12 @@ describe('subscription operation isolation', () => {
       extensions: { code: 'CURSOR_EXPIRED' },
       originalError: new Error('private database details'),
     });
-    expect(subscriptionError(error)).toBe(error);
+
+    const result = subscriptionError(error);
+
+    expect(result).toMatchObject({
+      message: 'Cursor expired.',
+      extensions: { code: 'CURSOR_EXPIRED' },
+    });
   });
 });

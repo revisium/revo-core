@@ -25,6 +25,7 @@ import { PrismaService } from '../../../src/infrastructure/database/prisma.servi
 import { TransactionPrismaService } from '../../../src/infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../src/infrastructure/dialogue/dialogue-change-publisher.js';
 import { DialogueEventReader } from '../../../src/infrastructure/dialogue/dialogue-event-reader.js';
+import { GraphqlMultiplexClient } from '../graphql-multiplex-client.js';
 import { ControllableDialogueChangePublisher } from './controllable-dialogue-change-publisher.js';
 import { ControllableDialogueDispatchHandler } from './controllable-dialogue-dispatch.handler.js';
 import { ControllableDialogueResponseDelivery } from './controllable-dialogue-response-delivery.js';
@@ -107,6 +108,51 @@ export class DialogueScenarioClient {
     private readonly app: INestApplication,
     private readonly endpoint: string,
   ) {}
+
+  async watchDialogue(dialogueId: string, after: string) {
+    const client = new GraphqlMultiplexClient(`${this.endpoint}/stream`);
+
+    try {
+      await client.connect();
+      const registrations = await Promise.all([
+        client.subscribe(
+          'summaries',
+          `subscription Summaries($after: String!) {
+        dialogueSummaryChanges(after: $after) { kind dialogueId summary { id status unreadCount } }
+      }`,
+          { after },
+        ),
+        client.subscribe(
+          'details',
+          `subscription Details($after: String!, $ids: [ID!]!) {
+        dialogueChanges(after: $after, dialogueIds: $ids) { kind dialogueId textDelta }
+      }`,
+          { after, ids: [dialogueId] },
+        ),
+      ]);
+
+      if (registrations.some(({ status }) => status !== 202)) {
+        throw new Error('Dialogue feed registration failed.');
+      }
+
+      return {
+        changes: () => client.results('details').map(({ data }) => data?.dialogueChanges),
+        summaries: () =>
+          client.results('summaries').map(({ data }) => data?.dialogueSummaryChanges),
+        closeDetails: async () => {
+          const response = await client.cancel('details');
+
+          if (response.status !== 200) {
+            throw new Error(`Dialogue feed cancellation failed: ${response.status}`);
+          }
+        },
+        close: () => client.close(),
+      };
+    } catch (error) {
+      await client.close();
+      throw error;
+    }
+  }
 
   async execute<Data>(query: string, variables?: Record<string, unknown>): Promise<Data> {
     const response = await request(this.app.getHttpServer()).post('/graphql').send({

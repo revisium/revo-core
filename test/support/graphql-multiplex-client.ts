@@ -1,7 +1,14 @@
-import type { GraphqlSseEvent } from './graphql-sse-client.js';
+import type { ExecutionResult } from 'graphql';
+
+import { parseGraphqlSseEvent, type GraphqlSseEvent } from './graphql-sse-client.js';
+
+interface OperationEvent {
+  id: string;
+  payload: ExecutionResult<Record<string, unknown>>;
+}
 
 export class GraphqlMultiplexClient {
-  readonly events: GraphqlSseEvent[] = [];
+  private readonly events: GraphqlSseEvent[] = [];
   private readonly controller = new AbortController();
   private token = '';
   private reading: Promise<void> | undefined;
@@ -56,6 +63,20 @@ export class GraphqlMultiplexClient {
     await this.reading;
   }
 
+  results(operationId: string): ExecutionResult<Record<string, unknown>>[] {
+    return this.events.flatMap(({ event, data }) => {
+      const operation = data as OperationEvent;
+
+      return event === 'next' && operation.id === operationId ? [operation.payload] : [];
+    });
+  }
+
+  completed(operationId: string): boolean {
+    return this.events.some(
+      ({ event, data }) => event === 'complete' && (data as OperationEvent).id === operationId,
+    );
+  }
+
   private headers() {
     return { 'x-graphql-event-stream-token': this.token };
   }
@@ -65,23 +86,15 @@ export class GraphqlMultiplexClient {
     const decoder = new TextDecoder();
 
     for await (const chunk of body) {
-      buffer += decoder.decode(chunk, { stream: true });
+      buffer = (buffer + decoder.decode(chunk, { stream: true })).replaceAll('\r\n', '\n');
       const blocks = buffer.split('\n\n');
       buffer = blocks.pop() ?? '';
 
       for (const block of blocks) {
-        const lines = block.split('\n');
-        const event = lines
-          .find((line) => line.startsWith('event:'))
-          ?.slice(6)
-          .trim();
-        const data = lines
-          .find((line) => line.startsWith('data:'))
-          ?.slice(5)
-          .trim();
+        const event = parseGraphqlSseEvent(block);
 
         if (event !== undefined) {
-          this.events.push({ event, ...(data ? { data: JSON.parse(data) as unknown } : {}) });
+          this.events.push(event);
         }
       }
     }

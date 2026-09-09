@@ -66,16 +66,8 @@ GraphQL Yoga serves multiplexed subscriptions at `/graphql/stream`: clients can 
 subscriptions over one event stream per browser tab. Queries, mutations, and distinct-connection
 subscriptions remain available at `/graphql`.
 
-Subscription resolvers consume feature-owned `AsyncIterable` sources. Revo Core does not add an
-in-memory PubSub layer; durable or distributed event delivery belongs to the feature that owns the
-events. WebSocket transport is not enabled.
-
-Natural source completion sends the GraphQL SSE `complete` event. When a client unsubscribes by
-closing its HTTP stream, Yoga calls `return()` on the source iterator; feature-owned iterators must
-use that signal to release listeners, readers, and other per-subscription resources.
-
-See [subscription architecture and registration](docs/architecture/graphql-subscriptions.md)
-for producer contracts, cancellation, recovery, and proxy routing.
+See [subscription registration and contracts](docs/architecture/graphql-subscriptions.md)
+for producer ownership, recovery, and deployment requirements.
 
 ## Agents and dialogues
 

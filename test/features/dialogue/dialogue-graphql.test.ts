@@ -6,7 +6,6 @@ import {
   startDialogueScenario,
   type DialogueScenario,
 } from '../../support/dialogue/dialogue-scenario.js';
-import { GraphqlMultiplexClient } from '../../support/graphql-multiplex-client.js';
 
 describe('Persistent dialogues over GraphQL', () => {
   let scenario: DialogueScenario;
@@ -28,92 +27,48 @@ describe('Persistent dialogues over GraphQL', () => {
     expect(dialogue).toMatchObject({ status: 'READY', unreadCount: 0 });
   });
 
-  test('delivers summaries and selected dialogue details through the production multiplex endpoint', async () => {
+  test('delivers selected dialogue details and sidebar status on the same stream', async () => {
     const dialogue = await scenario.client.createDialogue({ title: 'Multiplex dialogue' });
     const snapshot = await scenario.client.historyPage(dialogue.id);
-    const client = new GraphqlMultiplexClient(`${await scenario.app.getUrl()}/graphql/stream`);
-    await client.connect();
+    const feed = await scenario.client.watchDialogue(dialogue.id, snapshot.snapshotCursor);
 
     try {
-      const summaries = await client.subscribe(
-        'summaries',
-        `
-        subscription Summaries($after: String!) {
-          dialogueSummaryChanges(after: $after) { kind dialogueId summary { id status unreadCount } }
-        }
-      `,
-        { after: snapshot.snapshotCursor },
-      );
-      const details = await client.subscribe(
-        'details',
-        `
-        subscription Details($after: String!, $ids: [ID!]!) {
-          dialogueChanges(after: $after, dialogueIds: $ids) { kind dialogueId textDelta }
-        }
-      `,
-        { after: snapshot.snapshotCursor, ids: [dialogue.id] },
-      );
-      expect(summaries.status).toBe(202);
-      expect(details.status).toBe(202);
       const turn = await scenario.client.send(dialogue.id, 'Send through one stream');
       const execution = await scenario.agent.expectTurn(turn);
       await execution.text('Multiplex response');
       await execution.complete();
-      await expect
-        .poll(() => client.events)
-        .toContainEqual({
-          event: 'next',
-          data: {
-            id: 'details',
-            payload: {
-              data: {
-                dialogueChanges: {
-                  kind: 'HISTORY_TEXT_APPENDED',
-                  dialogueId: dialogue.id,
-                  textDelta: 'Multiplex response',
-                },
-              },
-            },
-          },
-        });
-      await expect
-        .poll(() => client.events)
-        .toContainEqual({
-          event: 'next',
-          data: {
-            id: 'summaries',
-            payload: {
-              data: {
-                dialogueSummaryChanges: {
-                  kind: 'SUMMARY_UPDATED',
-                  dialogueId: dialogue.id,
-                  summary: expect.objectContaining({ id: dialogue.id, status: 'READY' }),
-                },
-              },
-            },
-          },
-        });
-      expect((await client.cancel('details')).status).toBe(200);
-      const other = await scenario.client.createDialogue({ title: 'Still in the sidebar' });
-      await expect
-        .poll(() => client.events)
-        .toContainEqual({
-          event: 'next',
-          data: {
-            id: 'summaries',
-            payload: {
-              data: {
-                dialogueSummaryChanges: {
-                  kind: 'SUMMARY_UPDATED',
-                  dialogueId: other.id,
-                  summary: expect.objectContaining({ id: other.id }),
-                },
-              },
-            },
-          },
-        });
+
+      await expect.poll(feed.changes).toContainEqual({
+        kind: 'HISTORY_TEXT_APPENDED',
+        dialogueId: dialogue.id,
+        textDelta: 'Multiplex response',
+      });
+      await expect.poll(feed.summaries).toContainEqual({
+        kind: 'SUMMARY_UPDATED',
+        dialogueId: dialogue.id,
+        summary: { id: dialogue.id, status: 'READY', unreadCount: 1 },
+      });
     } finally {
-      await client.close();
+      await feed.close();
+    }
+  });
+
+  test('keeps sidebar updates subscribed after leaving the selected dialogue', async () => {
+    const selected = await scenario.client.createDialogue({ title: 'Selected dialogue' });
+    const snapshot = await scenario.client.historyPage(selected.id);
+    const feed = await scenario.client.watchDialogue(selected.id, snapshot.snapshotCursor);
+
+    try {
+      await feed.closeDetails();
+      const other = await scenario.client.createDialogue({ title: 'New sidebar entry' });
+
+      await expect.poll(feed.summaries).toContainEqual({
+        kind: 'SUMMARY_UPDATED',
+        dialogueId: other.id,
+        summary: { id: other.id, status: 'READY', unreadCount: 0 },
+      });
+    } finally {
+      await feed.close();
     }
   });
 

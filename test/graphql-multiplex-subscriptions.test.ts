@@ -1,179 +1,117 @@
-import { YogaDriver, type YogaDriverConfig } from '@graphql-yoga/nestjs';
-import { BadRequestException, type INestApplication } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
-import { Test } from '@nestjs/testing';
+import { BadRequestException } from '@nestjs/common';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
-import { GraphqlSubscriptionTransport } from '../src/api/graphql/subscriptions/graphql-subscription-transport.js';
-import { GraphqlSubscriptionsModule } from '../src/api/graphql/subscriptions/graphql-subscriptions.module.js';
-import { GraphqlMultiplexClient } from './support/graphql-multiplex-client.js';
-import { MultiplexProbeSources } from './support/graphql-multiplex-probe-sources.js';
-import { GraphqlMultiplexProbeResolver } from './support/graphql-multiplex-probe.js';
+import { createSubscriptionTestKit } from './support/graphql-subscription-test-kit.js';
 
-const QUERY = 'subscription Probe($id: String!) { multiplexProbeEvents(id: $id) }';
-
-describe('GraphQL multiplex subscriptions', () => {
-  let app: INestApplication;
-  let client: GraphqlMultiplexClient;
-  let probes: MultiplexProbeSources;
+describe('Core multiplex subscription adapter', () => {
+  let kit: Awaited<ReturnType<typeof createSubscriptionTestKit>>;
 
   beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      imports: [
-        GraphQLModule.forRootAsync<YogaDriverConfig>({
-          driver: YogaDriver,
-          imports: [GraphqlSubscriptionsModule],
-          inject: [GraphqlSubscriptionTransport],
-          useFactory: (transport: GraphqlSubscriptionTransport) => ({
-            autoSchemaFile: true,
-            path: '/graphql',
-            plugins: transport.plugins,
-          }),
-        }),
-      ],
-      providers: [GraphqlMultiplexProbeResolver, MultiplexProbeSources],
-    }).compile();
-    app = module.createNestApplication();
-    probes = app.get(MultiplexProbeSources);
-    await app.listen(0, '127.0.0.1');
-    client = new GraphqlMultiplexClient(`${await app.getUrl()}/graphql/stream`);
-    await client.connect();
+    kit = await createSubscriptionTestKit();
   });
+  afterEach(async () => kit.close());
 
-  afterEach(async () => {
-    await client.close();
-    await app.close();
-  });
+  test('cancelling an operation releases its pending source and leaves its sibling subscribed', async () => {
+    const selected = await kit.subscribe('selected');
+    const sibling = await kit.subscribe('sibling');
 
-  test('multiplexes two operations on one GET and cancels only the selected operation', async () => {
-    const first = probes.add('first');
-    const second = probes.add('second');
-    expect((await client.subscribe('one', QUERY, { id: 'first' })).status).toBe(202);
-    expect((await client.subscribe('two', QUERY, { id: 'second' })).status).toBe(202);
-    first.emit('first event');
-    second.emit('second event');
-    await expect.poll(() => client.events).toContainEqual(next('one', 'first event'));
-    await expect.poll(() => client.events).toContainEqual(next('two', 'second event'));
-    expect((await client.cancel('one')).status).toBe(200);
-    await first.released.promise;
-    second.emit('still subscribed');
-    await expect.poll(() => client.events).toContainEqual(next('two', 'still subscribed'));
-  });
+    await kit.client.cancel('selected');
 
-  test('natural completion and an unknown operation leave the other subscription alive', async () => {
-    const first = probes.add('first');
-    const second = probes.add('second');
-    await client.subscribe('one', QUERY, { id: 'first' });
-    await client.subscribe('two', QUERY, { id: 'second' });
-    first.complete();
+    await expect(selected.released).resolves.toBeUndefined();
+    sibling.emit('still subscribed');
     await expect
-      .poll(() => client.events)
-      .toContainEqual({ event: 'complete', data: { id: 'one' } });
-    const rejected = await client.subscribe('bad', QUERY, { id: 'missing' });
-    expect(rejected.status).toBe(202);
+      .poll(() => kit.client.results('sibling'))
+      .toContainEqual({ data: { probeEvents: 'still subscribed' } });
+  });
+
+  test('delivers resolver rejection as a terminal operation result', async () => {
+    const sibling = await kit.subscribe('sibling');
+
+    await kit.subscribeUnknown();
+
     await expect
-      .poll(() => client.events)
+      .poll(() => kit.client.results('unknown'))
       .toContainEqual({
-        event: 'next',
-        data: {
-          id: 'bad',
-          payload: {
-            data: null,
-            errors: [expect.objectContaining({ extensions: { code: 'NOT_FOUND' } })],
-          },
-        },
+        data: null,
+        errors: [
+          expect.objectContaining({ message: 'Unknown probe.', extensions: { code: 'NOT_FOUND' } }),
+        ],
       });
-    second.emit('still subscribed');
-    await expect.poll(() => client.events).toContainEqual(next('two', 'still subscribed'));
+    await expect.poll(() => kit.client.completed('unknown')).toBe(true);
+    sibling.emit('still subscribed');
+    await expect
+      .poll(() => kit.client.results('sibling'))
+      .toContainEqual({ data: { probeEvents: 'still subscribed' } });
   });
 
   test.each([
     [new BadRequestException('Invalid cursor.'), 'BAD_USER_INPUT', 'Invalid cursor.'],
-    [new Error('postgres secret'), 'INTERNAL_SERVER_ERROR', 'Subscription failed.'],
-  ])(
-    'isolates rejected iterators and emits safe terminal errors: %s',
-    async (error, code, message) => {
-      const first = probes.add('first');
-      const second = probes.add('second');
-      await client.subscribe('one', QUERY, { id: 'first' });
-      await client.subscribe('two', QUERY, { id: 'second' });
-      first.fail(error);
-      await expect
-        .poll(() => client.events)
-        .toContainEqual({
-          event: 'next',
-          data: {
-            id: 'one',
-            payload: { errors: [expect.objectContaining({ message, extensions: { code } })] },
-          },
-        });
-      await expect
-        .poll(() => client.events)
-        .toContainEqual({ event: 'complete', data: { id: 'one' } });
-      await first.released.promise;
-      second.emit('still subscribed');
-      await expect.poll(() => client.events).toContainEqual(next('two', 'still subscribed'));
-    },
-  );
+    [new Error('private database failure'), 'INTERNAL_SERVER_ERROR', 'Subscription failed.'],
+  ])('isolates a producer failure: %s', async (error, code, message) => {
+    const failing = await kit.subscribe('failing');
+    const sibling = await kit.subscribe('sibling');
 
-  test('rejects malformed GraphQL without failing the shared stream', async () => {
-    const source = probes.add('first');
-    await client.subscribe('one', QUERY, { id: 'first' });
-    const rejected = await client.subscribe('invalid', 'subscription {');
-    expect(rejected.status).toBe(400);
-    expect(await rejected.json()).toMatchObject({
-      errors: [{ message: expect.stringContaining('Syntax Error') }],
-    });
-    source.emit('still subscribed');
-    await expect.poll(() => client.events).toContainEqual(next('one', 'still subscribed'));
+    failing.fail(error);
+
+    await expect
+      .poll(() => kit.client.results('failing'))
+      .toContainEqual({
+        errors: [expect.objectContaining({ message, extensions: { code } })],
+      });
+    await expect.poll(() => kit.client.completed('failing')).toBe(true);
+    await expect(failing.released).resolves.toBeUndefined();
+    sibling.emit('still subscribed');
+    await expect
+      .poll(() => kit.client.results('sibling'))
+      .toContainEqual({ data: { probeEvents: 'still subscribed' } });
   });
 
-  test('returns a permanent validation code and keeps standard GraphQL validation unchanged', async () => {
-    const source = probes.add('first');
-    await client.subscribe('one', QUERY, { id: 'first' });
-    const invalid = await client.subscribe('unknown-field', 'subscription { unknownField }');
-    expect(invalid.status).toBe(400);
-    expect(await invalid.json()).toMatchObject({
-      errors: [
-        {
-          message: expect.stringContaining('unknownField'),
-          extensions: { code: 'GRAPHQL_VALIDATION_FAILED' },
-        },
-      ],
-    });
-    const standard = await fetch(`${await app.getUrl()}/graphql`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ query: '{ unknownField }' }),
-    });
-    expect(standard.status).toBe(200);
-    expect(await standard.json()).toMatchObject({
+  test.each([
+    ['malformed', 'subscription {', { message: expect.stringContaining('Syntax Error') }],
+    [
+      'invalid',
+      'subscription { unknownField }',
+      { extensions: { code: 'GRAPHQL_VALIDATION_FAILED' } },
+    ],
+  ])('rejects %s GraphQL without failing existing subscriptions', async (id, query, error) => {
+    const sibling = await kit.subscribe('sibling');
+
+    const rejection = await kit.client.subscribe(id, query);
+    sibling.emit('still subscribed');
+
+    expect(rejection.status).toBe(400);
+    expect(await rejection.json()).toMatchObject({ errors: [error] });
+    await expect
+      .poll(() => kit.client.results('sibling'))
+      .toContainEqual({ data: { probeEvents: 'still subscribed' } });
+  });
+
+  test('preserves standard endpoint validation instead of applying the multiplex error adapter', async () => {
+    const response = await kit.standardQuery('{ unknownField }');
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
       errors: [{ message: expect.stringContaining('unknownField') }],
     });
-    source.emit('still subscribed');
-    await expect.poll(() => client.events).toContainEqual(next('one', 'still subscribed'));
   });
 
   test('disconnect releases every active source', async () => {
-    const first = probes.add('first');
-    const second = probes.add('second');
-    await client.subscribe('one', QUERY, { id: 'first' });
-    await client.subscribe('two', QUERY, { id: 'second' });
-    await client.close();
-    await expect(Promise.all([first.released.promise, second.released.promise])).resolves.toEqual([
+    const first = await kit.subscribe('first');
+    const second = await kit.subscribe('second');
+
+    await kit.client.close();
+
+    await expect(Promise.all([first.released, second.released])).resolves.toEqual([
       undefined,
       undefined,
     ]);
   });
 
-  test('application shutdown closes the stream and releases active sources', async () => {
-    const source = probes.add('first');
-    await client.subscribe('one', QUERY, { id: 'first' });
-    await app.close();
-    await expect(source.released.promise).resolves.toBeUndefined();
+  test('application shutdown releases an active source without waiting for client cancellation', async () => {
+    const source = await kit.subscribe('active');
+
+    await kit.shutdown();
+
+    await expect(source.released).resolves.toBeUndefined();
   });
 });
-
-function next(id: string, value: string) {
-  return { event: 'next', data: { id, payload: { data: { multiplexProbeEvents: value } } } };
-}
