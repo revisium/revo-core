@@ -27,10 +27,11 @@ export function reportAgentRuntimeDiagnostic(
           phase: runtimeFault.phase,
           retryable: runtimeFault.retryable,
         };
+  const runtimeDetails = runtimeFault?.details;
   logger.error(
-    runtimeFault === undefined || runtimeFault.details === undefined
+    runtimeDetails === undefined
       ? { ...entry, ...runtimeMetadata }
-      : { ...entry, ...runtimeMetadata, runtimeDetails: runtimeFault.details },
+      : { ...entry, ...runtimeMetadata, runtimeDetails },
   );
 }
 
