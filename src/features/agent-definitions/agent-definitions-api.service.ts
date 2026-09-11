@@ -7,10 +7,20 @@ import {
   InspectAgentConfigurationQuery,
   ListAgentDefinitionsQuery,
 } from './queries/agent-definition.queries.js';
+import { GetAgentConfigurationsQuery } from './queries/impl/get-agent-configurations.query.js';
+import { WatchAgentConfigurationsQuery } from './queries/impl/watch-agent-configurations.query.js';
 
 @Injectable()
 export class AgentDefinitionsApiService {
   constructor(private readonly queries: QueryBus) {}
+
+  configurations() {
+    return this.queries.execute(new GetAgentConfigurationsQuery());
+  }
+
+  watchConfigurations() {
+    return this.queries.execute(new WatchAgentConfigurationsQuery());
+  }
 
   list(data: AgentDefinitionPageData = {}) {
     return this.queries.execute(new ListAgentDefinitionsQuery(data));

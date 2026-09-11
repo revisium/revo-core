@@ -11,6 +11,7 @@ import request from 'supertest';
 
 import { AppModule } from '../../../src/app.module.js';
 import { agentRuntimeConfig } from '../../../src/config/agent-runtime.config.js';
+import { AgentConfigurationWarmup } from '../../../src/features/agent-definitions/configurations/agent-configuration-warmup.js';
 import { DialogueEventIngestionApiService } from '../../../src/features/dialogues/ingestion/dialogue-event-ingestion-api.service.js';
 import { DialogueApiService } from '../../../src/features/dialogues/management/dialogue-api.service.js';
 import { DispatchDialogueTurnHandler } from '../../../src/features/dialogues/management/runtime/dispatch-dialogue-turn.handler.js';
@@ -535,6 +536,8 @@ export const startDialogueScenario = async (): Promise<DialogueScenario> => {
   try {
     await fake.start();
     const module = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(AgentConfigurationWarmup)
+      .useValue({})
       .overrideProvider(AGENT_DEFINITIONS)
       .useValue([fakeAgentDefinition(fake)])
       .overrideProvider(agentRuntimeConfig.KEY)

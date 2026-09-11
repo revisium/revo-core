@@ -9,6 +9,7 @@ import { vi } from 'vitest';
 import { AgentDefinitionsResolver } from '../../src/api/graphql/agent-definitions/agent-definitions.resolver.js';
 import { databaseConfig } from '../../src/config/database.config.js';
 import { AgentDefinitionsModule } from '../../src/features/agent-definitions/agent-definitions.module.js';
+import { AgentConfigurationCache } from '../../src/features/agent-definitions/configurations/agent-configuration-cache.js';
 import {
   AGENT_DEFINITIONS,
   AGENT_LAUNCH_CONTEXT,
@@ -17,8 +18,24 @@ import {
 import { AgentSessionDirectories } from '../../src/infrastructure/agent-runtime/agent-session-directories.js';
 
 export async function createAgentDefinitionsGraphqlApp() {
+  const agent = {
+    agent: { id: 'test', version: '1' },
+    definitionDigest: 'digest',
+    displayName: 'Test agent',
+    capabilities: {
+      session: {
+        multiTurn: true,
+        resume: 'native',
+        interactions: { permission: true, input: true },
+        updates: { message: true, tool: true, usage: true, plan: true, progress: true },
+      },
+      cancellation: true,
+      usage: true,
+      structuredResult: true,
+    },
+  } as const;
   const sessions = {
-    listAgents: vi.fn<AgentSessions['listAgents']>().mockReturnValue([]),
+    listAgents: vi.fn<AgentSessions['listAgents']>().mockReturnValue([agent]),
   };
   const manager = {
     sessions,
@@ -55,6 +72,7 @@ export async function createAgentDefinitionsGraphqlApp() {
     manager,
     sessions,
     launchContext,
+    cache: module.get(AgentConfigurationCache),
     graphql: (query: string, variables: Readonly<Record<string, unknown>> = {}) =>
       request(app.getHttpServer()).post('/graphql').send({ query, variables }),
   };

@@ -7,8 +7,12 @@ import request from 'supertest';
 
 import { initSwagger } from '../dist/api/rest/swagger.js';
 import { AppModule } from '../dist/app.module.js';
+import { AgentConfigurationWarmup } from '../dist/features/agent-definitions/configurations/agent-configuration-warmup.js';
 
-const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
+const module = await Test.createTestingModule({ imports: [AppModule] })
+  .overrideProvider(AgentConfigurationWarmup)
+  .useValue({ onModuleInit() {}, onModuleDestroy() {} })
+  .compile();
 const app = module.createNestApplication();
 
 try {

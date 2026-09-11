@@ -116,6 +116,17 @@ type AgentConfigurationValueModel {
   value: String!
 }
 
+type AgentConfigurationsModel {
+  catalogs: [AgentConfigurationCatalogModel!]!
+  status: AgentConfigurationsStatus!
+}
+
+enum AgentConfigurationsStatus {
+  LOADING
+  NOT_INITIALIZED
+  READY
+}
+
 type AgentDefinitionConnectionModel {
   edges: [AgentDescriptorEdge!]!
   pageInfo: PageInfoModel!
@@ -683,6 +694,7 @@ input ProjectUpdateInput {
 }
 
 type Query {
+  agentConfigurations: AgentConfigurationsModel!
   agentDefinition(agentId: String!, agentVersion: String!): AgentDescriptorModel
   agentDefinitions(after: String, first: Int): AgentDefinitionConnectionModel!
   catalogChangeSet(after: String, first: Int!): CatalogChangeEntryConnection!
@@ -928,6 +940,7 @@ type StartRunResultModel {
 }
 
 type Subscription {
+  agentConfigurations: AgentConfigurationsModel!
   dialogueChanges(after: String, dialogueIds: [ID!]): DialogueChangeModel!
   dialogueSummaryChanges(after: String, dialogueIds: [ID!]): DialogueChangeModel!
 }

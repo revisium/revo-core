@@ -9,6 +9,7 @@ import packageJson from '../package.json' with { type: 'json' };
 import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
 import { initSwagger } from '../src/api/rest/swagger.js';
 import { AppModule } from '../src/app.module.js';
+import { AgentConfigurationWarmup } from '../src/features/agent-definitions/configurations/agent-configuration-warmup.js';
 import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
 import { invalidPipeline, taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
@@ -20,7 +21,10 @@ describe('REST API', () => {
   const createdProjectIds: string[] = [];
 
   beforeAll(async () => {
-    const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    const module = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(AgentConfigurationWarmup)
+      .useValue({})
+      .compile();
     app = module.createNestApplication();
     initSwagger(app);
     await app.init();

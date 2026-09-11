@@ -1,17 +1,13 @@
-import { Inject, Logger } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
-import {
-  AgentManagerError,
-  type AgentManager,
-  type AgentStartContext,
-} from '@revisium/revo-agent-runtime';
+import type { AgentManager } from '@revisium/revo-agent-runtime';
 
+import { AGENT_MANAGER } from '../../../../infrastructure/agent-runtime/agent-runtime.tokens.js';
+import { AgentConfigurationCache } from '../../configurations/agent-configuration-cache.js';
 import {
-  AGENT_MANAGER,
-  AGENT_LAUNCH_CONTEXT,
-} from '../../../../infrastructure/agent-runtime/agent-runtime.tokens.js';
-import { AgentSessionDirectories } from '../../../../infrastructure/agent-runtime/agent-session-directories.js';
-import { reportErrorDiagnostic } from '../../../../infrastructure/error-diagnostic.js';
+  AgentDefinitionsApplicationError,
+  AgentDefinitionsErrorCode,
+} from '../../contracts/agent-definitions.errors.js';
 import {
   InspectAgentConfigurationQuery,
   type InspectAgentConfigurationQueryReturnType,
@@ -22,42 +18,37 @@ export class InspectAgentConfigurationHandler implements IQueryHandler<
   InspectAgentConfigurationQuery,
   InspectAgentConfigurationQueryReturnType
 > {
-  private readonly logger = new Logger(InspectAgentConfigurationHandler.name);
-
   constructor(
     @Inject(AGENT_MANAGER) private readonly manager: AgentManager,
-    @Inject(AGENT_LAUNCH_CONTEXT) private readonly launchContext: AgentStartContext,
-    private readonly directories: AgentSessionDirectories,
+    private readonly cache: AgentConfigurationCache,
   ) {}
 
   async execute({
     data,
   }: InspectAgentConfigurationQuery): Promise<InspectAgentConfigurationQueryReturnType> {
-    try {
-      return await this.manager.inspectConfiguration(
-        {
-          agent: { id: data.agentId, version: data.agentVersion },
-          workspace: { directory: this.directories.workspaceDirectory },
-        },
-        this.launchContext,
-      );
-    } catch (error) {
-      if (error instanceof AgentManagerError) {
-        reportErrorDiagnostic(
-          this.logger,
-          {
-            operation: 'agent.configuration.inspect',
-            agentId: data.agentId,
-            agentVersion: data.agentVersion,
-            runtimeCode: error.fault.code,
-            phase: error.fault.phase,
-            retryable: error.fault.retryable,
-          },
-          error,
-        );
-      }
+    const known = this.manager.sessions
+      .listAgents()
+      .some(({ agent }) => agent.id === data.agentId && agent.version === data.agentVersion);
 
-      throw error;
+    if (!known) {
+      throw new AgentDefinitionsApplicationError(
+        AgentDefinitionsErrorCode.notFound,
+        'Agent definition was not found.',
+      );
     }
+    const catalog = this.cache
+      .snapshot()
+      .catalogs.find(
+        ({ agent }) => agent.id === data.agentId && agent.version === data.agentVersion,
+      );
+
+    if (catalog === undefined) {
+      throw new AgentDefinitionsApplicationError(
+        AgentDefinitionsErrorCode.unavailable,
+        'Agent configuration is unavailable.',
+      );
+    }
+
+    return catalog;
   }
 }

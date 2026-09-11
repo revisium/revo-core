@@ -8,6 +8,7 @@ import type { AgentDefinitionInput } from '@revisium/revo-agent-runtime';
 
 import { AppModule } from '../../../src/app.module.js';
 import { agentRuntimeConfig } from '../../../src/config/agent-runtime.config.js';
+import { AgentConfigurationWarmup } from '../../../src/features/agent-definitions/configurations/agent-configuration-warmup.js';
 import { AGENT_DEFINITIONS } from '../../../src/infrastructure/agent-runtime/agent-runtime.tokens.js';
 import { PrismaService } from '../../../src/infrastructure/database/prisma.service.js';
 import { DialogueScenarioClient } from './dialogue-scenario.js';
@@ -37,6 +38,8 @@ let app: INestApplication | undefined;
 
 try {
   const module = await Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(AgentConfigurationWarmup)
+    .useValue({})
     .overrideProvider(agentRuntimeConfig.KEY)
     .useValue({
       workspaceDirectory: workspace,

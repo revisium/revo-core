@@ -5,6 +5,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
 import { AppModule } from '../src/app.module.js';
+import { AgentConfigurationWarmup } from '../src/features/agent-definitions/configurations/agent-configuration-warmup.js';
 import { LaunchProfileStatus } from '../src/features/playbook-catalog/contracts/catalog.enums.js';
 import { PlaybookCatalogApiService } from '../src/features/playbook-catalog/playbook-catalog-api.service.js';
 import { taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
@@ -122,7 +123,10 @@ describe('CRI selector matrix', () => {
 });
 
 async function startApp(): Promise<INestApplication> {
-  const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const module = await Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(AgentConfigurationWarmup)
+    .useValue({})
+    .compile();
   const app = module.createNestApplication();
   try {
     await app.init();

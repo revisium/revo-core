@@ -13,6 +13,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 
 import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
 import { AppModule } from '../src/app.module.js';
+import { AgentConfigurationWarmup } from '../src/features/agent-definitions/configurations/agent-configuration-warmup.js';
 import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
 import { taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
@@ -1290,7 +1291,10 @@ const GET_RECORD_SMOKE = `
 `;
 
 async function startApp(): Promise<INestApplication> {
-  const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const module = await Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(AgentConfigurationWarmup)
+    .useValue({})
+    .compile();
   const app = module.createNestApplication();
   await app.init();
   return app;
