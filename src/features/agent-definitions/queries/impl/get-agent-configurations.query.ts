@@ -4,4 +4,8 @@ import type { AgentConfigurationsSnapshot } from '../../contracts/agent-configur
 
 export type GetAgentConfigurationsQueryReturnType = AgentConfigurationsSnapshot;
 
-export class GetAgentConfigurationsQuery extends Query<GetAgentConfigurationsQueryReturnType> {}
+export class GetAgentConfigurationsQuery extends Query<GetAgentConfigurationsQueryReturnType> {
+  constructor(readonly connectedOnly = false) {
+    super();
+  }
+}

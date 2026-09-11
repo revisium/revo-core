@@ -4,6 +4,7 @@ import type { AgentManager } from '@revisium/revo-agent-runtime';
 
 import { AGENT_MANAGER } from '../../../../infrastructure/agent-runtime/agent-runtime.tokens.js';
 import { AgentConfigurationCache } from '../../configurations/agent-configuration-cache.js';
+import { connectedConfiguration } from '../../configurations/agent-configuration-projection.js';
 import {
   AgentDefinitionsApplicationError,
   AgentDefinitionsErrorCode,
@@ -49,6 +50,6 @@ export class InspectAgentConfigurationHandler implements IQueryHandler<
       );
     }
 
-    return catalog;
+    return connectedConfiguration(catalog);
   }
 }

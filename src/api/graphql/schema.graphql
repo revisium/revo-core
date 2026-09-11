@@ -83,6 +83,14 @@ type AgentConfigurationGroupModel {
   name: String!
 }
 
+type AgentConfigurationKnownModel {
+  connected: Boolean!
+  description: String
+  group: AgentConfigurationGroupModel
+  name: String!
+  value: String!
+}
+
 type AgentConfigurationModelView {
   currentModel: String!
   currentProvider: AgentConfigurationGroupModel
@@ -94,8 +102,9 @@ type AgentConfigurationModelView {
 union AgentConfigurationOption = AgentConfigurationBooleanModel | AgentConfigurationSelectModel
 
 type AgentConfigurationProviderModel {
+  connected: Boolean!
   id: String!
-  models: [AgentConfigurationValueModel!]!
+  models: [AgentConfigurationKnownModel!]!
   name: String!
 }
 
@@ -697,6 +706,7 @@ type Query {
   agentConfigurations: AgentConfigurationsModel!
   agentDefinition(agentId: String!, agentVersion: String!): AgentDescriptorModel
   agentDefinitions(after: String, first: Int): AgentDefinitionConnectionModel!
+  allAgentConfigurations: AgentConfigurationsModel!
   catalogChangeSet(after: String, first: Int!): CatalogChangeEntryConnection!
   catalogSnapshot(revisionId: ID!): CatalogSnapshotModel!
   catalogStatus: CatalogStatusModel!

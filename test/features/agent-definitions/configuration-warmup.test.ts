@@ -28,7 +28,7 @@ const descriptor = (id: string): AgentSessionAgentDescriptor => ({
   },
 });
 const catalog = (id: string): AgentConfigurationCatalog => ({
-  schemaVersion: 'agent-configuration-catalog/v1',
+  schemaVersion: 'agent-configuration-catalog/v2',
   agent: { id, version: '1' },
   definitionDigest: id,
   catalogRevision: id,

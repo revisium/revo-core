@@ -37,7 +37,7 @@ const agent = {
 } as const;
 
 const catalog = {
-  schemaVersion: 'agent-configuration-catalog/v1' as const,
+  schemaVersion: 'agent-configuration-catalog/v2' as const,
   agent: agent.agent,
   definitionDigest: 'digest',
   catalogRevision: 'catalog_1',
@@ -187,4 +187,50 @@ test('streams the loading and ready snapshots, then sends the latest snapshot on
   expect(latestSnapshot.status).toBe('READY');
   expect(latestSnapshot.catalogs[0]?.catalogRevision).toBe('catalog_1');
   await reconnectReader?.cancel();
+});
+
+test('returns connected projection separately from the full catalog snapshot', async () => {
+  const fixture = await createApp();
+  app = fixture.app;
+  fixture.cache.publish([
+    {
+      ...catalog,
+      schemaVersion: 'agent-configuration-catalog/v2',
+      model: {
+        optionId: 'model',
+        currentModel: 'provider/ready',
+        sessionAvailable: [],
+        providers: [
+          {
+            id: 'provider',
+            name: 'Provider',
+            connected: true,
+            models: [{ value: 'provider/ready', name: 'Ready', connected: true }],
+          },
+          { id: 'offline', name: 'Offline', connected: false, models: [] },
+        ],
+      },
+    } as never,
+  ]);
+
+  const response = await fetch(`${await fixture.app.getUrl()}/graphql`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: `query {
+        agentConfigurations { catalogs { model { providers { id connected models { value connected } } } } }
+        allAgentConfigurations { catalogs { model { providers { id connected models { value connected } } } } }
+      }`,
+    }),
+  });
+  const payload = (await response.json()) as {
+    data: {
+      agentConfigurations: { catalogs: readonly { model?: { providers: readonly unknown[] } }[] };
+      allAgentConfigurations: {
+        catalogs: readonly { model?: { providers: readonly unknown[] } }[];
+      };
+    };
+  };
+  expect(payload.data.agentConfigurations.catalogs[0]?.model?.providers).toHaveLength(1);
+  expect(payload.data.allAgentConfigurations.catalogs[0]?.model?.providers).toHaveLength(2);
 });

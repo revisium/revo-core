@@ -1,6 +1,7 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
 import { AgentConfigurationCache } from '../../configurations/agent-configuration-cache.js';
+import { connectedConfigurations } from '../../configurations/agent-configuration-projection.js';
 import {
   WatchAgentConfigurationsQuery,
   type WatchAgentConfigurationsQueryReturnType,
@@ -13,7 +14,17 @@ export class WatchAgentConfigurationsHandler implements IQueryHandler<
 > {
   constructor(private readonly cache: AgentConfigurationCache) {}
 
-  async execute(): Promise<WatchAgentConfigurationsQueryReturnType> {
-    return this.cache.watch();
+  async execute({
+    connectedOnly,
+  }: WatchAgentConfigurationsQuery): Promise<WatchAgentConfigurationsQueryReturnType> {
+    const source = this.cache.watch();
+    if (!connectedOnly) {
+      return source;
+    }
+    return (async function* () {
+      for await (const snapshot of source) {
+        yield { ...snapshot, catalogs: connectedConfigurations(snapshot.catalogs) };
+      }
+    })();
   }
 }

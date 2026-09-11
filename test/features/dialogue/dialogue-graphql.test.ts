@@ -371,7 +371,7 @@ describe('Persistent dialogues over GraphQL', () => {
       payload: {
         status: 'failed',
         error: {
-          message: 'Agent turn failed.',
+          message: 'Internal error',
           code: expect.any(String),
           phase: expect.any(String),
           retryable: false,
@@ -403,7 +403,10 @@ describe('Persistent dialogues over GraphQL', () => {
     const logged = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
     try {
-      const dialogue = await scenario.client.createDialogue({ title: 'Runtime open failure' });
+      const dialogue = await scenario.client.createDialogue({
+        title: 'Runtime open failure',
+        agentConfiguration: { selections: { model: 'test-model' } },
+      });
       const turn = await scenario.client.send(dialogue.id, 'Do not expose this prompt');
 
       await expect
@@ -433,6 +436,7 @@ describe('Persistent dialogues over GraphQL', () => {
         turnId: turn.id,
         agentId: 'test-acp',
         agentVersion: '1.0.0',
+        model: 'test-model',
         error: {
           message: 'provider failed authorization=[REDACTED] [REDACTED]',
           stack: 'open stack password=[REDACTED]',

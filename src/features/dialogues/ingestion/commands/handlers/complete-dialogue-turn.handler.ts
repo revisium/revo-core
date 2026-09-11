@@ -3,6 +3,7 @@
 import { Injectable } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import type {
+  AgentFault,
   AgentSessionEventAppendResult,
   AgentSessionTurnOutcome,
 } from '@revisium/revo-agent-runtime';
@@ -15,6 +16,7 @@ import {
   compareHistoryItemSequence,
   json,
 } from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
+import { publicFault } from '../../../management/runtime/dialogue-runtime-fault.js';
 import { AgentSessionEventReceiptWriter } from '../../persistence/agent-session-event-receipt.js';
 import {
   CompleteDialogueTurnCommand,
@@ -23,6 +25,11 @@ import {
 
 type TurnCompletionEvent = CompleteDialogueTurnCommand['data']['event'];
 type ProjectedTurnOutcome = 'COMPLETED' | 'CANCELLED' | 'INTERRUPTED' | 'FAILED';
+
+const hasFault = (
+  outcome: AgentSessionTurnOutcome,
+): outcome is AgentSessionTurnOutcome & { readonly error: AgentFault } =>
+  'error' in outcome && outcome.error !== undefined;
 
 @Injectable()
 @CommandHandler(CompleteDialogueTurnCommand)
@@ -193,18 +200,23 @@ export class CompleteDialogueTurnHandler implements ICommandHandler<
   }
 
   private publicTurnOutcome(outcome: AgentSessionTurnOutcome): AgentSessionTurnOutcome {
-    if (outcome.status !== 'failed') {
+    if (outcome.status !== 'failed' && outcome.status !== 'timed_out') {
       return outcome;
     }
 
+    if (outcome.status === 'timed_out') {
+      if (!hasFault(outcome)) {
+        return outcome;
+      }
+      return { status: 'timed_out', error: publicFault(outcome.error) };
+    }
+
+    if (!hasFault(outcome)) {
+      return outcome;
+    }
     return {
       status: 'failed',
-      error: {
-        code: outcome.error.code,
-        message: 'Agent turn failed.',
-        phase: outcome.error.phase,
-        retryable: outcome.error.retryable,
-      },
+      error: publicFault(outcome.error),
     };
   }
 

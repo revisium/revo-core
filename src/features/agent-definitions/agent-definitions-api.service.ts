@@ -15,11 +15,15 @@ export class AgentDefinitionsApiService {
   constructor(private readonly queries: QueryBus) {}
 
   configurations() {
+    return this.queries.execute(new GetAgentConfigurationsQuery(true));
+  }
+
+  allConfigurations() {
     return this.queries.execute(new GetAgentConfigurationsQuery());
   }
 
   watchConfigurations() {
-    return this.queries.execute(new WatchAgentConfigurationsQuery());
+    return this.queries.execute(new WatchAgentConfigurationsQuery(true));
   }
 
   list(data: AgentDefinitionPageData = {}) {

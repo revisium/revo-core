@@ -2,6 +2,7 @@ export * from './agent-capabilities.model.js';
 export * from './agent-configuration-boolean.model.js';
 export * from './agent-configuration-catalog.model.js';
 export * from './agent-configuration-group.model.js';
+export * from './agent-configuration-known-model.model.js';
 export * from './agent-configuration-model-view.js';
 export * from './agent-configuration-option.union.js';
 export * from './agent-configuration-provider.model.js';

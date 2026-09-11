@@ -1,4 +1,5 @@
 import type { LoggerService } from '@nestjs/common';
+import { AgentManagerError } from '@revisium/revo-agent-runtime';
 import { describe, expect, test, vi } from 'vitest';
 
 import {
@@ -115,6 +116,118 @@ describe('error diagnostics', () => {
       agentId: 'agent',
       agentVersion: '1',
       error: expect.objectContaining({ type: 'error', name: 'Error', message: 'failed' }),
+    });
+  });
+
+  test('retains only normalized provider diagnostic identity', () => {
+    const error = Object.assign(new Error('runtime failed'), {
+      details: {
+        diagnostic: {
+          provider: {
+            code: 'invalid_request',
+            name: 'ProviderError',
+            message: 'Model unavailable',
+            data: { token: 'secret', reason: 'Rate limited' },
+          },
+          stderr: 'Authorization: Bearer private-token',
+          stderrTruncated: true,
+        },
+      },
+    });
+
+    expect(formatErrorDiagnostic(error)).toMatchObject({
+      diagnostic: {
+        provider: {
+          code: 'invalid_request',
+          name: 'ProviderError',
+          message: 'Model unavailable',
+          data: { reason: 'Rate limited' },
+        },
+        stderr: 'Authorization: [REDACTED] [REDACTED]',
+        stderrTruncated: true,
+      },
+    });
+    expect(JSON.stringify(formatErrorDiagnostic(error))).not.toContain('secret');
+  });
+
+  test('retains nested provider reasons and numeric protocol codes', () => {
+    const error = Object.assign(new Error('The provider session protocol operation failed.'), {
+      details: {
+        diagnostic: {
+          provider: {
+            code: -32603,
+            data: {
+              error: { message: 'No LLM provider configured password=private' },
+            },
+          },
+        },
+      },
+    });
+
+    expect(formatErrorDiagnostic(error)).toMatchObject({
+      diagnostic: {
+        provider: {
+          code: -32603,
+          data: { error: { message: 'No LLM provider configured password=[REDACTED]' } },
+        },
+      },
+    });
+    expect(JSON.stringify(formatErrorDiagnostic(error))).not.toContain('password=private');
+  });
+
+  test('retains the wrapped runtime fault and sanitizes string diagnostic codes', () => {
+    const fault = {
+      code: 'revo.agent.protocol_failed',
+      message: 'The provider session protocol operation failed.',
+      phase: 'session_opening',
+      retryable: false,
+      details: {
+        diagnostic: {
+          provider: {
+            code: 'Bearer code-private',
+            data: {
+              code: 'password=data-private',
+              error: { code: 'token=nested-private', message: 'No provider configured' },
+            },
+          },
+          stderr: 'provider warning',
+        },
+      },
+    } as const;
+    const wrapped = new AgentManagerError(fault);
+    wrapped.stack = 'runtime wrapper stack';
+    const logger = { error: vi.fn<LoggerService['error']>() };
+
+    reportErrorDiagnostic(logger, { operation: 'dialogue.runtime.open' }, wrapped);
+
+    const entry = logger.error.mock.calls[0]?.[0];
+    expect(entry).toMatchObject({
+      error: {
+        message: 'The provider session protocol operation failed.',
+        stack: 'runtime wrapper stack',
+        fault: {
+          diagnostic: {
+            provider: {
+              code: 'Bearer [REDACTED]',
+              data: {
+                code: 'password=[REDACTED]',
+                error: { code: 'token=[REDACTED]', message: 'No provider configured' },
+              },
+            },
+            stderr: 'provider warning',
+          },
+        },
+      },
+    });
+    expect(JSON.stringify(entry)).not.toContain('private');
+
+    const numeric = formatErrorDiagnostic(
+      Object.assign(new Error('runtime failed'), {
+        details: { diagnostic: { provider: { code: -32603, data: { code: 17 } } } },
+      }),
+    );
+    expect(numeric).toMatchObject({
+      diagnostic: { provider: { code: -32603, data: { code: 17 } } },
     });
   });
 });

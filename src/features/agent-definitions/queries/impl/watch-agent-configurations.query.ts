@@ -4,4 +4,8 @@ import type { AgentConfigurationsSnapshot } from '../../contracts/agent-configur
 
 export type WatchAgentConfigurationsQueryReturnType = AsyncIterable<AgentConfigurationsSnapshot>;
 
-export class WatchAgentConfigurationsQuery extends Query<WatchAgentConfigurationsQueryReturnType> {}
+export class WatchAgentConfigurationsQuery extends Query<WatchAgentConfigurationsQueryReturnType> {
+  constructor(readonly connectedOnly = true) {
+    super();
+  }
+}

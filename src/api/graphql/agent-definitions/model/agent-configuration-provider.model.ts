@@ -1,6 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
-import { AgentConfigurationValueModel } from './agent-configuration-value.model.js';
+import { AgentConfigurationKnownModel } from './agent-configuration-known-model.model.js';
 
 @ObjectType()
 export class AgentConfigurationProviderModel {
@@ -10,6 +10,9 @@ export class AgentConfigurationProviderModel {
   @Field(() => String)
   name: string;
 
-  @Field(() => [AgentConfigurationValueModel])
-  models: readonly AgentConfigurationValueModel[];
+  @Field(() => Boolean)
+  connected: boolean;
+
+  @Field(() => [AgentConfigurationKnownModel])
+  models: readonly AgentConfigurationKnownModel[];
 }
