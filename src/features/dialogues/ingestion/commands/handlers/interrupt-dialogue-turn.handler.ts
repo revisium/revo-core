@@ -31,6 +31,7 @@ type InterruptionOutcome = 'CANCELLED' | 'FAILED' | 'UNCERTAIN';
 interface InterruptionTarget {
   readonly outcome: InterruptionOutcome;
   readonly payload: Record<string, string>;
+  readonly text: string;
 }
 
 @CommandHandler(InterruptDialogueTurnCommand)
@@ -90,6 +91,7 @@ export class InterruptDialogueTurnHandler implements ICommandHandler<
     return {
       outcome: this.outcome(input.reason, turn),
       payload: this.payload(input.reason),
+      text: this.text(input.reason),
     };
   }
 
@@ -162,6 +164,10 @@ export class InterruptDialogueTurnHandler implements ICommandHandler<
     }
   }
 
+  private text(reason: DialogueInterruptionReason): string {
+    return reason.kind === 'DISPATCH_FAILURE' ? reason.message : '';
+  }
+
   private async finish(
     target: InterruptionTarget,
     dialogueId: string,
@@ -176,6 +182,7 @@ export class InterruptDialogueTurnHandler implements ICommandHandler<
       resultSequence,
       target.outcome,
       target.payload,
+      target.text,
     );
     await this.finishTurn(turnId, target.outcome, target.payload, result.sequence);
     const abandonedItems = await this.interactions.abandon(dialogueId, { kind: 'all' });
@@ -206,6 +213,7 @@ export class InterruptDialogueTurnHandler implements ICommandHandler<
     sequence: bigint,
     outcome: InterruptionOutcome,
     payload: Record<string, string>,
+    text: string,
   ) {
     return this.transaction.dialogueHistoryItem.create({
       data: {
@@ -216,6 +224,7 @@ export class InterruptDialogueTurnHandler implements ICommandHandler<
         sourceKey: `result:${turnId}`,
         kind: 'RESULT',
         source: 'SYSTEM',
+        text,
         status: outcome === 'UNCERTAIN' ? 'INTERRUPTED' : outcome,
         payload: json(payload),
       },

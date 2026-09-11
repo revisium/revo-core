@@ -1,5 +1,9 @@
 import { Logger } from '@nestjs/common';
-import type { AgentManager, AgentSessionEvent } from '@revisium/revo-agent-runtime';
+import {
+  AgentManagerError,
+  type AgentManager,
+  type AgentSessionEvent,
+} from '@revisium/revo-agent-runtime';
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 /* oxlint-disable no-await-in-loop -- Scenario steps consume ordered GraphQL and SSE state. */
 
@@ -460,7 +464,17 @@ describe('Persistent dialogues over GraphQL', () => {
 
   test('logs a detached runtime-open failure and persists only a stable public reason', async () => {
     const manager = scenario.app.get<AgentManager>(AGENT_MANAGER);
-    const failure = new Error('provider failed authorization=Bearer private-token');
+    const failure = new AgentManagerError({
+      code: 'revo.agent.protocol_failed',
+      message: 'Internal error',
+      phase: 'session_opening',
+      retryable: false,
+      details: {
+        diagnostic: {
+          provider: { message: 'provider failed authorization=Bearer private-token' },
+        },
+      },
+    });
     failure.stack = 'open stack password=private-password';
     const open = vi.spyOn(manager.sessions, 'open').mockRejectedValueOnce(failure);
     const logged = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
@@ -482,8 +496,14 @@ describe('Persistent dialogues over GraphQL', () => {
         )
         .toMatchObject({
           status: 'FAILED',
-          payload: { message: 'Dialogue turn dispatch failed.' },
+          text: 'Internal error',
+          payload: { message: 'Internal error' },
         });
+      const result = (await scenario.client.history(dialogue.id)).find(
+        ({ kind, turnId }) => kind === 'RESULT' && turnId === turn.id,
+      );
+      expect(result?.text).not.toContain('private-token');
+      expect(JSON.stringify(result?.payload)).not.toContain('private-token');
       const diagnostics = logged.mock.calls
         .map(([entry]) => entry)
         .filter(
@@ -500,13 +520,10 @@ describe('Persistent dialogues over GraphQL', () => {
         agentId: 'test-acp',
         agentVersion: '1.0.0',
         error: {
-          message: 'provider failed authorization=[REDACTED] [REDACTED]',
+          message: 'Internal error',
           stack: 'open stack password=[REDACTED]',
         },
       });
-      expect(JSON.stringify(await scenario.client.history(dialogue.id))).not.toContain(
-        'private-token',
-      );
     } finally {
       open.mockRestore();
       logged.mockRestore();
