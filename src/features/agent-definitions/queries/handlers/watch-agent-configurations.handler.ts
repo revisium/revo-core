@@ -1,7 +1,7 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
 import { AgentConfigurationCache } from '../../configurations/agent-configuration-cache.js';
-import { connectedConfigurations } from '../../configurations/agent-configuration-projection.js';
+import { projectPublicAgentConfigurations } from '../../configurations/public-agent-configurations.js';
 import {
   WatchAgentConfigurationsQuery,
   type WatchAgentConfigurationsQueryReturnType,
@@ -18,7 +18,7 @@ export class WatchAgentConfigurationsHandler implements IQueryHandler<
     const source = this.cache.watch();
     return (async function* () {
       for await (const snapshot of source) {
-        yield { ...snapshot, catalogs: connectedConfigurations(snapshot.catalogs) };
+        yield projectPublicAgentConfigurations(snapshot);
       }
     })();
   }

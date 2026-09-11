@@ -1,7 +1,7 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
 import { AgentConfigurationCache } from '../../configurations/agent-configuration-cache.js';
-import { connectedConfigurations } from '../../configurations/agent-configuration-projection.js';
+import { projectPublicAgentConfigurations } from '../../configurations/public-agent-configurations.js';
 import {
   GetAgentConfigurationsQuery,
   type GetAgentConfigurationsQueryReturnType,
@@ -14,12 +14,9 @@ export class GetAgentConfigurationsHandler implements IQueryHandler<
 > {
   constructor(private readonly cache: AgentConfigurationCache) {}
 
-  async execute({
-    view,
-  }: GetAgentConfigurationsQuery): Promise<GetAgentConfigurationsQueryReturnType> {
+  async execute(): Promise<GetAgentConfigurationsQueryReturnType> {
     const snapshot = this.cache.snapshot();
-    return view === 'connected'
-      ? { ...snapshot, catalogs: connectedConfigurations(snapshot.catalogs) }
-      : snapshot;
+
+    return projectPublicAgentConfigurations(snapshot);
   }
 }

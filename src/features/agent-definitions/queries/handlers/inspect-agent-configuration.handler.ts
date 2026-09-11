@@ -1,10 +1,12 @@
 import { Inject } from '@nestjs/common';
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
-import type { AgentManager } from '@revisium/revo-agent-runtime';
+import {
+  projectSelectableAgentConfiguration,
+  type AgentManager,
+} from '@revisium/revo-agent-runtime';
 
 import { AGENT_MANAGER } from '../../../../infrastructure/agent-runtime/agent-runtime.tokens.js';
 import { AgentConfigurationCache } from '../../configurations/agent-configuration-cache.js';
-import { connectedConfiguration } from '../../configurations/agent-configuration-projection.js';
 import {
   AgentDefinitionsApplicationError,
   AgentDefinitionsErrorCode,
@@ -50,14 +52,14 @@ export class InspectAgentConfigurationHandler implements IQueryHandler<
       );
     }
 
-    const connected = connectedConfiguration(catalog);
-    if (connected === undefined) {
+    const selectable = projectSelectableAgentConfiguration(catalog);
+    if (selectable === undefined) {
       throw new AgentDefinitionsApplicationError(
         AgentDefinitionsErrorCode.unavailable,
         'Agent configuration is unavailable.',
       );
     }
 
-    return connected;
+    return selectable;
   }
 }

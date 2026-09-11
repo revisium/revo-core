@@ -20,11 +20,6 @@ export class AgentDefinitionsResolver {
     return this.definitions.configurations();
   }
 
-  @Query(() => AgentConfigurationsModel)
-  allAgentConfigurations() {
-    return this.definitions.allConfigurations();
-  }
-
   @Subscription(() => AgentConfigurationsModel, {
     name: 'agentConfigurations',
     resolve: (state: unknown) => state,

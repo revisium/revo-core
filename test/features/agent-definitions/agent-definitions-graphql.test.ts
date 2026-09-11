@@ -101,7 +101,7 @@ describe('Agent definitions over GraphQL', () => {
     expect(fixture.manager.inspectConfiguration).toHaveBeenCalledTimes(1);
   });
 
-  it('reads the complete configuration snapshot from the cache', async () => {
+  it('keeps concurrent aggregate and per-agent reads cache-only', async () => {
     fixture.cache.publish([
       {
         schemaVersion: 'agent-configuration-catalog/v2',
@@ -120,10 +120,6 @@ describe('Agent definitions over GraphQL', () => {
           status
           catalogs { agent { id version } catalogRevision }
         }
-        allAgentConfigurations {
-          status
-          catalogs { agent { id version } catalogRevision }
-        }
         inspectAgentConfiguration(agentId: "test", agentVersion: "1") {
           catalogRevision
         }
@@ -139,10 +135,6 @@ describe('Agent definitions over GraphQL', () => {
       expect(response.body.errors).toBeUndefined();
       expect(response.body.data).toEqual({
         agentConfigurations: {
-          status: 'READY',
-          catalogs: [{ agent: { id: 'test', version: '1' }, catalogRevision: 'catalog_1' }],
-        },
-        allAgentConfigurations: {
           status: 'READY',
           catalogs: [{ agent: { id: 'test', version: '1' }, catalogRevision: 'catalog_1' }],
         },

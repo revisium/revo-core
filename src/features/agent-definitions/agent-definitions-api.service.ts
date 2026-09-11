@@ -15,11 +15,7 @@ export class AgentDefinitionsApiService {
   constructor(private readonly queries: QueryBus) {}
 
   configurations() {
-    return this.queries.execute(new GetAgentConfigurationsQuery('connected'));
-  }
-
-  allConfigurations() {
-    return this.queries.execute(new GetAgentConfigurationsQuery('all'));
+    return this.queries.execute(new GetAgentConfigurationsQuery());
   }
 
   watchConfigurations() {
