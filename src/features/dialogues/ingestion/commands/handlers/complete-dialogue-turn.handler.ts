@@ -201,6 +201,13 @@ export class CompleteDialogueTurnHandler implements ICommandHandler<
     outcome: ProjectedTurnOutcome,
     publicOutcome: AgentSessionTurnOutcome,
   ) {
+    const text =
+      (publicOutcome.status === 'failed' || publicOutcome.status === 'timed_out') &&
+      'error' in publicOutcome &&
+      publicOutcome.error !== undefined
+        ? publicOutcome.error.message
+        : '';
+
     return this.transaction.dialogueHistoryItem.create({
       data: {
         id: resultId,
@@ -210,6 +217,7 @@ export class CompleteDialogueTurnHandler implements ICommandHandler<
         sourceKey: `result:${event.turnId}`,
         kind: 'RESULT',
         source: 'SYSTEM',
+        text,
         payload: json(publicOutcome),
         status: outcome,
       },

@@ -414,6 +414,7 @@ describe('Persistent dialogues over GraphQL', () => {
     );
     expect(result).toMatchObject({
       status: 'FAILED',
+      text: 'Internal provider failure.',
       payload: {
         status: 'failed',
         error: {
@@ -425,7 +426,8 @@ describe('Persistent dialogues over GraphQL', () => {
       },
     });
     expect(result?.payload).not.toHaveProperty('error.details');
-    expect(JSON.stringify(result)).not.toContain('Controlled fake agent failure.');
+    expect(result?.text).not.toContain('Controlled fake agent failure.');
+    expect(JSON.stringify(result?.payload)).not.toContain('Controlled fake agent failure.');
     await expect
       .poll(
         () =>
