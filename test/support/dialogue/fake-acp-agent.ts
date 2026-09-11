@@ -178,7 +178,10 @@ acp
         return { stopReason: 'end_turn' };
       }
       if (command.kind === 'fail') {
-        throw new Error('Controlled fake agent failure.');
+        throw acp.RequestError.internalError(
+          { error: { message: 'Internal provider failure.' } },
+          'Internal provider failure.',
+        );
       }
       if (command.kind === 'exit') {
         process.exit(17);

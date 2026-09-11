@@ -1,4 +1,5 @@
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql';
+import type { AgentConfigurationSelection } from '@revisium/revo-agent-runtime';
 import { GraphQLJSON } from 'graphql-scalars';
 
 import type { DialogueJson } from '../../../../features/dialogues/management/contracts/dialogue.contracts.js';
@@ -18,7 +19,7 @@ export class DialogueSummaryModel {
   agentVersion: string;
 
   @Field(() => GraphQLJSON)
-  agentConfiguration: DialogueJson;
+  agentConfiguration: AgentConfigurationSelection;
 
   @Field(() => GraphQLJSON, { nullable: true })
   metadata: DialogueJson;

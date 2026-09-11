@@ -1,3 +1,5 @@
+import type { AgentConfigurationSelection } from '@revisium/revo-agent-runtime';
+
 export type DialogueJson =
   | boolean
   | number
@@ -102,7 +104,7 @@ export interface DialogueSummary {
   readonly title: string;
   readonly agentId: string;
   readonly agentVersion: string;
-  readonly agentConfiguration: DialogueJson;
+  readonly agentConfiguration: AgentConfigurationSelection;
   readonly metadata: DialogueJson;
   readonly systemContext: string;
   readonly status: DialogueStatus;

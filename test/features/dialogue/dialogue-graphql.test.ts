@@ -1,5 +1,9 @@
 import { Logger } from '@nestjs/common';
-import type { AgentManager, AgentSessionEvent } from '@revisium/revo-agent-runtime';
+import {
+  AgentManagerError,
+  type AgentManager,
+  type AgentSessionEvent,
+} from '@revisium/revo-agent-runtime';
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 /* oxlint-disable no-await-in-loop -- Scenario steps consume ordered GraphQL and SSE state. */
 
@@ -27,6 +31,52 @@ describe('Persistent dialogues over GraphQL', () => {
     const dialogue = await scenario.client.dialogue(created.id);
 
     expect(dialogue).toMatchObject({ status: 'READY', unreadCount: 0 });
+  });
+
+  test('rejects malformed agent configuration input at the GraphQL boundary', async () => {
+    await expect(
+      scenario.client.createDialogue({
+        title: 'Malformed configuration',
+        agentConfiguration: { selections: { model: 42 } },
+      }),
+    ).rejects.toThrow('Invalid agentConfiguration.');
+  });
+
+  test('rejects corrupt persisted configuration before opening a runtime session', async () => {
+    const manager = scenario.app.get<AgentManager>(AGENT_MANAGER);
+    const dialogue = await scenario.client.createDialogue({
+      title: 'Corrupt stored configuration',
+    });
+    await scenario.prisma.dialogue.update({
+      where: { id: dialogue.id },
+      data: { agentConfiguration: { selections: 42 } },
+    });
+    const open = vi.spyOn(manager.sessions, 'open');
+
+    try {
+      const turn = await scenario.client.send(dialogue.id, 'This must not reach the agent.');
+      await expect
+        .poll(
+          async () =>
+            (await scenario.client.history(dialogue.id)).find(
+              ({ kind, turnId }) => kind === 'RESULT' && turnId === turn.id,
+            ),
+          { timeout: 5_000 },
+        )
+        .toMatchObject({ status: 'FAILED' });
+      const result = (await scenario.client.history(dialogue.id)).find(
+        ({ kind, turnId }) => kind === 'RESULT' && turnId === turn.id,
+      );
+      expect(result?.payload).toEqual({ message: 'Dialogue turn dispatch failed.' });
+      expect(result?.payload).not.toHaveProperty('details');
+      expect(open).not.toHaveBeenCalled();
+    } finally {
+      await scenario.prisma.dialogue.update({
+        where: { id: dialogue.id },
+        data: { agentConfiguration: { selections: {} } },
+      });
+      open.mockRestore();
+    }
   });
 
   test('delivers selected dialogue details and sidebar status on the same stream', async () => {
@@ -368,17 +418,20 @@ describe('Persistent dialogues over GraphQL', () => {
     );
     expect(result).toMatchObject({
       status: 'FAILED',
+      text: 'Internal provider failure.',
       payload: {
         status: 'failed',
         error: {
-          message: 'Agent turn failed.',
+          message: 'Internal provider failure.',
           code: expect.any(String),
           phase: expect.any(String),
           retryable: false,
         },
       },
     });
-    expect(JSON.stringify(result)).not.toContain('Controlled fake agent failure.');
+    expect(result?.payload).not.toHaveProperty('error.details');
+    expect(result?.text).not.toContain('Controlled fake agent failure.');
+    expect(JSON.stringify(result?.payload)).not.toContain('Controlled fake agent failure.');
     await expect
       .poll(
         () =>
@@ -392,18 +445,45 @@ describe('Persistent dialogues over GraphQL', () => {
         { timeout: 5_000 },
       )
       .toHaveLength(1);
+    const turnDiagnostic = logged.mock.calls.find(
+      ([entry]) =>
+        typeof entry === 'object' &&
+        entry !== null &&
+        'operation' in entry &&
+        entry.operation === 'dialogue.runtime.turn_result',
+    )?.[0];
+    expect(turnDiagnostic).toMatchObject({
+      runtimeDetails: {
+        diagnostic: {
+          provider: { code: -32603, message: 'Internal error: Internal provider failure.' },
+        },
+      },
+    });
     logged.mockRestore();
   });
 
   test('logs a detached runtime-open failure and persists only a stable public reason', async () => {
     const manager = scenario.app.get<AgentManager>(AGENT_MANAGER);
-    const failure = new Error('provider failed authorization=Bearer private-token');
+    const failure = new AgentManagerError({
+      code: 'revo.agent.protocol_failed',
+      message: 'Internal error',
+      phase: 'session_opening',
+      retryable: false,
+      details: {
+        diagnostic: {
+          provider: { message: 'provider failed authorization=Bearer private-token' },
+        },
+      },
+    });
     failure.stack = 'open stack password=private-password';
     const open = vi.spyOn(manager.sessions, 'open').mockRejectedValueOnce(failure);
     const logged = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
     try {
-      const dialogue = await scenario.client.createDialogue({ title: 'Runtime open failure' });
+      const dialogue = await scenario.client.createDialogue({
+        title: 'Runtime open failure',
+        agentConfiguration: { selections: { model: 'test-model' } },
+      });
       const turn = await scenario.client.send(dialogue.id, 'Do not expose this prompt');
 
       await expect
@@ -416,8 +496,14 @@ describe('Persistent dialogues over GraphQL', () => {
         )
         .toMatchObject({
           status: 'FAILED',
-          payload: { message: 'Dialogue turn dispatch failed.' },
+          text: 'Internal error',
+          payload: { message: 'Internal error' },
         });
+      const result = (await scenario.client.history(dialogue.id)).find(
+        ({ kind, turnId }) => kind === 'RESULT' && turnId === turn.id,
+      );
+      expect(result?.text).not.toContain('private-token');
+      expect(JSON.stringify(result?.payload)).not.toContain('private-token');
       const diagnostics = logged.mock.calls
         .map(([entry]) => entry)
         .filter(
@@ -434,13 +520,10 @@ describe('Persistent dialogues over GraphQL', () => {
         agentId: 'test-acp',
         agentVersion: '1.0.0',
         error: {
-          message: 'provider failed authorization=[REDACTED] [REDACTED]',
+          message: 'Internal error',
           stack: 'open stack password=[REDACTED]',
         },
       });
-      expect(JSON.stringify(await scenario.client.history(dialogue.id))).not.toContain(
-        'private-token',
-      );
     } finally {
       open.mockRestore();
       logged.mockRestore();

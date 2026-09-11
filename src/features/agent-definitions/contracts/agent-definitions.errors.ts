@@ -45,32 +45,70 @@ export const mapAgentDefinitionsError = (error: unknown): AgentDefinitionsApplic
   );
 };
 
+const runtimeErrorCodes: Record<AgentFault['code'], AgentDefinitionsErrorCode> = {
+  'revo.agent.agent_unknown': AgentDefinitionsErrorCode.notFound,
+  'revo.agent.definition_duplicate': AgentDefinitionsErrorCode.conflict,
+  'revo.agent.definition_invalid': AgentDefinitionsErrorCode.internal,
+  'revo.agent.internal': AgentDefinitionsErrorCode.internal,
+  'revo.agent.invocation_duplicate': AgentDefinitionsErrorCode.conflict,
+  'revo.agent.invocation_unknown': AgentDefinitionsErrorCode.notFound,
+  'revo.agent.parameters_invalid': AgentDefinitionsErrorCode.invalidInput,
+  'revo.agent.permissions_invalid': AgentDefinitionsErrorCode.invalidInput,
+  'revo.agent.workspace_invalid': AgentDefinitionsErrorCode.invalidInput,
+  'revo.agent.output_path_invalid': AgentDefinitionsErrorCode.invalidInput,
+  'revo.agent.output_conflict': AgentDefinitionsErrorCode.conflict,
+  'revo.agent.platform_unsupported': AgentDefinitionsErrorCode.unsupported,
+  'revo.agent.probe_platform_unsupported': AgentDefinitionsErrorCode.unsupported,
+  'revo.agent.probe_spawn_failed': AgentDefinitionsErrorCode.internal,
+  'revo.agent.probe_timeout': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.probe_output_too_large': AgentDefinitionsErrorCode.internal,
+  'revo.agent.probe_process_failed': AgentDefinitionsErrorCode.internal,
+  'revo.agent.probe_output_invalid': AgentDefinitionsErrorCode.internal,
+  'revo.agent.manager_closed': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.manager_not_initialized': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.limit_invalid': AgentDefinitionsErrorCode.invalidInput,
+  'revo.agent.cancelled': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.configuration_stale': AgentDefinitionsErrorCode.conflict,
+  'revo.agent.configuration_value_unsupported': AgentDefinitionsErrorCode.unsupported,
+  'revo.agent.timeout': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.process_cleanup_failed': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.shutdown_failed': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.protocol_failed': AgentDefinitionsErrorCode.internal,
+  'revo.agent.output_write_failed': AgentDefinitionsErrorCode.internal,
+  'revo.agent.active_state_failed': AgentDefinitionsErrorCode.internal,
+  'revo.agent.result_missing': AgentDefinitionsErrorCode.internal,
+  'revo.agent.result_too_large': AgentDefinitionsErrorCode.internal,
+  'revo.agent.result_invalid_json': AgentDefinitionsErrorCode.internal,
+  'revo.agent.result_not_object': AgentDefinitionsErrorCode.internal,
+  'revo.agent.result_schema_mismatch': AgentDefinitionsErrorCode.internal,
+  'revo.agent.strategy_unsupported': AgentDefinitionsErrorCode.unsupported,
+  'revo.agent.session_state_unavailable': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.session_unsupported': AgentDefinitionsErrorCode.unsupported,
+  'revo.agent.session_duplicate': AgentDefinitionsErrorCode.conflict,
+  'revo.agent.session_unknown': AgentDefinitionsErrorCode.notFound,
+  'revo.agent.session_closed': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.session_busy': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.session_capacity': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.session_identity_capacity': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.session_backpressure': AgentDefinitionsErrorCode.unavailable,
+  'revo.agent.turn_duplicate': AgentDefinitionsErrorCode.conflict,
+  'revo.agent.turn_incomplete': AgentDefinitionsErrorCode.internal,
+  'revo.agent.interaction_unknown': AgentDefinitionsErrorCode.notFound,
+  'revo.agent.interaction_conflict': AgentDefinitionsErrorCode.conflict,
+  'revo.agent.interaction_invalid': AgentDefinitionsErrorCode.invalidInput,
+  'revo.agent.checkpoint_invalid': AgentDefinitionsErrorCode.invalidInput,
+  'revo.agent.resume_token_invalid': AgentDefinitionsErrorCode.invalidInput,
+  'revo.agent.resume_token_consumed': AgentDefinitionsErrorCode.conflict,
+  'revo.agent.continuation_pin_mismatch': AgentDefinitionsErrorCode.conflict,
+  'revo.agent.checkpoint_unsupported': AgentDefinitionsErrorCode.unsupported,
+  'revo.agent.continuation_too_large': AgentDefinitionsErrorCode.invalidInput,
+  'revo.agent.event_conflict': AgentDefinitionsErrorCode.conflict,
+  'revo.agent.event_sink_failed': AgentDefinitionsErrorCode.internal,
+  'revo.agent.session_output_too_large': AgentDefinitionsErrorCode.internal,
+};
+
 function classifyRuntimeFault(code: AgentFault['code']): AgentDefinitionsErrorCode {
-  if (code.endsWith('_unknown')) {
-    return AgentDefinitionsErrorCode.notFound;
-  }
-
-  if (code.includes('invalid')) {
-    return AgentDefinitionsErrorCode.invalidInput;
-  }
-
-  if (code.includes('unsupported')) {
-    return AgentDefinitionsErrorCode.unsupported;
-  }
-
-  if (
-    code.endsWith('_unavailable') ||
-    code === 'revo.agent.manager_closed' ||
-    code === 'revo.agent.manager_not_initialized'
-  ) {
-    return AgentDefinitionsErrorCode.unavailable;
-  }
-
-  if (code.includes('conflict') || code === 'revo.agent.configuration_stale') {
-    return AgentDefinitionsErrorCode.conflict;
-  }
-
-  return AgentDefinitionsErrorCode.internal;
+  return runtimeErrorCodes[code];
 }
 
 function publicAgentErrorMessage(code: AgentDefinitionsErrorCode): string {

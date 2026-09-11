@@ -72,9 +72,25 @@ describe('error diagnostics', () => {
     expect(JSON.stringify(diagnostic)).not.toMatch(/oauth-private|sk-private|client-private/u);
   });
 
-  test('handles non-Error values, cycles, depth, and aggregate width without inventing causes', () => {
+  test('formats non-Error values without inventing causes', () => {
+    expect(formatErrorDiagnostic('secret=private')).toEqual({
+      type: 'thrown',
+      value: 'secret=[REDACTED]',
+    });
+  });
+
+  test('omits a missing Error cause', () => {
+    expect(formatErrorDiagnostic(new Error('no cause'))).not.toHaveProperty('cause');
+  });
+
+  test('marks circular causes without recursing forever', () => {
     const circular = new Error('circular');
     circular.cause = circular;
+
+    expect(formatErrorDiagnostic(circular).cause).toEqual({ type: 'circular' });
+  });
+
+  test('truncates deeply nested causes', () => {
     const deep = new Error('depth-0');
     let current = deep;
     for (let depth = 1; depth <= 6; depth += 1) {
@@ -82,22 +98,20 @@ describe('error diagnostics', () => {
       current.cause = next;
       current = next;
     }
+
+    expect(JSON.stringify(formatErrorDiagnostic(deep))).toContain('"type":"truncated"');
+  });
+
+  test('bounds aggregate error entries', () => {
     const aggregate = new AggregateError(
-      [circular, deep, 'token=private', 4, false, new Error('omitted')],
+      [new Error('first'), new Error('second'), 'token=private', 4, false, new Error('omitted')],
       'aggregate',
     );
 
     const diagnostic = formatErrorDiagnostic(aggregate);
 
-    expect(formatErrorDiagnostic('secret=private')).toEqual({
-      type: 'thrown',
-      value: 'secret=[REDACTED]',
-    });
     expect(diagnostic.errors).toHaveLength(4);
     expect(diagnostic.omittedErrors).toBe(2);
-    expect(diagnostic.errors?.[0]?.cause).toEqual({ type: 'circular' });
-    expect(JSON.stringify(diagnostic)).toContain('"type":"truncated"');
-    expect(formatErrorDiagnostic(new Error('no cause'))).not.toHaveProperty('cause');
   });
 
   test('reports one structured record with only the allowed context', () => {

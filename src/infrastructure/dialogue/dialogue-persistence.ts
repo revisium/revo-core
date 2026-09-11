@@ -1,4 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
+import {
+  decodeAgentConfigurationSelection,
+  type AgentConfigurationSelection,
+} from '@revisium/revo-agent-runtime';
 
 import {
   DialogueChangeKind as StoredDialogueChangeKind,
@@ -114,6 +118,10 @@ export const dialogueJson = (value: Prisma.JsonValue): DialogueJson => {
 
   return result;
 };
+
+export const decodeDialogueAgentConfiguration = (
+  value: Prisma.JsonValue,
+): AgentConfigurationSelection => decodeAgentConfigurationSelection(dialogueJson(value));
 
 const dialogueStatuses: Record<StoredDialogue['status'], DialogueStatus> = {
   READY: DialogueStatus.READY,
@@ -266,32 +274,36 @@ export const decodeDialogueCursor = (cursor: string, kind: string): DialogueCurs
   }
 };
 
-export const dialogueSummaryView = (dialogue: StoredDialogue): DialogueSummary => ({
-  id: dialogue.id,
-  title: dialogue.title,
-  agentId: dialogue.agentId,
-  agentVersion: dialogue.agentVersion,
-  agentConfiguration: dialogueJson(dialogue.agentConfiguration),
-  metadata: dialogueJson(dialogue.metadata),
-  systemContext: dialogue.systemContext,
-  status: dialogueStatuses[dialogue.status],
-  progress: dialogue.progress,
-  pendingCount: dialogue.pendingCount,
-  lastOutcome: dialogue.lastOutcome === null ? null : dialogueOutcomes[dialogue.lastOutcome],
-  activeTurnId: dialogue.activeTurnId,
-  createdAt: dialogue.createdAt,
-  updatedAt: dialogue.updatedAt,
-  version: String(dialogue.version),
-  significantSequence: String(dialogue.significantSequence),
-  readSignificantSequence: String(dialogue.readSignificantSequence),
-  unreadCount: Number(dialogue.significantSequence - dialogue.readSignificantSequence),
-  runtimeSessionId: dialogue.runtimeSessionId,
-  originDialogueId: dialogue.originDialogueId,
-  originTurnId: dialogue.originTurnId,
-  originItemSequence:
-    dialogue.originItemSequence === null ? null : String(dialogue.originItemSequence),
-  contextMode: contextModes[dialogue.contextMode],
-});
+export const dialogueSummaryView = (dialogue: StoredDialogue): DialogueSummary => {
+  const agentConfiguration = decodeDialogueAgentConfiguration(dialogue.agentConfiguration);
+
+  return {
+    id: dialogue.id,
+    title: dialogue.title,
+    agentId: dialogue.agentId,
+    agentVersion: dialogue.agentVersion,
+    agentConfiguration,
+    metadata: dialogueJson(dialogue.metadata),
+    systemContext: dialogue.systemContext,
+    status: dialogueStatuses[dialogue.status],
+    progress: dialogue.progress,
+    pendingCount: dialogue.pendingCount,
+    lastOutcome: dialogue.lastOutcome === null ? null : dialogueOutcomes[dialogue.lastOutcome],
+    activeTurnId: dialogue.activeTurnId,
+    createdAt: dialogue.createdAt,
+    updatedAt: dialogue.updatedAt,
+    version: String(dialogue.version),
+    significantSequence: String(dialogue.significantSequence),
+    readSignificantSequence: String(dialogue.readSignificantSequence),
+    unreadCount: Number(dialogue.significantSequence - dialogue.readSignificantSequence),
+    runtimeSessionId: dialogue.runtimeSessionId,
+    originDialogueId: dialogue.originDialogueId,
+    originTurnId: dialogue.originTurnId,
+    originItemSequence:
+      dialogue.originItemSequence === null ? null : String(dialogue.originItemSequence),
+    contextMode: contextModes[dialogue.contextMode],
+  };
+};
 
 export const dialogueHistoryItemView = (item: StoredHistoryItem): DialogueHistoryItem => ({
   id: item.id,

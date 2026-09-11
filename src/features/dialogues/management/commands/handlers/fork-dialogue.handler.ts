@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
+import type { AgentConfigurationSelection } from '@revisium/revo-agent-runtime';
 
 import type {
   Dialogue,
@@ -11,6 +12,7 @@ import type {
 import { TransactionPrismaService } from '../../../../../infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../../../infrastructure/dialogue/dialogue-change-publisher.js';
 import {
+  decodeDialogueAgentConfiguration,
   dialogueSummaryView,
   json,
 } from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
@@ -41,11 +43,19 @@ export class ForkDialogueHandler implements ICommandHandler<
   private async forkDialogue(input: ForkDialogueInput): Promise<ForkDialogueCommandReturnType> {
     await this.changes.lockWriter();
     const origin = await this.getOrigin(input.dialogueId);
+    const agentConfiguration = decodeDialogueAgentConfiguration(origin.agentConfiguration);
     const boundary = await this.getCompletedBoundary(input.dialogueId, input.turnId);
     const sourceItems = await this.getHistoryPrefix(input.dialogueId, boundary.endItemSequence);
     const id = randomUUID();
     const itemSequence = BigInt(sourceItems.length);
-    await this.createFork(id, input.title, origin, boundary.id, boundary.endItemSequence);
+    await this.createFork(
+      id,
+      input.title,
+      origin,
+      agentConfiguration,
+      boundary.id,
+      boundary.endItemSequence,
+    );
     await this.copyHistory(id, origin.id, sourceItems);
     const created = await this.activateFork(id, itemSequence);
     await this.changes.append(id, { kind: 'SUMMARY_UPDATED' });
@@ -64,6 +74,7 @@ export class ForkDialogueHandler implements ICommandHandler<
     id: string,
     title: string,
     origin: Dialogue,
+    agentConfiguration: AgentConfigurationSelection,
     originTurnId: string,
     originItemSequence: bigint,
   ) {
@@ -73,7 +84,7 @@ export class ForkDialogueHandler implements ICommandHandler<
         title,
         agentId: origin.agentId,
         agentVersion: origin.agentVersion,
-        agentConfiguration: json(origin.agentConfiguration),
+        agentConfiguration: json(agentConfiguration),
         metadata: json(origin.metadata),
         systemContext: origin.systemContext,
         contextMode: 'FORK',

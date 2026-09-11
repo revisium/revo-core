@@ -1,6 +1,7 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
 import { AgentConfigurationCache } from '../../configurations/agent-configuration-cache.js';
+import { projectPublicAgentConfigurations } from '../../configurations/public-agent-configurations.js';
 import {
   GetAgentConfigurationsQuery,
   type GetAgentConfigurationsQueryReturnType,
@@ -14,6 +15,8 @@ export class GetAgentConfigurationsHandler implements IQueryHandler<
   constructor(private readonly cache: AgentConfigurationCache) {}
 
   async execute(): Promise<GetAgentConfigurationsQueryReturnType> {
-    return this.cache.snapshot();
+    const snapshot = this.cache.snapshot();
+
+    return projectPublicAgentConfigurations(snapshot);
   }
 }

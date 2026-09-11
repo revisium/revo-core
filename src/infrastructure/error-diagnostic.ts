@@ -12,12 +12,9 @@ export type ErrorDiagnosticContext = Readonly<{
   dialogueId?: string;
   turnId?: string;
   runId?: string;
-  runtimeCode?: string;
-  phase?: string;
-  retryable?: boolean;
 }>;
 
-type ErrorDiagnostic = Readonly<{
+export type ErrorDiagnostic = Readonly<{
   type: 'error' | 'thrown' | 'circular' | 'truncated';
   name?: string;
   message?: string;
@@ -33,11 +30,18 @@ export function reportErrorDiagnostic(
   context: ErrorDiagnosticContext,
   error: unknown,
 ): void {
-  logger.error({
+  logger.error(createErrorDiagnosticEntry(context, error));
+}
+
+export function createErrorDiagnosticEntry(
+  context: ErrorDiagnosticContext,
+  error: unknown,
+): Readonly<{ message: string; error: ErrorDiagnostic } & ErrorDiagnosticContext> {
+  return {
     message: 'Library operation failed.',
     ...sanitizeContext(context),
     error: formatErrorDiagnostic(error),
-  });
+  };
 }
 
 export function formatErrorDiagnostic(error: unknown): ErrorDiagnostic {
@@ -62,6 +66,14 @@ function formatDiagnosticValue(
   }
   seen.add(value);
 
+  return formatObjectDiagnostic(value, depth, seen);
+}
+
+function formatObjectDiagnostic(
+  value: object,
+  depth: number,
+  seen: WeakSet<object>,
+): ErrorDiagnostic {
   const name = stringProperty(value, 'name');
   const message = stringProperty(value, 'message');
   const stack = stringProperty(value, 'stack');
@@ -104,13 +116,6 @@ function sanitizeContext(context: ErrorDiagnosticContext): ErrorDiagnosticContex
     ...(context.runId === undefined
       ? {}
       : { runId: sanitizeText(context.runId, MAX_MESSAGE_LENGTH) }),
-    ...(context.runtimeCode === undefined
-      ? {}
-      : { runtimeCode: sanitizeText(context.runtimeCode, MAX_MESSAGE_LENGTH) }),
-    ...(context.phase === undefined
-      ? {}
-      : { phase: sanitizeText(context.phase, MAX_MESSAGE_LENGTH) }),
-    ...(context.retryable === undefined ? {} : { retryable: context.retryable }),
   };
 }
 
@@ -124,7 +129,6 @@ function property(value: object, key: string): unknown {
 
 function stringProperty(value: object, key: string): string | undefined {
   const candidate = property(value, key);
-
   return typeof candidate === 'string' ? candidate : undefined;
 }
 

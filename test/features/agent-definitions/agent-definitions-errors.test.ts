@@ -27,6 +27,14 @@ describe('Agent definition application errors', () => {
       expectedCode: AgentDefinitionsErrorCode.conflict,
     },
     { runtimeCode: 'revo.agent.internal', expectedCode: AgentDefinitionsErrorCode.internal },
+    {
+      runtimeCode: 'revo.agent.probe_output_invalid',
+      expectedCode: AgentDefinitionsErrorCode.internal,
+    },
+    {
+      runtimeCode: 'revo.agent.result_schema_mismatch',
+      expectedCode: AgentDefinitionsErrorCode.internal,
+    },
   ])('maps $runtimeCode to $expectedCode', ({ runtimeCode, expectedCode }) => {
     const failure = new AgentManagerError({
       code: runtimeCode,

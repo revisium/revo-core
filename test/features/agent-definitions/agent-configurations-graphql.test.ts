@@ -2,7 +2,11 @@ import { YogaDriver, type YogaDriverConfig } from '@graphql-yoga/nestjs';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { Test } from '@nestjs/testing';
-import type { AgentManager, AgentSessions } from '@revisium/revo-agent-runtime';
+import type {
+  AgentConfigurationCatalog,
+  AgentManager,
+  AgentSessions,
+} from '@revisium/revo-agent-runtime';
 import { afterEach, expect, test, vi } from 'vitest';
 
 import { AgentDefinitionsResolver } from '../../../src/api/graphql/agent-definitions/agent-definitions.resolver.js';
@@ -36,13 +40,48 @@ const agent = {
   },
 } as const;
 
-const catalog = {
-  schemaVersion: 'agent-configuration-catalog/v1' as const,
+const catalog: AgentConfigurationCatalog = {
+  schemaVersion: 'agent-configuration-catalog/v2' as const,
   agent: agent.agent,
   definitionDigest: 'digest',
   catalogRevision: 'catalog_1',
-  options: [],
+  options: [
+    {
+      id: 'model',
+      name: 'Model',
+      type: 'select',
+      currentValue: 'provider/ready',
+      values: [{ value: 'provider/ready', name: 'Ready' }],
+    },
+  ],
   launch: { executable: 'test-cli', reportedVersion: '1' },
+};
+
+const catalogWithDisconnectedEntries: AgentConfigurationCatalog = {
+  ...catalog,
+  model: {
+    optionId: 'model',
+    currentModel: 'provider/ready',
+    currentProvider: { id: 'provider', name: 'Provider' },
+    sessionAvailable: [{ value: 'provider/ready', name: 'Ready' }],
+    providers: [
+      {
+        id: 'provider',
+        name: 'Provider',
+        connected: true,
+        models: [
+          { value: 'provider/ready', name: 'Ready', connected: true },
+          { value: 'provider/hidden', name: 'Hidden', connected: false },
+        ],
+      },
+      {
+        id: 'offline',
+        name: 'Offline',
+        connected: false,
+        models: [{ value: 'offline/model', name: 'Offline model', connected: true }],
+      },
+    ],
+  },
 };
 
 async function createApp() {
@@ -83,6 +122,7 @@ async function createApp() {
   return {
     app,
     cache: app.get(AgentConfigurationCache),
+    graphqlEndpoint: `${await app.getUrl()}/graphql`,
     endpoint: `${await app.getUrl()}/graphql/stream`,
   };
 }
@@ -122,6 +162,24 @@ function nextDataEvent(
   return read;
 }
 
+type ConfigurationSnapshot = {
+  readonly status: string;
+  readonly catalogs: readonly {
+    readonly catalogRevision: string;
+    readonly model?: {
+      readonly providers: readonly {
+        readonly id: string;
+        readonly models: readonly { readonly value: string }[];
+      }[];
+    };
+  }[];
+};
+
+function configurationSnapshot(event: GraphqlSseEvent): ConfigurationSnapshot {
+  return (event.data as { data: { agentConfigurations: ConfigurationSnapshot } }).data
+    .agentConfigurations;
+}
+
 let app: Awaited<ReturnType<typeof createApp>>['app'] | undefined;
 
 afterEach(async () => {
@@ -129,15 +187,32 @@ afterEach(async () => {
   app = undefined;
 });
 
-test('streams the loading and ready snapshots, then sends the latest snapshot on reconnect', async () => {
+const subscriptionQuery = `subscription {
+  agentConfigurations {
+    status
+    catalogs {
+      catalogRevision
+      model { providers { id models { value } } }
+    }
+  }
+}`;
+
+const selectableCatalogQuery = `query {
+  agentConfigurations {
+    catalogs {
+      model { providers { id models { value } } }
+    }
+  }
+}`;
+
+test('streams loading then ready configuration snapshots', async () => {
   const fixture = await createApp();
   app = fixture.app;
-  const query = 'subscription { agentConfigurations { status catalogs { catalogRevision } } }';
   const controller = new AbortController();
   const response = await fetch(fixture.endpoint, {
     method: 'POST',
     headers: { Accept: 'text/event-stream', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query: subscriptionQuery }),
     signal: controller.signal,
   });
   const reader = response.body?.getReader();
@@ -147,28 +222,23 @@ test('streams the loading and ready snapshots, then sends the latest snapshot on
 
   const readDataEvent = nextDataEvent(reader);
   const loading = await readDataEvent();
-  expect(
-    (loading.data as { data: { agentConfigurations: { status: string } } }).data.agentConfigurations
-      .status,
-  ).toBe('LOADING');
+  expect(configurationSnapshot(loading).status).toBe('LOADING');
 
   fixture.cache.publish([catalog]);
   const ready = await readDataEvent();
-  const readySnapshot = (
-    ready.data as {
-      data: {
-        agentConfigurations: { status: string; catalogs: readonly { catalogRevision: string }[] };
-      };
-    }
-  ).data.agentConfigurations;
+  const readySnapshot = configurationSnapshot(ready);
   expect(readySnapshot.status).toBe('READY');
-  expect(readySnapshot.catalogs[0]?.catalogRevision).toBe('catalog_1');
   controller.abort();
+});
 
+test('sends the latest ready snapshot to a fresh subscription', async () => {
+  const fixture = await createApp();
+  app = fixture.app;
+  fixture.cache.publish([catalog]);
   const reconnect = await fetch(fixture.endpoint, {
     method: 'POST',
     headers: { Accept: 'text/event-stream', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query: subscriptionQuery }),
   });
   const reconnectReader = reconnect.body?.getReader();
   if (reconnectReader === undefined) {
@@ -177,14 +247,35 @@ test('streams the loading and ready snapshots, then sends the latest snapshot on
 
   const readReconnectDataEvent = nextDataEvent(reconnectReader);
   const latest = await readReconnectDataEvent();
-  const latestSnapshot = (
-    latest.data as {
-      data: {
-        agentConfigurations: { status: string; catalogs: readonly { catalogRevision: string }[] };
-      };
-    }
-  ).data.agentConfigurations;
+  const latestSnapshot = configurationSnapshot(latest);
   expect(latestSnapshot.status).toBe('READY');
   expect(latestSnapshot.catalogs[0]?.catalogRevision).toBe('catalog_1');
   await reconnectReader?.cancel();
+});
+
+test('exposes the runtime-selectable catalog through the query', async () => {
+  const fixture = await createApp();
+  app = fixture.app;
+  fixture.cache.publish([catalogWithDisconnectedEntries]);
+
+  const response = await fetch(fixture.graphqlEndpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: selectableCatalogQuery }),
+  });
+
+  expect(response.ok).toBe(true);
+  await expect(response.json()).resolves.toEqual({
+    data: {
+      agentConfigurations: {
+        catalogs: [
+          {
+            model: {
+              providers: [{ id: 'provider', models: [{ value: 'provider/ready' }] }],
+            },
+          },
+        ],
+      },
+    },
+  });
 });

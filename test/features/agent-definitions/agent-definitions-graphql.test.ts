@@ -75,7 +75,7 @@ describe('Agent definitions over GraphQL', () => {
   it('inspects configuration without opening a runtime session', async () => {
     fixture.cache.publish([
       {
-        schemaVersion: 'agent-configuration-catalog/v1',
+        schemaVersion: 'agent-configuration-catalog/v2',
         agent: { id: 'test', version: '1' },
         definitionDigest: 'digest',
         catalogRevision: 'catalog_1',
@@ -101,10 +101,10 @@ describe('Agent definitions over GraphQL', () => {
     expect(fixture.manager.inspectConfiguration).toHaveBeenCalledTimes(1);
   });
 
-  it('reads the complete configuration snapshot from the cache', async () => {
+  it('keeps concurrent aggregate and per-agent reads cache-only', async () => {
     fixture.cache.publish([
       {
-        schemaVersion: 'agent-configuration-catalog/v1',
+        schemaVersion: 'agent-configuration-catalog/v2',
         agent: { id: 'test', version: '1' },
         definitionDigest: 'digest',
         catalogRevision: 'catalog_1',
@@ -114,23 +114,33 @@ describe('Agent definitions over GraphQL', () => {
     ]);
     const inspections = fixture.manager.inspectConfiguration.mock.calls.length;
 
-    const response = await fixture.graphql(`
+    const query = `
       {
         agentConfigurations {
           status
           catalogs { agent { id version } catalogRevision }
         }
+        inspectAgentConfiguration(agentId: "test", agentVersion: "1") {
+          catalogRevision
+        }
       }
-    `);
+    `;
+    const responses = await Promise.all([
+      fixture.graphql(query),
+      fixture.graphql(query),
+      fixture.graphql(query),
+    ]);
 
-    expect(response.body).toEqual({
-      data: {
+    for (const response of responses) {
+      expect(response.body.errors).toBeUndefined();
+      expect(response.body.data).toEqual({
         agentConfigurations: {
           status: 'READY',
           catalogs: [{ agent: { id: 'test', version: '1' }, catalogRevision: 'catalog_1' }],
         },
-      },
-    });
+        inspectAgentConfiguration: { catalogRevision: 'catalog_1' },
+      });
+    }
     expect(fixture.manager.inspectConfiguration).toHaveBeenCalledTimes(inspections);
   });
 

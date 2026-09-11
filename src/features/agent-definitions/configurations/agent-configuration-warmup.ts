@@ -6,18 +6,17 @@ import {
   type OnModuleInit,
 } from '@nestjs/common';
 import {
-  AgentManagerError,
   type AgentConfigurationCatalog,
   type AgentManager,
   type AgentStartContext,
 } from '@revisium/revo-agent-runtime';
 
+import { reportAgentRuntimeDiagnostic } from '../../../infrastructure/agent-runtime/agent-runtime-fault.js';
 import {
   AGENT_LAUNCH_CONTEXT,
   AGENT_MANAGER,
 } from '../../../infrastructure/agent-runtime/agent-runtime.tokens.js';
 import { AgentSessionDirectories } from '../../../infrastructure/agent-runtime/agent-session-directories.js';
-import { reportErrorDiagnostic } from '../../../infrastructure/error-diagnostic.js';
 import { AgentConfigurationCache } from './agent-configuration-cache.js';
 
 type ConfigurationManager = Pick<AgentManager, 'inspectConfiguration'> & {
@@ -102,19 +101,12 @@ export class AgentConfigurationWarmup implements OnModuleInit, OnModuleDestroy {
       );
     } catch (error) {
       if (!this.controller.signal.aborted) {
-        reportErrorDiagnostic(
+        reportAgentRuntimeDiagnostic(
           this.logger,
           {
             operation: 'agent.configuration.inspect',
             agentId: agent.id,
             agentVersion: agent.version,
-            ...(error instanceof AgentManagerError
-              ? {
-                  runtimeCode: error.fault.code,
-                  phase: error.fault.phase,
-                  retryable: error.fault.retryable,
-                }
-              : {}),
           },
           error,
         );
