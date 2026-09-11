@@ -264,7 +264,7 @@ model Dialogue {
   title                   String
   agentId                 String
   agentVersion            String
-  agentConfiguration      Json                      @default("{}")
+  agentConfiguration      Json                      @default("{\"selections\":{}}")
   metadata                Json                      @default("{}")
   systemContext           String                    @default("")
   status                  DialogueStatus            @default(READY)

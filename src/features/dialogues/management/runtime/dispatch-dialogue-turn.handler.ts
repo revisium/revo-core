@@ -12,6 +12,11 @@ import type {
 
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import {
+  agentManagerFault,
+  reportAgentRuntimeDiagnostic,
+  toPublicAgentFault,
+} from '../../../../infrastructure/agent-runtime/agent-runtime-fault.js';
+import {
   AGENT_LAUNCH_CONTEXT,
   AGENT_MANAGER,
 } from '../../../../infrastructure/agent-runtime/agent-runtime.tokens.js';
@@ -19,15 +24,13 @@ import { AgentSessionDirectories } from '../../../../infrastructure/agent-runtim
 import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../../infrastructure/dialogue/dialogue-change-publisher.js';
-import { dialogueJson } from '../../../../infrastructure/dialogue/dialogue-persistence.js';
+import { decodeDialogueAgentConfiguration } from '../../../../infrastructure/dialogue/dialogue-persistence.js';
 import {
   reportErrorDiagnostic,
   type ErrorDiagnosticContext,
 } from '../../../../infrastructure/error-diagnostic.js';
 import { DialogueEventIngestionApiService } from '../../ingestion/dialogue-event-ingestion-api.service.js';
-import type { DialogueJson } from '../contracts/dialogue.contracts.js';
 import { DialogueTurnSavedEvent } from '../events/dialogue-turn-saved.event.js';
-import { publicFault, runtimeFaultFrom } from './dialogue-runtime-fault.js';
 
 const DIALOGUE_RUNTIME_OPERATION_ERROR = Symbol('dialogue-runtime-operation-error');
 
@@ -75,9 +78,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
       return;
     }
     const dialogue = await this.getDialogue(dialogueId);
-    const agentConfiguration = dialogueJson(dialogue.agentConfiguration);
-    const model = selectedModel(agentConfiguration);
-    const diagnosticContext = model === undefined ? {} : { model };
+    const agentConfiguration = decodeDialogueAgentConfiguration(dialogue.agentConfiguration);
     let sessionId = dialogue.runtimeSessionId;
     let runtimePrompt = prompt;
 
@@ -92,7 +93,6 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
         'dialogue.runtime.open',
         dialogue.agentId,
         dialogue.agentVersion,
-        diagnosticContext,
         () =>
           this.openRuntime(
             newSessionId,
@@ -117,7 +117,6 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
       'dialogue.runtime.send',
       dialogue.agentId,
       dialogue.agentVersion,
-      diagnosticContext,
       () => this.sendToRuntime(sessionId, turnId, runtimePrompt),
     );
 
@@ -126,7 +125,6 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
         'dialogue.runtime.cancel',
         dialogue.agentId,
         dialogue.agentVersion,
-        diagnosticContext,
         () => turn.cancel('dialogue_api_cancel'),
       );
     }
@@ -140,7 +138,6 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
             turnId,
             dialogue.agentId,
             dialogue.agentVersion,
-            model,
             'error' in result ? result.error : undefined,
           );
         }
@@ -152,7 +149,6 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
           dialogueRuntimeOperationError('dialogue.runtime.turn_result', error, {
             agentId: dialogue.agentId,
             agentVersion: dialogue.agentVersion,
-            ...diagnosticContext,
           }),
         );
       },
@@ -225,21 +221,23 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     turnId: string,
     failure: DialogueRuntimeOperationError,
   ): Promise<void> {
-    reportErrorDiagnostic(
+    reportAgentRuntimeDiagnostic(
       this.logger,
       { operation: failure.operation, dialogueId, turnId, ...failure.context },
       failure.error,
     );
 
     try {
-      const fault = runtimeFaultFrom(failure.error);
+      const fault = agentManagerFault(failure.error);
       await this.ingestion.interruptTurn({
         dialogueId,
         turnId,
         reason: {
           kind: 'DISPATCH_FAILURE',
           message:
-            fault === undefined ? 'Dialogue turn dispatch failed.' : publicFault(fault).message,
+            fault === undefined
+              ? 'Dialogue turn dispatch failed.'
+              : toPublicAgentFault(fault).message,
         },
       });
     } catch (persistenceError) {
@@ -260,13 +258,12 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     operation: string,
     agentId: string,
     agentVersion: string,
-    context: Pick<ErrorDiagnosticContext, 'model'> = {},
     action: () => Promise<T>,
   ): Promise<T> {
     try {
       return await action();
     } catch (error) {
-      throw dialogueRuntimeOperationError(operation, error, { agentId, agentVersion, ...context });
+      throw dialogueRuntimeOperationError(operation, error, { agentId, agentVersion });
     }
   }
 
@@ -276,10 +273,9 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     turnId: string,
     agentId: string,
     agentVersion: string,
-    model: string | undefined,
     fault: AgentFault | undefined,
   ): void {
-    reportErrorDiagnostic(
+    reportAgentRuntimeDiagnostic(
       this.logger,
       {
         operation,
@@ -287,12 +283,9 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
         turnId,
         agentId,
         agentVersion,
-        ...(model === undefined ? {} : { model }),
-        ...(fault === undefined
-          ? {}
-          : { runtimeCode: fault.code, phase: fault.phase, retryable: fault.retryable }),
       },
       fault ?? new Error('Dialogue runtime turn failed.'),
+      fault,
     );
   }
 
@@ -395,7 +388,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     sessionId: string,
     agentId: string,
     agentVersion: string,
-    agentConfiguration: DialogueJson,
+    agentConfiguration: AgentConfigurationSelection,
   ): Promise<void> {
     await this.manager.sessions.open(
       {
@@ -405,7 +398,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
         output: { directory: this.directories.outputDirectory(sessionId) },
         parameters: {},
         permissions: {},
-        configuration: this.configuration(agentConfiguration),
+        configuration: agentConfiguration,
       },
       this.launchContext,
     );
@@ -424,39 +417,6 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
 
     return session.send({ turnId, prompt });
   }
-
-  private configuration(value: DialogueJson): AgentConfigurationSelection {
-    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-      throw new Error('Persisted dialogue agent configuration is invalid.');
-    }
-
-    if (
-      !('selections' in value) ||
-      typeof value.selections !== 'object' ||
-      value.selections === null ||
-      Array.isArray(value.selections) ||
-      Object.values(value.selections).some(
-        (selection) => typeof selection !== 'boolean' && typeof selection !== 'string',
-      )
-    ) {
-      throw new Error('Persisted dialogue agent configuration selections are invalid.');
-    }
-
-    const selections: Record<string, boolean | string> = {};
-
-    for (const [id, selection] of Object.entries(value.selections)) {
-      if (typeof selection === 'boolean' || typeof selection === 'string') {
-        selections[id] = selection;
-      }
-    }
-
-    const catalogRevision =
-      'catalogRevision' in value && typeof value.catalogRevision === 'string'
-        ? value.catalogRevision
-        : undefined;
-
-    return { selections, ...(catalogRevision === undefined ? {} : { catalogRevision }) };
-  }
 }
 
 function dialogueRuntimeOperationError(
@@ -474,19 +434,4 @@ function isDialogueRuntimeOperationError(value: unknown): value is DialogueRunti
     DIALOGUE_RUNTIME_OPERATION_ERROR in value &&
     value[DIALOGUE_RUNTIME_OPERATION_ERROR] === true
   );
-}
-
-function selectedModel(value: DialogueJson): string | undefined {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    return undefined;
-  }
-  if (!('selections' in value)) {
-    return undefined;
-  }
-  const selections = value.selections;
-  if (typeof selections !== 'object' || selections === null || Array.isArray(selections)) {
-    return undefined;
-  }
-  const model = Object.entries(selections).find(([key]) => key === 'model')?.[1];
-  return typeof model === 'string' ? model : undefined;
 }

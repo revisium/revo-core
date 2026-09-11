@@ -29,6 +29,52 @@ describe('Persistent dialogues over GraphQL', () => {
     expect(dialogue).toMatchObject({ status: 'READY', unreadCount: 0 });
   });
 
+  test('rejects malformed agent configuration input at the GraphQL boundary', async () => {
+    await expect(
+      scenario.client.createDialogue({
+        title: 'Malformed configuration',
+        agentConfiguration: { selections: { model: 42 } },
+      }),
+    ).rejects.toThrow('Invalid agentConfiguration.');
+  });
+
+  test('rejects corrupt persisted configuration before opening a runtime session', async () => {
+    const manager = scenario.app.get<AgentManager>(AGENT_MANAGER);
+    const dialogue = await scenario.client.createDialogue({
+      title: 'Corrupt stored configuration',
+    });
+    await scenario.prisma.dialogue.update({
+      where: { id: dialogue.id },
+      data: { agentConfiguration: { selections: 42 } },
+    });
+    const open = vi.spyOn(manager.sessions, 'open');
+
+    try {
+      const turn = await scenario.client.send(dialogue.id, 'This must not reach the agent.');
+      await expect
+        .poll(
+          async () =>
+            (await scenario.client.history(dialogue.id)).find(
+              ({ kind, turnId }) => kind === 'RESULT' && turnId === turn.id,
+            ),
+          { timeout: 5_000 },
+        )
+        .toMatchObject({ status: 'FAILED' });
+      const result = (await scenario.client.history(dialogue.id)).find(
+        ({ kind, turnId }) => kind === 'RESULT' && turnId === turn.id,
+      );
+      expect(result?.payload).toEqual({ message: 'Dialogue turn dispatch failed.' });
+      expect(result?.payload).not.toHaveProperty('details');
+      expect(open).not.toHaveBeenCalled();
+    } finally {
+      await scenario.prisma.dialogue.update({
+        where: { id: dialogue.id },
+        data: { agentConfiguration: { selections: {} } },
+      });
+      open.mockRestore();
+    }
+  });
+
   test('delivers selected dialogue details and sidebar status on the same stream', async () => {
     const dialogue = await scenario.client.createDialogue({ title: 'Multiplex dialogue' });
     const snapshot = await scenario.client.historyPage(dialogue.id);
@@ -371,13 +417,14 @@ describe('Persistent dialogues over GraphQL', () => {
       payload: {
         status: 'failed',
         error: {
-          message: 'Internal error',
+          message: 'Internal provider failure.',
           code: expect.any(String),
           phase: expect.any(String),
           retryable: false,
         },
       },
     });
+    expect(result?.payload).not.toHaveProperty('error.details');
     expect(JSON.stringify(result)).not.toContain('Controlled fake agent failure.');
     await expect
       .poll(
@@ -392,6 +439,20 @@ describe('Persistent dialogues over GraphQL', () => {
         { timeout: 5_000 },
       )
       .toHaveLength(1);
+    const turnDiagnostic = logged.mock.calls.find(
+      ([entry]) =>
+        typeof entry === 'object' &&
+        entry !== null &&
+        'operation' in entry &&
+        entry.operation === 'dialogue.runtime.turn_result',
+    )?.[0];
+    expect(turnDiagnostic).toMatchObject({
+      runtimeDetails: {
+        diagnostic: {
+          provider: { code: -32603, message: 'Internal error: Internal provider failure.' },
+        },
+      },
+    });
     logged.mockRestore();
   });
 
@@ -436,7 +497,6 @@ describe('Persistent dialogues over GraphQL', () => {
         turnId: turn.id,
         agentId: 'test-acp',
         agentVersion: '1.0.0',
-        model: 'test-model',
         error: {
           message: 'provider failed authorization=[REDACTED] [REDACTED]',
           stack: 'open stack password=[REDACTED]',

@@ -14,13 +14,8 @@ export class WatchAgentConfigurationsHandler implements IQueryHandler<
 > {
   constructor(private readonly cache: AgentConfigurationCache) {}
 
-  async execute({
-    connectedOnly,
-  }: WatchAgentConfigurationsQuery): Promise<WatchAgentConfigurationsQueryReturnType> {
+  async execute(): Promise<WatchAgentConfigurationsQueryReturnType> {
     const source = this.cache.watch();
-    if (!connectedOnly) {
-      return source;
-    }
     return (async function* () {
       for await (const snapshot of source) {
         yield { ...snapshot, catalogs: connectedConfigurations(snapshot.catalogs) };

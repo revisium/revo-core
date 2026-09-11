@@ -12,40 +12,17 @@ export type ErrorDiagnosticContext = Readonly<{
   dialogueId?: string;
   turnId?: string;
   runId?: string;
-  model?: string;
-  runtimeCode?: string;
-  phase?: string;
-  retryable?: boolean;
 }>;
 
-type ErrorDiagnostic = Readonly<{
+export type ErrorDiagnostic = Readonly<{
   type: 'error' | 'thrown' | 'circular' | 'truncated';
   name?: string;
   message?: string;
   stack?: string;
   cause?: ErrorDiagnostic;
   errors?: readonly ErrorDiagnostic[];
-  fault?: ErrorDiagnostic;
   omittedErrors?: number;
   value?: string;
-  diagnostic?: {
-    readonly stderr?: string;
-    readonly stderrTruncated?: boolean;
-    readonly provider?: {
-      readonly code?: string | number;
-      readonly name?: string;
-      readonly message?: string;
-      readonly data?: {
-        readonly code?: string | number;
-        readonly message?: string;
-        readonly reason?: string;
-        readonly error?: {
-          readonly code?: string | number;
-          readonly message?: string;
-        };
-      };
-    };
-  };
 }>;
 
 export function reportErrorDiagnostic(
@@ -53,19 +30,22 @@ export function reportErrorDiagnostic(
   context: ErrorDiagnosticContext,
   error: unknown,
 ): void {
-  logger.error({
+  logger.error(createErrorDiagnosticEntry(context, error));
+}
+
+export function createErrorDiagnosticEntry(
+  context: ErrorDiagnosticContext,
+  error: unknown,
+): Readonly<{ message: string; error: ErrorDiagnostic } & ErrorDiagnosticContext> {
+  return {
     message: 'Library operation failed.',
     ...sanitizeContext(context),
     error: formatErrorDiagnostic(error),
-  });
+  };
 }
 
 export function formatErrorDiagnostic(error: unknown): ErrorDiagnostic {
   return formatDiagnosticValue(error, 0, new WeakSet<object>());
-}
-
-export function sanitizeErrorText(value: string, maximumLength = MAX_MESSAGE_LENGTH): string {
-  return sanitizeText(value, maximumLength);
 }
 
 function formatDiagnosticValue(
@@ -86,14 +66,19 @@ function formatDiagnosticValue(
   }
   seen.add(value);
 
+  return formatObjectDiagnostic(value, depth, seen);
+}
+
+function formatObjectDiagnostic(
+  value: object,
+  depth: number,
+  seen: WeakSet<object>,
+): ErrorDiagnostic {
   const name = stringProperty(value, 'name');
   const message = stringProperty(value, 'message');
   const stack = stringProperty(value, 'stack');
   const cause = property(value, 'cause');
-  const fault = property(value, 'fault');
   const aggregate = property(value, 'errors');
-  const details = property(value, 'details');
-  const diagnostic = formatRuntimeDiagnostic(details);
   const errors = Array.isArray(aggregate)
     ? aggregate
         .slice(0, MAX_AGGREGATE_ERRORS)
@@ -106,113 +91,10 @@ function formatDiagnosticValue(
     ...(message === undefined ? {} : { message: sanitizeText(message, MAX_MESSAGE_LENGTH) }),
     ...(stack === undefined ? {} : { stack: sanitizeText(stack, MAX_STACK_LENGTH) }),
     ...(cause === undefined ? {} : { cause: formatDiagnosticValue(cause, depth + 1, seen) }),
-    ...(fault === undefined ? {} : { fault: formatDiagnosticValue(fault, depth + 1, seen) }),
     ...(errors === undefined ? {} : { errors }),
-    ...(diagnostic === undefined ? {} : { diagnostic }),
     ...(Array.isArray(aggregate) && aggregate.length > MAX_AGGREGATE_ERRORS
       ? { omittedErrors: aggregate.length - MAX_AGGREGATE_ERRORS }
       : {}),
-  };
-}
-
-type RuntimeDiagnostic = NonNullable<ErrorDiagnostic['diagnostic']>;
-
-function formatRuntimeDiagnostic(value: unknown): RuntimeDiagnostic | undefined {
-  const diagnostic =
-    value !== null && typeof value === 'object' ? property(value, 'diagnostic') : undefined;
-  const provider =
-    diagnostic !== null && typeof diagnostic === 'object'
-      ? property(diagnostic, 'provider')
-      : undefined;
-  const providerDiagnostic = formatProviderDiagnostic(provider);
-  const stderr =
-    diagnostic !== null && typeof diagnostic === 'object'
-      ? stringProperty(diagnostic, 'stderr')
-      : undefined;
-  const stderrTruncated =
-    diagnostic !== null && typeof diagnostic === 'object'
-      ? property(diagnostic, 'stderrTruncated')
-      : undefined;
-  if (
-    providerDiagnostic === undefined &&
-    stderr === undefined &&
-    typeof stderrTruncated !== 'boolean'
-  ) {
-    return undefined;
-  }
-  return {
-    ...(providerDiagnostic === undefined ? {} : { provider: providerDiagnostic }),
-    ...(stderr === undefined ? {} : { stderr: sanitizeText(stderr, MAX_STACK_LENGTH) }),
-    ...(typeof stderrTruncated !== 'boolean' ? {} : { stderrTruncated }),
-  };
-}
-
-function formatProviderDiagnostic(
-  value: unknown,
-): NonNullable<RuntimeDiagnostic['provider']> | undefined {
-  if (value === null || typeof value !== 'object') {
-    return undefined;
-  }
-  const providerCode = scalarProperty(value, 'code');
-  const providerName = stringProperty(value, 'name');
-  const providerMessage = stringProperty(value, 'message');
-  const data = property(value, 'data');
-  const providerData = formatProviderData(data);
-  if (
-    providerCode === undefined &&
-    providerName === undefined &&
-    providerMessage === undefined &&
-    providerData === undefined
-  ) {
-    return undefined;
-  }
-  return {
-    ...(providerCode === undefined ? {} : { code: providerCode }),
-    ...(providerName === undefined ? {} : { name: sanitizeText(providerName, MAX_MESSAGE_LENGTH) }),
-    ...(providerMessage === undefined
-      ? {}
-      : { message: sanitizeText(providerMessage, MAX_MESSAGE_LENGTH) }),
-    ...(providerData === undefined ? {} : { data: providerData }),
-  };
-}
-
-function formatProviderData(
-  value: unknown,
-): NonNullable<NonNullable<RuntimeDiagnostic['provider']>['data']> | undefined {
-  if (value === null || typeof value !== 'object') {
-    return undefined;
-  }
-  const code = scalarProperty(value, 'code');
-  const message = stringProperty(value, 'message');
-  const reason = stringProperty(value, 'reason');
-  const error = property(value, 'error');
-  const errorCode =
-    error !== null && typeof error === 'object' ? scalarProperty(error, 'code') : undefined;
-  const errorMessage =
-    error !== null && typeof error === 'object' ? stringProperty(error, 'message') : undefined;
-  if (
-    code === undefined &&
-    message === undefined &&
-    reason === undefined &&
-    errorCode === undefined &&
-    errorMessage === undefined
-  ) {
-    return undefined;
-  }
-  return {
-    ...(code === undefined ? {} : { code }),
-    ...(message === undefined ? {} : { message: sanitizeText(message, MAX_MESSAGE_LENGTH) }),
-    ...(reason === undefined ? {} : { reason: sanitizeText(reason, MAX_MESSAGE_LENGTH) }),
-    ...(errorCode === undefined && errorMessage === undefined
-      ? {}
-      : {
-          error: {
-            ...(errorCode === undefined ? {} : { code: errorCode }),
-            ...(errorMessage === undefined
-              ? {}
-              : { message: sanitizeText(errorMessage, MAX_MESSAGE_LENGTH) }),
-          },
-        }),
   };
 }
 
@@ -234,16 +116,6 @@ function sanitizeContext(context: ErrorDiagnosticContext): ErrorDiagnosticContex
     ...(context.runId === undefined
       ? {}
       : { runId: sanitizeText(context.runId, MAX_MESSAGE_LENGTH) }),
-    ...(context.model === undefined
-      ? {}
-      : { model: sanitizeText(context.model, MAX_MESSAGE_LENGTH) }),
-    ...(context.runtimeCode === undefined
-      ? {}
-      : { runtimeCode: sanitizeText(context.runtimeCode, MAX_MESSAGE_LENGTH) }),
-    ...(context.phase === undefined
-      ? {}
-      : { phase: sanitizeText(context.phase, MAX_MESSAGE_LENGTH) }),
-    ...(context.retryable === undefined ? {} : { retryable: context.retryable }),
   };
 }
 
@@ -257,17 +129,7 @@ function property(value: object, key: string): unknown {
 
 function stringProperty(value: object, key: string): string | undefined {
   const candidate = property(value, key);
-
   return typeof candidate === 'string' ? candidate : undefined;
-}
-
-function scalarProperty(value: object, key: string): string | number | undefined {
-  const candidate = property(value, key);
-
-  if (typeof candidate === 'string') {
-    return sanitizeText(candidate, MAX_MESSAGE_LENGTH);
-  }
-  return typeof candidate === 'number' ? candidate : undefined;
 }
 
 function sanitizeText(value: string, maximumLength: number): string {

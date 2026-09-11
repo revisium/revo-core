@@ -15,15 +15,15 @@ export class AgentDefinitionsApiService {
   constructor(private readonly queries: QueryBus) {}
 
   configurations() {
-    return this.queries.execute(new GetAgentConfigurationsQuery(true));
+    return this.queries.execute(new GetAgentConfigurationsQuery('connected'));
   }
 
   allConfigurations() {
-    return this.queries.execute(new GetAgentConfigurationsQuery());
+    return this.queries.execute(new GetAgentConfigurationsQuery('all'));
   }
 
   watchConfigurations() {
-    return this.queries.execute(new WatchAgentConfigurationsQuery(true));
+    return this.queries.execute(new WatchAgentConfigurationsQuery());
   }
 
   list(data: AgentDefinitionPageData = {}) {

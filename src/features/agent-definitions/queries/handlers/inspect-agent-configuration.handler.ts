@@ -50,6 +50,14 @@ export class InspectAgentConfigurationHandler implements IQueryHandler<
       );
     }
 
-    return connectedConfiguration(catalog);
+    const connected = connectedConfiguration(catalog);
+    if (connected === undefined) {
+      throw new AgentDefinitionsApplicationError(
+        AgentDefinitionsErrorCode.unavailable,
+        'Agent configuration is unavailable.',
+      );
+    }
+
+    return connected;
   }
 }

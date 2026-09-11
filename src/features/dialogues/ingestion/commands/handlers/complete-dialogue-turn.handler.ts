@@ -3,12 +3,12 @@
 import { Injectable } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import type {
-  AgentFault,
   AgentSessionEventAppendResult,
   AgentSessionTurnOutcome,
 } from '@revisium/revo-agent-runtime';
 
 import type { DialogueHistoryItem, Prisma } from '../../../../../__generated__/client/client.js';
+import { toPublicAgentTurnOutcome } from '../../../../../infrastructure/agent-runtime/agent-runtime-fault.js';
 import { TransactionPrismaService } from '../../../../../infrastructure/database/transaction-prisma.service.js';
 import { DialogueChangePublisher } from '../../../../../infrastructure/dialogue/dialogue-change-publisher.js';
 import { DialogueInteractionCleanup } from '../../../../../infrastructure/dialogue/dialogue-interaction-cleanup.js';
@@ -16,7 +16,6 @@ import {
   compareHistoryItemSequence,
   json,
 } from '../../../../../infrastructure/dialogue/dialogue-persistence.js';
-import { publicFault } from '../../../management/runtime/dialogue-runtime-fault.js';
 import { AgentSessionEventReceiptWriter } from '../../persistence/agent-session-event-receipt.js';
 import {
   CompleteDialogueTurnCommand,
@@ -25,11 +24,6 @@ import {
 
 type TurnCompletionEvent = CompleteDialogueTurnCommand['data']['event'];
 type ProjectedTurnOutcome = 'COMPLETED' | 'CANCELLED' | 'INTERRUPTED' | 'FAILED';
-
-const hasFault = (
-  outcome: AgentSessionTurnOutcome,
-): outcome is AgentSessionTurnOutcome & { readonly error: AgentFault } =>
-  'error' in outcome && outcome.error !== undefined;
 
 @Injectable()
 @CommandHandler(CompleteDialogueTurnCommand)
@@ -88,7 +82,7 @@ export class CompleteDialogueTurnHandler implements ICommandHandler<
     const remainingInteractions = await this.countPendingInteractions(dialogueId);
     const resultSequence = await this.reserveItemSequence(dialogueId);
     const outcome = this.turnOutcome(event);
-    const publicOutcome = this.publicTurnOutcome(event.outcome);
+    const publicOutcome = toPublicAgentTurnOutcome(event.outcome);
     const resultId = `${dialogueId}:${event.turnId}:result`;
     await this.createTurnResult(
       resultId,
@@ -197,27 +191,6 @@ export class CompleteDialogueTurnHandler implements ICommandHandler<
     }
 
     return 'FAILED';
-  }
-
-  private publicTurnOutcome(outcome: AgentSessionTurnOutcome): AgentSessionTurnOutcome {
-    if (outcome.status !== 'failed' && outcome.status !== 'timed_out') {
-      return outcome;
-    }
-
-    if (outcome.status === 'timed_out') {
-      if (!hasFault(outcome)) {
-        return outcome;
-      }
-      return { status: 'timed_out', error: publicFault(outcome.error) };
-    }
-
-    if (!hasFault(outcome)) {
-      return outcome;
-    }
-    return {
-      status: 'failed',
-      error: publicFault(outcome.error),
-    };
   }
 
   private createTurnResult(

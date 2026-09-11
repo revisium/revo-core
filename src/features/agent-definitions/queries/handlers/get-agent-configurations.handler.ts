@@ -15,10 +15,10 @@ export class GetAgentConfigurationsHandler implements IQueryHandler<
   constructor(private readonly cache: AgentConfigurationCache) {}
 
   async execute({
-    connectedOnly,
+    view,
   }: GetAgentConfigurationsQuery): Promise<GetAgentConfigurationsQueryReturnType> {
     const snapshot = this.cache.snapshot();
-    return connectedOnly
+    return view === 'connected'
       ? { ...snapshot, catalogs: connectedConfigurations(snapshot.catalogs) }
       : snapshot;
   }

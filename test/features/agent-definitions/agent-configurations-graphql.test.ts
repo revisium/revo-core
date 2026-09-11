@@ -2,7 +2,11 @@ import { YogaDriver, type YogaDriverConfig } from '@graphql-yoga/nestjs';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { Test } from '@nestjs/testing';
-import type { AgentManager, AgentSessions } from '@revisium/revo-agent-runtime';
+import type {
+  AgentConfigurationCatalog,
+  AgentManager,
+  AgentSessions,
+} from '@revisium/revo-agent-runtime';
 import { afterEach, expect, test, vi } from 'vitest';
 
 import { AgentDefinitionsResolver } from '../../../src/api/graphql/agent-definitions/agent-definitions.resolver.js';
@@ -36,13 +40,59 @@ const agent = {
   },
 } as const;
 
-const catalog = {
+const catalog: AgentConfigurationCatalog = {
   schemaVersion: 'agent-configuration-catalog/v2' as const,
   agent: agent.agent,
   definitionDigest: 'digest',
   catalogRevision: 'catalog_1',
-  options: [],
+  options: [
+    {
+      id: 'model',
+      name: 'Model',
+      type: 'select',
+      currentValue: 'provider/ready',
+      values: [{ value: 'provider/ready', name: 'Ready' }],
+    },
+  ],
   launch: { executable: 'test-cli', reportedVersion: '1' },
+};
+
+const subscriptionCatalog: AgentConfigurationCatalog = {
+  ...catalog,
+  model: {
+    optionId: 'model',
+    currentModel: 'provider/ready',
+    currentProvider: { id: 'provider', name: 'Provider' },
+    sessionAvailable: [{ value: 'provider/ready', name: 'Ready' }],
+    providers: [
+      {
+        id: 'provider',
+        name: 'Provider',
+        connected: true,
+        models: [
+          { value: 'provider/ready', name: 'Ready', connected: true },
+          { value: 'provider/hidden', name: 'Hidden', connected: false },
+        ],
+      },
+      {
+        id: 'offline',
+        name: 'Offline',
+        connected: false,
+        models: [{ value: 'offline/model', name: 'Offline model', connected: true }],
+      },
+    ],
+  },
+};
+
+type CatalogView = {
+  readonly catalogRevision: string;
+  readonly options: readonly unknown[];
+  readonly model?: {
+    readonly currentModel: string;
+    readonly currentProvider?: { readonly id: string };
+    readonly sessionAvailable: readonly unknown[];
+    readonly providers: readonly unknown[];
+  };
 };
 
 async function createApp() {
@@ -122,6 +172,25 @@ function nextDataEvent(
   return read;
 }
 
+type ConfigurationSnapshot = {
+  readonly status: string;
+  readonly catalogs: readonly {
+    readonly catalogRevision: string;
+    readonly model?: {
+      readonly providers: readonly {
+        readonly id: string;
+        readonly connected: boolean;
+        readonly models: readonly { readonly value: string; readonly connected: boolean }[];
+      }[];
+    };
+  }[];
+};
+
+function configurationSnapshot(event: GraphqlSseEvent): ConfigurationSnapshot {
+  return (event.data as { data: { agentConfigurations: ConfigurationSnapshot } }).data
+    .agentConfigurations;
+}
+
 let app: Awaited<ReturnType<typeof createApp>>['app'] | undefined;
 
 afterEach(async () => {
@@ -129,15 +198,24 @@ afterEach(async () => {
   app = undefined;
 });
 
-test('streams the loading and ready snapshots, then sends the latest snapshot on reconnect', async () => {
+const subscriptionQuery = `subscription {
+  agentConfigurations {
+    status
+    catalogs {
+      catalogRevision
+      model { providers { id connected models { value connected } } }
+    }
+  }
+}`;
+
+test('streams loading then connected ready configuration snapshots', async () => {
   const fixture = await createApp();
   app = fixture.app;
-  const query = 'subscription { agentConfigurations { status catalogs { catalogRevision } } }';
   const controller = new AbortController();
   const response = await fetch(fixture.endpoint, {
     method: 'POST',
     headers: { Accept: 'text/event-stream', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query: subscriptionQuery }),
     signal: controller.signal,
   });
   const reader = response.body?.getReader();
@@ -147,28 +225,31 @@ test('streams the loading and ready snapshots, then sends the latest snapshot on
 
   const readDataEvent = nextDataEvent(reader);
   const loading = await readDataEvent();
-  expect(
-    (loading.data as { data: { agentConfigurations: { status: string } } }).data.agentConfigurations
-      .status,
-  ).toBe('LOADING');
+  expect(configurationSnapshot(loading).status).toBe('LOADING');
 
-  fixture.cache.publish([catalog]);
+  fixture.cache.publish([subscriptionCatalog]);
   const ready = await readDataEvent();
-  const readySnapshot = (
-    ready.data as {
-      data: {
-        agentConfigurations: { status: string; catalogs: readonly { catalogRevision: string }[] };
-      };
-    }
-  ).data.agentConfigurations;
+  const readySnapshot = configurationSnapshot(ready);
   expect(readySnapshot.status).toBe('READY');
   expect(readySnapshot.catalogs[0]?.catalogRevision).toBe('catalog_1');
+  expect(readySnapshot.catalogs[0]?.model?.providers).toEqual([
+    {
+      id: 'provider',
+      connected: true,
+      models: [{ value: 'provider/ready', connected: true }],
+    },
+  ]);
   controller.abort();
+});
 
+test('sends the latest ready snapshot to a fresh subscription', async () => {
+  const fixture = await createApp();
+  app = fixture.app;
+  fixture.cache.publish([subscriptionCatalog]);
   const reconnect = await fetch(fixture.endpoint, {
     method: 'POST',
     headers: { Accept: 'text/event-stream', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query: subscriptionQuery }),
   });
   const reconnectReader = reconnect.body?.getReader();
   if (reconnectReader === undefined) {
@@ -177,13 +258,7 @@ test('streams the loading and ready snapshots, then sends the latest snapshot on
 
   const readReconnectDataEvent = nextDataEvent(reconnectReader);
   const latest = await readReconnectDataEvent();
-  const latestSnapshot = (
-    latest.data as {
-      data: {
-        agentConfigurations: { status: string; catalogs: readonly { catalogRevision: string }[] };
-      };
-    }
-  ).data.agentConfigurations;
+  const latestSnapshot = configurationSnapshot(latest);
   expect(latestSnapshot.status).toBe('READY');
   expect(latestSnapshot.catalogs[0]?.catalogRevision).toBe('catalog_1');
   await reconnectReader?.cancel();
@@ -192,45 +267,75 @@ test('streams the loading and ready snapshots, then sends the latest snapshot on
 test('returns connected projection separately from the full catalog snapshot', async () => {
   const fixture = await createApp();
   app = fixture.app;
-  fixture.cache.publish([
-    {
-      ...catalog,
-      schemaVersion: 'agent-configuration-catalog/v2',
-      model: {
-        optionId: 'model',
-        currentModel: 'provider/ready',
-        sessionAvailable: [],
-        providers: [
-          {
-            id: 'provider',
-            name: 'Provider',
-            connected: true,
-            models: [{ value: 'provider/ready', name: 'Ready', connected: true }],
-          },
-          { id: 'offline', name: 'Offline', connected: false, models: [] },
-        ],
-      },
-    } as never,
-  ]);
+  const fullCatalog: AgentConfigurationCatalog = {
+    ...catalog,
+    model: {
+      optionId: 'model',
+      currentModel: 'provider/ready',
+      currentProvider: { id: 'provider', name: 'Provider' },
+      sessionAvailable: [{ value: 'provider/ready', name: 'Ready' }],
+      providers: [
+        {
+          id: 'provider',
+          name: 'Provider',
+          connected: true,
+          models: [
+            { value: 'provider/ready', name: 'Ready', connected: true },
+            { value: 'provider/hidden', name: 'Hidden', connected: false },
+          ],
+        },
+        {
+          id: 'offline',
+          name: 'Offline',
+          connected: false,
+          models: [{ value: 'offline/model', name: 'Offline model', connected: true }],
+        },
+      ],
+    },
+  };
+  fixture.cache.publish([fullCatalog]);
 
   const response = await fetch(`${await fixture.app.getUrl()}/graphql`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       query: `query {
-        agentConfigurations { catalogs { model { providers { id connected models { value connected } } } } }
-        allAgentConfigurations { catalogs { model { providers { id connected models { value connected } } } } }
+        agentConfigurations {
+          catalogs {
+            catalogRevision options { __typename ... on AgentConfigurationSelectModel { values { value } } }
+            model { currentModel currentProvider { id } sessionAvailable { value } providers { id connected models { value connected } } }
+          }
+        }
+        allAgentConfigurations {
+          catalogs {
+            catalogRevision options { __typename ... on AgentConfigurationSelectModel { values { value } } }
+            model { currentModel currentProvider { id } sessionAvailable { value } providers { id connected models { value connected } } }
+          }
+        }
       }`,
     }),
   });
   const payload = (await response.json()) as {
     data: {
-      agentConfigurations: { catalogs: readonly { model?: { providers: readonly unknown[] } }[] };
-      allAgentConfigurations: {
-        catalogs: readonly { model?: { providers: readonly unknown[] } }[];
-      };
+      agentConfigurations: { catalogs: readonly CatalogView[] };
+      allAgentConfigurations: { catalogs: readonly CatalogView[] };
     };
   };
   expect(payload.data.agentConfigurations.catalogs[0]?.model?.providers).toHaveLength(1);
   expect(payload.data.allAgentConfigurations.catalogs[0]?.model?.providers).toHaveLength(2);
+  expect(payload.data.agentConfigurations.catalogs[0]).toMatchObject({
+    catalogRevision: 'catalog_1',
+    options: [
+      { __typename: 'AgentConfigurationSelectModel', values: [{ value: 'provider/ready' }] },
+    ],
+    model: {
+      currentModel: 'provider/ready',
+      currentProvider: { id: 'provider' },
+      sessionAvailable: [{ value: 'provider/ready' }],
+    },
+  });
+  expect(payload.data.allAgentConfigurations.catalogs[0]).toMatchObject({
+    catalogRevision: 'catalog_1',
+    model: { sessionAvailable: [{ value: 'provider/ready' }] },
+  });
 });
