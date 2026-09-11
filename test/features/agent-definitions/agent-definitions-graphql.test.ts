@@ -1,5 +1,3 @@
-import { Logger } from '@nestjs/common';
-import { AgentManagerError } from '@revisium/revo-agent-runtime';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createAgentDefinitionsGraphqlApp } from '../../fixtures/agent-definitions-graphql.js';
@@ -75,14 +73,16 @@ describe('Agent definitions over GraphQL', () => {
   });
 
   it('inspects configuration without opening a runtime session', async () => {
-    fixture.manager.inspectConfiguration.mockResolvedValue({
-      schemaVersion: 'agent-configuration-catalog/v1',
-      agent: { id: 'test', version: '1' },
-      definitionDigest: 'digest',
-      catalogRevision: 'catalog_1',
-      launch: { executable: 'test-cli', reportedVersion: '1' },
-      options: [],
-    });
+    fixture.cache.publish([
+      {
+        schemaVersion: 'agent-configuration-catalog/v1',
+        agent: { id: 'test', version: '1' },
+        definitionDigest: 'digest',
+        catalogRevision: 'catalog_1',
+        launch: { executable: 'test-cli', reportedVersion: '1' },
+        options: [],
+      },
+    ]);
 
     const response = await fixture.graphql(`
       {
@@ -98,67 +98,65 @@ describe('Agent definitions over GraphQL', () => {
       catalogRevision: 'catalog_1',
       options: [],
     });
-    expect(fixture.manager.inspectConfiguration).toHaveBeenCalledExactlyOnceWith(
-      { agent: { id: 'test', version: '1' }, workspace: { directory: '/test/workspace' } },
-      fixture.launchContext,
-    );
+    expect(fixture.manager.inspectConfiguration).toHaveBeenCalledTimes(1);
   });
 
-  it('logs safe inspection diagnostics while preserving the GraphQL error contract', async () => {
-    const logged = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
-    fixture.manager.inspectConfiguration.mockRejectedValue(
-      new AgentManagerError({
-        code: 'revo.agent.protocol_failed',
-        phase: 'execution',
-        retryable: false,
-        message: 'Private provider error.',
-        details: { stderr: 'Private process output.' },
-      }),
-    );
+  it('reads the complete configuration snapshot from the cache', async () => {
+    fixture.cache.publish([
+      {
+        schemaVersion: 'agent-configuration-catalog/v1',
+        agent: { id: 'test', version: '1' },
+        definitionDigest: 'digest',
+        catalogRevision: 'catalog_1',
+        launch: { executable: 'test-cli', reportedVersion: '1' },
+        options: [],
+      },
+    ]);
+    const inspections = fixture.manager.inspectConfiguration.mock.calls.length;
 
+    const response = await fixture.graphql(`
+      {
+        agentConfigurations {
+          status
+          catalogs { agent { id version } catalogRevision }
+        }
+      }
+    `);
+
+    expect(response.body).toEqual({
+      data: {
+        agentConfigurations: {
+          status: 'READY',
+          catalogs: [{ agent: { id: 'test', version: '1' }, catalogRevision: 'catalog_1' }],
+        },
+      },
+    });
+    expect(fixture.manager.inspectConfiguration).toHaveBeenCalledTimes(inspections);
+  });
+
+  it('reports a known configuration as unavailable while the cache has no catalogue', async () => {
     const response = await fixture.graphql(`
       {
         inspectAgentConfiguration(agentId: "test", agentVersion: "1") { catalogRevision }
       }
     `);
 
-    expect(logged).toHaveBeenCalledExactlyOnceWith({
-      message: 'Library operation failed.',
-      operation: 'agent.configuration.inspect',
-      agentId: 'test',
-      agentVersion: '1',
-      runtimeCode: 'revo.agent.protocol_failed',
-      phase: 'execution',
-      retryable: false,
-      error: expect.objectContaining({
-        type: 'error',
-        name: 'AgentManagerError',
-        message: 'Private provider error.',
-        stack: expect.any(String),
-      }),
-    });
-    expect(logged.mock.calls[0]?.[0]).not.toHaveProperty('error.cause');
     expect(response.body).toEqual({
       data: null,
       errors: [
         {
-          message: 'Agent definition operation failed.',
+          message: 'Agent configuration is unavailable.',
           locations: [{ line: 3, column: 9 }],
           path: ['inspectAgentConfiguration'],
           extensions: {
-            statusCode: 500,
-            code: 'REVO_AGENT_SESSION_INTERNAL',
+            statusCode: 503,
+            code: 'REVO_AGENT_SESSION_UNAVAILABLE',
             path: null,
-            details: {
-              runtimeCode: 'revo.agent.protocol_failed',
-              retryable: false,
-            },
+            details: {},
           },
         },
       ],
     });
-    expect(JSON.stringify(response.body)).not.toContain('Private provider error.');
-    expect(JSON.stringify(response.body)).not.toContain('Private process output.');
   });
 
   it('treats explicit null pagination arguments as omitted', async () => {
@@ -171,7 +169,7 @@ describe('Agent definitions over GraphQL', () => {
       { first: null, after: null },
     );
 
-    expect(response.body).toEqual({ data: { agentDefinitions: { totalCount: 0 } } });
+    expect(response.body).toEqual({ data: { agentDefinitions: { totalCount: 1 } } });
   });
 
   it('does not expose the removed session API', async () => {

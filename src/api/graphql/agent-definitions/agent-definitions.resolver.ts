@@ -1,8 +1,9 @@
 import { UseFilters } from '@nestjs/common';
-import { Args, Int, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AgentDefinitionsApiService } from '../../../features/agent-definitions/agent-definitions-api.service.js';
 import { AgentDefinitionsGraphqlExceptionFilter } from './agent-definitions-graphql-exception.filter.js';
+import { AgentConfigurationsModel } from './model/agent-configurations.model.js';
 import {
   AgentConfigurationCatalogModel,
   AgentDefinitionConnectionModel,
@@ -13,6 +14,19 @@ import {
 @UseFilters(AgentDefinitionsGraphqlExceptionFilter)
 export class AgentDefinitionsResolver {
   constructor(private readonly definitions: AgentDefinitionsApiService) {}
+
+  @Query(() => AgentConfigurationsModel)
+  agentConfigurations() {
+    return this.definitions.configurations();
+  }
+
+  @Subscription(() => AgentConfigurationsModel, {
+    name: 'agentConfigurations',
+    resolve: (state: unknown) => state,
+  })
+  watchAgentConfigurations() {
+    return this.definitions.watchConfigurations();
+  }
 
   @Query(() => AgentDefinitionConnectionModel)
   agentDefinitions(

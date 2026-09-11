@@ -8,6 +8,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { AppModule } from '../src/app.module.js';
+import { AgentConfigurationWarmup } from '../src/features/agent-definitions/configurations/agent-configuration-warmup.js';
 import { CatalogTable } from '../src/features/playbook-catalog/contracts/catalog-table.js';
 import { LaunchProfileStatus } from '../src/features/playbook-catalog/contracts/catalog.enums.js';
 import { CatalogRevisionService } from '../src/features/playbook-catalog/engine/catalog-revision.service.js';
@@ -565,7 +566,10 @@ function corruptCatalogEnvelope(field: 'pipeline' | 'profile'): PublicError {
 }
 
 async function startApp(): Promise<INestApplication> {
-  const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const module = await Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(AgentConfigurationWarmup)
+    .useValue({})
+    .compile();
   const app = module.createNestApplication();
   try {
     await app.init();

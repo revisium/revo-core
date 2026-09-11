@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
 import { AppModule } from '../src/app.module.js';
+import { AgentConfigurationWarmup } from '../src/features/agent-definitions/configurations/agent-configuration-warmup.js';
 import {
   DeleteUserProjectCommand,
   type DeleteUserProjectCommandReturnType,
@@ -204,7 +205,10 @@ function branchWithRevisions(ids: IdService) {
 }
 
 async function startApp(): Promise<INestApplication> {
-  const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const module = await Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(AgentConfigurationWarmup)
+    .useValue({})
+    .compile();
   const app = module.createNestApplication();
   await app.init();
 
