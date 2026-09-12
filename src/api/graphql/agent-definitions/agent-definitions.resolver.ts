@@ -4,11 +4,7 @@ import { Args, Int, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { AgentDefinitionsApiService } from '../../../features/agent-definitions/agent-definitions-api.service.js';
 import { AgentDefinitionsGraphqlExceptionFilter } from './agent-definitions-graphql-exception.filter.js';
 import { AgentConfigurationsModel } from './model/agent-configurations.model.js';
-import {
-  AgentConfigurationCatalogModel,
-  AgentDefinitionConnectionModel,
-  AgentDescriptorModel,
-} from './model/index.js';
+import { AgentDefinitionConnectionModel, AgentDescriptorModel } from './model/index.js';
 
 @Resolver()
 @UseFilters(AgentDefinitionsGraphqlExceptionFilter)
@@ -42,13 +38,5 @@ export class AgentDefinitionsResolver {
   @Query(() => AgentDescriptorModel, { nullable: true })
   agentDefinition(@Args('agentId') agentId: string, @Args('agentVersion') agentVersion: string) {
     return this.definitions.get(agentId, agentVersion);
-  }
-
-  @Query(() => AgentConfigurationCatalogModel)
-  inspectAgentConfiguration(
-    @Args('agentId') agentId: string,
-    @Args('agentVersion') agentVersion: string,
-  ) {
-    return this.definitions.inspectConfiguration(agentId, agentVersion);
   }
 }

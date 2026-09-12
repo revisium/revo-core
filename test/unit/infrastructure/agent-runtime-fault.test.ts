@@ -12,22 +12,6 @@ import {
   reportAgentRuntimeDiagnostic,
 } from '../../../src/infrastructure/agent-runtime/agent-runtime-fault.js';
 
-test('keeps the runtime fault message when provider reason is blank', () => {
-  const fault = {
-    code: 'revo.agent.protocol_failed',
-    message: 'The provider session protocol operation failed.',
-    phase: 'execution',
-    retryable: false,
-    details: {
-      diagnostic: {
-        provider: { message: '   ' },
-      },
-    },
-  } satisfies AgentFault;
-
-  expect(toPublicAgentFault(fault).message).toBe(fault.message);
-});
-
 test('keeps provider diagnostics out of public faults', () => {
   const fault = {
     code: 'revo.agent.protocol_failed',

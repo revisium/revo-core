@@ -72,103 +72,6 @@ describe('Agent definitions over GraphQL', () => {
     });
   });
 
-  it('inspects configuration without opening a runtime session', async () => {
-    fixture.cache.publish([
-      {
-        schemaVersion: 'agent-configuration-catalog/v2',
-        agent: { id: 'test', version: '1' },
-        definitionDigest: 'digest',
-        catalogRevision: 'catalog_1',
-        launch: { executable: 'test-cli', reportedVersion: '1' },
-        options: [],
-      },
-    ]);
-
-    const response = await fixture.graphql(`
-      {
-        inspectAgentConfiguration(agentId: "test", agentVersion: "1") {
-          catalogRevision
-          options { __typename }
-        }
-      }
-    `);
-
-    expect(response.body.errors).toBeUndefined();
-    expect(response.body.data.inspectAgentConfiguration).toEqual({
-      catalogRevision: 'catalog_1',
-      options: [],
-    });
-    expect(fixture.manager.inspectConfiguration).toHaveBeenCalledTimes(1);
-  });
-
-  it('keeps concurrent aggregate and per-agent reads cache-only', async () => {
-    fixture.cache.publish([
-      {
-        schemaVersion: 'agent-configuration-catalog/v2',
-        agent: { id: 'test', version: '1' },
-        definitionDigest: 'digest',
-        catalogRevision: 'catalog_1',
-        launch: { executable: 'test-cli', reportedVersion: '1' },
-        options: [],
-      },
-    ]);
-    const inspections = fixture.manager.inspectConfiguration.mock.calls.length;
-
-    const query = `
-      {
-        agentConfigurations {
-          status
-          catalogs { agent { id version } catalogRevision }
-        }
-        inspectAgentConfiguration(agentId: "test", agentVersion: "1") {
-          catalogRevision
-        }
-      }
-    `;
-    const responses = await Promise.all([
-      fixture.graphql(query),
-      fixture.graphql(query),
-      fixture.graphql(query),
-    ]);
-
-    for (const response of responses) {
-      expect(response.body.errors).toBeUndefined();
-      expect(response.body.data).toEqual({
-        agentConfigurations: {
-          status: 'READY',
-          catalogs: [{ agent: { id: 'test', version: '1' }, catalogRevision: 'catalog_1' }],
-        },
-        inspectAgentConfiguration: { catalogRevision: 'catalog_1' },
-      });
-    }
-    expect(fixture.manager.inspectConfiguration).toHaveBeenCalledTimes(inspections);
-  });
-
-  it('reports a known configuration as unavailable while the cache has no catalogue', async () => {
-    const response = await fixture.graphql(`
-      {
-        inspectAgentConfiguration(agentId: "test", agentVersion: "1") { catalogRevision }
-      }
-    `);
-
-    expect(response.body).toEqual({
-      data: null,
-      errors: [
-        {
-          message: 'Agent configuration is unavailable.',
-          locations: [{ line: 3, column: 9 }],
-          path: ['inspectAgentConfiguration'],
-          extensions: {
-            statusCode: 503,
-            code: 'REVO_AGENT_SESSION_UNAVAILABLE',
-            path: null,
-            details: {},
-          },
-        },
-      ],
-    });
-  });
-
   it('treats explicit null pagination arguments as omitted', async () => {
     const response = await fixture.graphql(
       `
@@ -213,6 +116,7 @@ describe('Agent definitions over GraphQL', () => {
         'agentSession',
       ]),
     );
+    expect(queryFields).not.toContain('inspectAgentConfiguration');
     expect(mutationFields).not.toEqual(
       expect.arrayContaining([
         'openAgentSession',
@@ -229,5 +133,56 @@ describe('Agent definitions over GraphQL', () => {
       ]),
     );
     expect(subscriptionFields).not.toContain('agentSessionEvents');
+  });
+
+  it('returns a public error for an invalid pagination cursor', async () => {
+    const response = await fixture.graphql(`
+      { agentDefinitions(after: "???") { totalCount } }
+    `);
+
+    expect(response.body).toMatchObject({
+      data: null,
+      errors: [
+        {
+          message: 'Agent definition cursor is invalid.',
+          path: ['agentDefinitions'],
+          extensions: {
+            statusCode: 400,
+            code: 'REVO_AGENT_SESSION_INVALID_CURSOR',
+            path: null,
+          },
+        },
+      ],
+    });
+  });
+
+  it('returns a not-found error for an expired pagination cursor', async () => {
+    const expiredCursor = Buffer.from(
+      JSON.stringify({
+        version: 1,
+        epoch: 'expired',
+        kind: 'agent-definitions',
+        definitionId: '["test","1"]',
+      }),
+      'utf8',
+    ).toString('base64url');
+    const response = await fixture.graphql(
+      `{ agentDefinitions(after: "${expiredCursor}") { totalCount } }`,
+    );
+
+    expect(response.body).toMatchObject({
+      data: null,
+      errors: [
+        {
+          message: 'Agent definition cursor belongs to an earlier process.',
+          path: ['agentDefinitions'],
+          extensions: {
+            statusCode: 404,
+            code: 'REVO_AGENT_SESSION_EXPIRED_CURSOR',
+            path: null,
+          },
+        },
+      ],
+    });
   });
 });
