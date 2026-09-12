@@ -5,6 +5,7 @@ import type { AgentDefinitionReadModel } from '../../contracts/agent-definitions
 export type GetAgentDefinitionQueryData = {
   readonly agentId: string;
   readonly agentVersion: string;
+  readonly installationId: string;
 };
 
 export type GetAgentDefinitionQueryReturnType = AgentDefinitionReadModel | undefined;

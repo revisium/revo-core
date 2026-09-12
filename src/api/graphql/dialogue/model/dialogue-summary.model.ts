@@ -18,6 +18,9 @@ export class DialogueSummaryModel {
   @Field(() => String)
   agentVersion: string;
 
+  @Field(() => String)
+  agentInstallationId: string;
+
   @Field(() => GraphQLJSON)
   agentConfiguration: AgentConfigurationSelection;
 

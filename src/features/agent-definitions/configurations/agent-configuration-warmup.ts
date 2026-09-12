@@ -45,7 +45,10 @@ export class AgentConfigurationWarmup implements OnModuleInit, OnModuleDestroy {
     const agents = new Map(
       this.manager.sessions
         .listAgents()
-        .map(({ agent }) => [JSON.stringify([agent.id, agent.version]), agent]),
+        .map(({ agent }) => [
+          JSON.stringify([agent.id, agent.version, agent.installationId]),
+          agent,
+        ]),
     );
     this.cache.begin();
     void this.run([...agents.values()]);
@@ -62,8 +65,12 @@ export class AgentConfigurationWarmup implements OnModuleInit, OnModuleDestroy {
 
     if (!this.controller.signal.aborted) {
       catalogs.sort((left, right) =>
-        JSON.stringify([left.agent.id, left.agent.version]).localeCompare(
-          JSON.stringify([right.agent.id, right.agent.version]),
+        JSON.stringify([
+          left.agent.id,
+          left.agent.version,
+          left.agent.installationId,
+        ]).localeCompare(
+          JSON.stringify([right.agent.id, right.agent.version, right.agent.installationId]),
         ),
       );
       this.cache.publish(catalogs);
@@ -107,6 +114,7 @@ export class AgentConfigurationWarmup implements OnModuleInit, OnModuleDestroy {
             operation: 'agent.configuration.inspect',
             agentId: agent.id,
             agentVersion: agent.version,
+            agentInstallationId: agent.installationId,
           },
           error,
         );

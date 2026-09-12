@@ -61,6 +61,7 @@ const fakeAgentDefinition = (control: FakeAgentControl): AgentDefinitionInput =>
   schemaVersion: 'agent-definition/v1',
   id: 'test-acp',
   version: '1.0.0',
+  installationId: 'test-installation',
   displayName: 'Dialogue test agent',
   launch: {
     command: process.execPath,
@@ -197,6 +198,7 @@ export class DialogueScenarioClient {
           title: options.title ?? 'Test dialogue',
           agentId: options.agentId ?? 'test-acp',
           agentVersion: options.agentVersion ?? '1.0.0',
+          agentInstallationId: options.agentInstallationId ?? 'test-installation',
           ...(options.agentConfiguration === undefined
             ? {}
             : { agentConfiguration: options.agentConfiguration }),

@@ -158,6 +158,7 @@ type AgentLaunchEvidenceModel {
 
 type AgentRefModel {
   id: String!
+  installationId: String!
   version: String!
 }
 
@@ -268,6 +269,7 @@ enum CatalogTable {
 input CreateDialogueInput {
   agentConfiguration: JSON
   agentId: String!
+  agentInstallationId: String!
   agentVersion: String!
   metadata: JSON
   systemContext: String
@@ -361,6 +363,7 @@ type DialogueSummaryModel {
   activeTurnId: ID
   agentConfiguration: JSON!
   agentId: String!
+  agentInstallationId: String!
   agentVersion: String!
   contextMode: String!
   createdAt: DateTime!
@@ -695,7 +698,7 @@ input ProjectUpdateInput {
 
 type Query {
   agentConfigurations: AgentConfigurationsModel!
-  agentDefinition(agentId: String!, agentVersion: String!): AgentDescriptorModel
+  agentDefinition(agentId: String!, agentVersion: String!, installationId: String!): AgentDescriptorModel
   agentDefinitions(after: String, first: Int): AgentDefinitionConnectionModel!
   catalogChangeSet(after: String, first: Int!): CatalogChangeEntryConnection!
   catalogSnapshot(revisionId: ID!): CatalogSnapshotModel!

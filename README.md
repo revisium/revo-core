@@ -52,10 +52,12 @@ terminal. Admin's development server proxies backend requests to port `19222`.
 ## Agent access
 
 Authenticate the chosen agent provider on the machine running Core and make its
-required executables available on `PATH`. Agent processes inherit `HOME` and `PATH`
-by default. If a provider needs API-key environment variables, set them for Core
-and add their names to the comma-separated `REVO_AGENT_INHERIT_ENV` allowlist while
-keeping `HOME,PATH`.
+required executables available on `PATH`. Core preserves the platform's standard
+user, home, path, shell, temporary-directory, and XDG configuration variables for
+agent processes by default. This includes `USER`/`LOGNAME` on Unix-like systems,
+which macOS Keychain-backed CLI authentication may require. If a provider needs
+additional API-key variables, set them for Core and provide the complete desired
+comma-separated allowlist through `REVO_AGENT_INHERIT_ENV`.
 
 The runtime workspace defaults to `~/.revo/sessions` and must be writable. Override
 it with `REVO_AGENT_WORKSPACE_ROOT` in `.env` when needed. See

@@ -18,6 +18,11 @@ export class GetAgentDefinitionHandler implements IQueryHandler<
   async execute({ data }: GetAgentDefinitionQuery): Promise<GetAgentDefinitionQueryReturnType> {
     return this.manager.sessions
       .listAgents()
-      .find(({ agent }) => agent.id === data.agentId && agent.version === data.agentVersion);
+      .find(
+        ({ agent }) =>
+          agent.id === data.agentId &&
+          agent.version === data.agentVersion &&
+          agent.installationId === data.installationId,
+      );
   }
 }

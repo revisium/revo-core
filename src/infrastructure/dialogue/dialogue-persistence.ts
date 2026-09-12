@@ -282,6 +282,7 @@ export const dialogueSummaryView = (dialogue: StoredDialogue): DialogueSummary =
     title: dialogue.title,
     agentId: dialogue.agentId,
     agentVersion: dialogue.agentVersion,
+    agentInstallationId: dialogue.agentInstallationId,
     agentConfiguration,
     metadata: dialogueJson(dialogue.metadata),
     systemContext: dialogue.systemContext,

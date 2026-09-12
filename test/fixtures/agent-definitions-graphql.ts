@@ -19,7 +19,7 @@ import { AgentSessionDirectories } from '../../src/infrastructure/agent-runtime/
 
 export async function createAgentDefinitionsGraphqlApp() {
   const agent = {
-    agent: { id: 'test', version: '1' },
+    agent: { id: 'test', version: '1', installationId: 'test-installation' },
     definitionDigest: 'digest',
     displayName: 'Test agent',
     capabilities: {

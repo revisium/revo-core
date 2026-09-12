@@ -14,6 +14,9 @@ export class CreateDialogueInput {
   @Field(() => String)
   agentVersion: string;
 
+  @Field(() => String)
+  agentInstallationId: string;
+
   @Field(() => GraphQLJSON, { nullable: true })
   agentConfiguration?: DialogueJson | null;
 

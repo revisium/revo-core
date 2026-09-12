@@ -24,7 +24,7 @@ import { AgentSessionDirectories } from '../../../src/infrastructure/agent-runti
 import { parseGraphqlSseEvent, type GraphqlSseEvent } from '../../support/graphql-sse-client.js';
 
 const agent = {
-  agent: { id: 'test', version: '1' },
+  agent: { id: 'test', version: '1', installationId: 'test-installation' },
   definitionDigest: 'digest',
   displayName: 'Test agent',
   capabilities: {

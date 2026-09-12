@@ -25,7 +25,9 @@ export class AgentDefinitionsApiService {
     return this.queries.execute(new ListAgentDefinitionsQuery(data));
   }
 
-  get(agentId: string, agentVersion: string) {
-    return this.queries.execute(new GetAgentDefinitionQuery({ agentId, agentVersion }));
+  get(agentId: string, agentVersion: string, installationId: string) {
+    return this.queries.execute(
+      new GetAgentDefinitionQuery({ agentId, agentVersion, installationId }),
+    );
   }
 }

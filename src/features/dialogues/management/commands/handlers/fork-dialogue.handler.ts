@@ -84,6 +84,7 @@ export class ForkDialogueHandler implements ICommandHandler<
         title,
         agentId: origin.agentId,
         agentVersion: origin.agentVersion,
+        agentInstallationId: origin.agentInstallationId,
         agentConfiguration: json(agentConfiguration),
         metadata: json(origin.metadata),
         systemContext: origin.systemContext,
