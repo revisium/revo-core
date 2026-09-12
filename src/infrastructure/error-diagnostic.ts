@@ -9,6 +9,7 @@ export type ErrorDiagnosticContext = Readonly<{
   operation: string;
   agentId?: string;
   agentVersion?: string;
+  agentInstallationId?: string;
   dialogueId?: string;
   turnId?: string;
   runId?: string;
@@ -107,6 +108,11 @@ function sanitizeContext(context: ErrorDiagnosticContext): ErrorDiagnosticContex
     ...(context.agentVersion === undefined
       ? {}
       : { agentVersion: sanitizeText(context.agentVersion, MAX_MESSAGE_LENGTH) }),
+    ...(context.agentInstallationId === undefined
+      ? {}
+      : {
+          agentInstallationId: sanitizeText(context.agentInstallationId, MAX_MESSAGE_LENGTH),
+        }),
     ...(context.dialogueId === undefined
       ? {}
       : { dialogueId: sanitizeText(context.dialogueId, MAX_MESSAGE_LENGTH) }),

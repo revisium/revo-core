@@ -8,6 +8,7 @@ test('persists the decoded configuration snapshot after input mutation', async (
     agentConfiguration: { selections: { model: 'original' } },
     agentId: 'agent',
     agentVersion: '1',
+    agentInstallationId: 'test-installation',
     metadata: {},
     systemContext: '',
     title: 'Dialogue',
@@ -55,6 +56,7 @@ test('persists the decoded configuration snapshot after input mutation', async (
     expect.objectContaining({
       data: expect.objectContaining({
         agentConfiguration: { selections: { model: 'original' } },
+        agentInstallationId: 'test-installation',
       }),
     }),
   );

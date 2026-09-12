@@ -104,6 +104,7 @@ export interface DialogueSummary {
   readonly title: string;
   readonly agentId: string;
   readonly agentVersion: string;
+  readonly agentInstallationId: string;
   readonly agentConfiguration: AgentConfigurationSelection;
   readonly metadata: DialogueJson;
   readonly systemContext: string;
@@ -198,6 +199,7 @@ export interface CreateDialogueInput {
   readonly title: string;
   readonly agentId: string;
   readonly agentVersion: string;
+  readonly agentInstallationId: string;
   readonly agentConfiguration?: DialogueJson;
   readonly systemContext?: string;
   readonly metadata?: DialogueJson;

@@ -12,7 +12,7 @@ import { AgentConfigurationWarmup } from '../../../src/features/agent-definition
 import { AgentSessionDirectories } from '../../../src/infrastructure/agent-runtime/agent-session-directories.js';
 
 const descriptor = (id: string): AgentSessionAgentDescriptor => ({
-  agent: { id, version: '1' },
+  agent: { id, version: '1', installationId: 'test-installation' },
   definitionDigest: id,
   displayName: id,
   capabilities: {
@@ -29,7 +29,7 @@ const descriptor = (id: string): AgentSessionAgentDescriptor => ({
 });
 const catalog = (id: string): AgentConfigurationCatalog => ({
   schemaVersion: 'agent-configuration-catalog/v2',
-  agent: { id, version: '1' },
+  agent: { id, version: '1', installationId: 'test-installation' },
   definitionDigest: id,
   catalogRevision: id,
   options: [],
@@ -146,7 +146,10 @@ test('shutdown aborts active inspections and does not start queued agents', asyn
   s.warmup.onModuleInit();
   const calls = s.manager.inspectConfiguration.mock.calls;
   expect(calls[0]).toEqual([
-    { agent: { id: 'a', version: '1' }, workspace: { directory: '/test/workspace' } },
+    {
+      agent: { id: 'a', version: '1', installationId: 'test-installation' },
+      workspace: { directory: '/test/workspace' },
+    },
     { ...s.context, signal: expect.any(AbortSignal) },
   ]);
   expect(calls[0]?.[1]?.signal?.aborted).toBe(false);

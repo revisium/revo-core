@@ -38,6 +38,7 @@ export class CreateDialogueHandler implements ICommandHandler<
     this.requireText(data.title, 'title');
     this.requireText(data.agentId, 'agentId');
     this.requireText(data.agentVersion, 'agentVersion');
+    this.requireText(data.agentInstallationId, 'agentInstallationId');
     let agentConfiguration: AgentConfigurationSelection;
     try {
       agentConfiguration = decodeAgentConfigurationSelection(
@@ -71,6 +72,7 @@ export class CreateDialogueHandler implements ICommandHandler<
         title: data.title,
         agentId: data.agentId,
         agentVersion: data.agentVersion,
+        agentInstallationId: data.agentInstallationId,
         agentConfiguration: json(agentConfiguration),
         systemContext: data.systemContext ?? '',
         metadata: json(data.metadata ?? {}),

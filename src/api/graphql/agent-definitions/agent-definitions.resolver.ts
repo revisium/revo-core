@@ -36,7 +36,11 @@ export class AgentDefinitionsResolver {
   }
 
   @Query(() => AgentDescriptorModel, { nullable: true })
-  agentDefinition(@Args('agentId') agentId: string, @Args('agentVersion') agentVersion: string) {
-    return this.definitions.get(agentId, agentVersion);
+  agentDefinition(
+    @Args('agentId') agentId: string,
+    @Args('agentVersion') agentVersion: string,
+    @Args('installationId') installationId: string,
+  ) {
+    return this.definitions.get(agentId, agentVersion, installationId);
   }
 }

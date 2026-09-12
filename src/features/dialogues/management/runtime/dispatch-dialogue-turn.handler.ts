@@ -93,11 +93,13 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
         'dialogue.runtime.open',
         dialogue.agentId,
         dialogue.agentVersion,
+        dialogue.agentInstallationId,
         () =>
           this.openRuntime(
             newSessionId,
             dialogue.agentId,
             dialogue.agentVersion,
+            dialogue.agentInstallationId,
             agentConfiguration,
           ),
       );
@@ -117,6 +119,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
       'dialogue.runtime.send',
       dialogue.agentId,
       dialogue.agentVersion,
+      dialogue.agentInstallationId,
       () => this.sendToRuntime(sessionId, turnId, runtimePrompt),
     );
 
@@ -125,6 +128,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
         'dialogue.runtime.cancel',
         dialogue.agentId,
         dialogue.agentVersion,
+        dialogue.agentInstallationId,
         () => turn.cancel('dialogue_api_cancel'),
       );
     }
@@ -138,6 +142,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
             turnId,
             dialogue.agentId,
             dialogue.agentVersion,
+            dialogue.agentInstallationId,
             'error' in result ? result.error : undefined,
           );
         }
@@ -149,6 +154,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
           dialogueRuntimeOperationError('dialogue.runtime.turn_result', error, {
             agentId: dialogue.agentId,
             agentVersion: dialogue.agentVersion,
+            agentInstallationId: dialogue.agentInstallationId,
           }),
         );
       },
@@ -258,12 +264,17 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     operation: string,
     agentId: string,
     agentVersion: string,
+    agentInstallationId: string,
     action: () => Promise<T>,
   ): Promise<T> {
     try {
       return await action();
     } catch (error) {
-      throw dialogueRuntimeOperationError(operation, error, { agentId, agentVersion });
+      throw dialogueRuntimeOperationError(operation, error, {
+        agentId,
+        agentVersion,
+        agentInstallationId,
+      });
     }
   }
 
@@ -273,6 +284,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     turnId: string,
     agentId: string,
     agentVersion: string,
+    agentInstallationId: string,
     fault: AgentFault | undefined,
   ): void {
     reportAgentRuntimeDiagnostic(
@@ -283,6 +295,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
         turnId,
         agentId,
         agentVersion,
+        agentInstallationId,
       },
       fault ?? new Error('Dialogue runtime turn failed.'),
       fault,
@@ -388,12 +401,13 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     sessionId: string,
     agentId: string,
     agentVersion: string,
+    agentInstallationId: string,
     agentConfiguration: AgentConfigurationSelection,
   ): Promise<void> {
     await this.manager.sessions.open(
       {
         sessionId,
-        agent: { id: agentId, version: agentVersion },
+        agent: { id: agentId, version: agentVersion, installationId: agentInstallationId },
         workspace: { directory: this.directories.workspaceDirectory },
         output: { directory: this.directories.outputDirectory(sessionId) },
         parameters: {},

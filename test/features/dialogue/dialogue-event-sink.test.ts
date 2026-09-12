@@ -38,7 +38,12 @@ describe('Persistent agent session event sink', () => {
       ...eventBase(sessionId, 1),
       type: 'session.accepted',
       resumed: false,
-      pin: { agentId: 'test-acp', agentVersion: '1.0.0', definitionDigest: 'digest' },
+      pin: {
+        agentId: 'test-acp',
+        agentVersion: '1.0.0',
+        installationId: 'test-installation',
+        definitionDigest: 'digest',
+      },
     };
 
     await expect(
@@ -47,7 +52,15 @@ describe('Persistent agent session event sink', () => {
     await expect(
       scenario.journal.sink.append(accepted, { expected: { kind: 'empty' }, signal }),
     ).resolves.toEqual({ state: 'appended' });
-    const changed = { ...accepted, pin: { ...accepted.pin, definitionDigest: 'changed' } };
+    const changed = {
+      ...accepted,
+      pin: {
+        agentId: 'test-acp',
+        agentVersion: '1.0.0',
+        installationId: 'test-installation',
+        definitionDigest: 'changed',
+      },
+    };
     await expect(
       scenario.journal.sink.append(changed, { expected: { kind: 'empty' }, signal }),
     ).resolves.toMatchObject({ state: 'conflict' });
@@ -72,7 +85,12 @@ describe('Persistent agent session event sink', () => {
       resumed: true,
       resumeTokenId: first.resumeTokenId,
       resumeTokenSha256: first.resumeTokenSha256,
-      pin: { agentId: 'test-acp', agentVersion: '1.0.0', definitionDigest: 'digest' },
+      pin: {
+        agentId: 'test-acp',
+        agentVersion: '1.0.0',
+        installationId: 'test-installation',
+        definitionDigest: 'digest',
+      },
     };
     const expected = {
       kind: 'hibernation_token' as const,
@@ -98,7 +116,12 @@ describe('Persistent agent session event sink', () => {
       resumed: true,
       resumeTokenId: first.resumeTokenId,
       resumeTokenSha256: first.resumeTokenSha256,
-      pin: resumed.pin,
+      pin: {
+        agentId: 'test-acp',
+        agentVersion: '1.0.0',
+        installationId: 'test-installation',
+        definitionDigest: 'digest',
+      },
     };
     await expect(
       scenario.journal.sink.append(otherResumed, {
@@ -134,7 +157,12 @@ describe('Persistent agent session event sink', () => {
       resumed: true,
       resumeTokenId: tokenId,
       resumeTokenSha256: 'forged-digest',
-      pin: { agentId: 'test-acp', agentVersion: '1.0.0', definitionDigest: 'digest' },
+      pin: {
+        agentId: 'test-acp',
+        agentVersion: '1.0.0',
+        installationId: 'test-installation',
+        definitionDigest: 'digest',
+      },
     };
     await expect(
       scenario.journal.sink.append(resumed, {
@@ -224,7 +252,12 @@ describe('Persistent agent session event sink', () => {
       resumed: true,
       resumeTokenId: tokenId,
       resumeTokenSha256: 'stored-digest',
-      pin: { agentId: 'test-acp', agentVersion: '1.0.0', definitionDigest: 'digest' },
+      pin: {
+        agentId: 'test-acp',
+        agentVersion: '1.0.0',
+        installationId: 'test-installation',
+        definitionDigest: 'digest',
+      },
     };
     await expect(
       scenario.journal.sink.append(wrongTypeResume, {
@@ -321,7 +354,12 @@ describe('Persistent agent session event sink', () => {
       resumed: true,
       resumeTokenId: hibernated.resumeTokenId,
       resumeTokenSha256: hibernated.resumeTokenSha256,
-      pin: { agentId: 'test-acp', agentVersion: '1.0.0', definitionDigest: 'digest' },
+      pin: {
+        agentId: 'test-acp',
+        agentVersion: '1.0.0',
+        installationId: 'test-installation',
+        definitionDigest: 'digest',
+      },
     };
     await scenario.journal.sink.append(resumed, {
       expected: {

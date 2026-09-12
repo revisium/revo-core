@@ -1,6 +1,6 @@
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -43,7 +43,7 @@ try {
     .overrideProvider(agentRuntimeConfig.KEY)
     .useValue({
       workspaceDirectory: workspace,
-      inheritedEnvironmentNames: ['HOME', 'PATH', 'ANTHROPIC_MODEL'],
+      inheritedEnvironmentNames: ['HOME', 'PATH', 'USER', 'ANTHROPIC_MODEL'],
     })
     .compile();
   app = module.createNestApplication();
@@ -62,6 +62,7 @@ try {
     title: 'Current real harness smoke',
     agentId: agent.id,
     agentVersion: agent.version,
+    agentInstallationId: agent.installationId,
     agentConfiguration: { selections: { model: 'sonnet' } },
   });
 
@@ -146,6 +147,7 @@ try {
     title: 'Current real harness cancellation',
     agentId: agent.id,
     agentVersion: agent.version,
+    agentInstallationId: agent.installationId,
     agentConfiguration: { selections: { model: 'sonnet' } },
   });
   const cancellationTurn = await client.send(
@@ -198,7 +200,11 @@ try {
   }
 
   const evidence = {
-    agent: { id: agent.id, version: agent.version },
+    agent: {
+      id: agent.id,
+      version: agent.version,
+      installationId: agent.installationId,
+    },
     dialogueId: dialogue.id,
     first: {
       turnId: first.turn.id,
@@ -243,15 +249,6 @@ try {
         'The smoke uses no side-effecting tool prompt; deterministic ACP permission and input coverage is provided by the fake process.',
     },
   };
-  const runDirectory = '/home/anton/projects/revisium/.agents/runs/persistent-dialogues-20260906';
-  await mkdir(resolve('.poc/manual/evidence'), { recursive: true });
-  await Promise.all([
-    writeFile(
-      resolve('.poc/manual/evidence/current-real-harness.json'),
-      JSON.stringify(evidence, null, 2),
-    ),
-    writeFile(join(runDirectory, 'current-real-harness.json'), JSON.stringify(evidence, null, 2)),
-  ]);
   process.stdout.write(`${JSON.stringify(evidence, null, 2)}\n`);
 } finally {
   await app?.close().catch(() => undefined);

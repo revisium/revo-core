@@ -52,6 +52,7 @@ export type DialogueMinAggregateOutputType = {
   title: string | null
   agentId: string | null
   agentVersion: string | null
+  agentInstallationId: string | null
   systemContext: string | null
   status: $Enums.DialogueStatus | null
   progress: string | null
@@ -77,6 +78,7 @@ export type DialogueMaxAggregateOutputType = {
   title: string | null
   agentId: string | null
   agentVersion: string | null
+  agentInstallationId: string | null
   systemContext: string | null
   status: $Enums.DialogueStatus | null
   progress: string | null
@@ -102,6 +104,7 @@ export type DialogueCountAggregateOutputType = {
   title: number
   agentId: number
   agentVersion: number
+  agentInstallationId: number
   agentConfiguration: number
   metadata: number
   systemContext: number
@@ -151,6 +154,7 @@ export type DialogueMinAggregateInputType = {
   title?: true
   agentId?: true
   agentVersion?: true
+  agentInstallationId?: true
   systemContext?: true
   status?: true
   progress?: true
@@ -176,6 +180,7 @@ export type DialogueMaxAggregateInputType = {
   title?: true
   agentId?: true
   agentVersion?: true
+  agentInstallationId?: true
   systemContext?: true
   status?: true
   progress?: true
@@ -201,6 +206,7 @@ export type DialogueCountAggregateInputType = {
   title?: true
   agentId?: true
   agentVersion?: true
+  agentInstallationId?: true
   agentConfiguration?: true
   metadata?: true
   systemContext?: true
@@ -315,6 +321,7 @@ export type DialogueGroupByOutputType = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration: runtime.JsonValue
   metadata: runtime.JsonValue
   systemContext: string
@@ -365,6 +372,7 @@ export type DialogueWhereInput = {
   title?: Prisma.StringFilter<"Dialogue"> | string
   agentId?: Prisma.StringFilter<"Dialogue"> | string
   agentVersion?: Prisma.StringFilter<"Dialogue"> | string
+  agentInstallationId?: Prisma.StringFilter<"Dialogue"> | string
   agentConfiguration?: Prisma.JsonFilter<"Dialogue">
   metadata?: Prisma.JsonFilter<"Dialogue">
   systemContext?: Prisma.StringFilter<"Dialogue"> | string
@@ -397,6 +405,7 @@ export type DialogueOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   agentId?: Prisma.SortOrder
   agentVersion?: Prisma.SortOrder
+  agentInstallationId?: Prisma.SortOrder
   agentConfiguration?: Prisma.SortOrder
   metadata?: Prisma.SortOrder
   systemContext?: Prisma.SortOrder
@@ -433,6 +442,7 @@ export type DialogueWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.StringFilter<"Dialogue"> | string
   agentId?: Prisma.StringFilter<"Dialogue"> | string
   agentVersion?: Prisma.StringFilter<"Dialogue"> | string
+  agentInstallationId?: Prisma.StringFilter<"Dialogue"> | string
   agentConfiguration?: Prisma.JsonFilter<"Dialogue">
   metadata?: Prisma.JsonFilter<"Dialogue">
   systemContext?: Prisma.StringFilter<"Dialogue"> | string
@@ -464,6 +474,7 @@ export type DialogueOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   agentId?: Prisma.SortOrder
   agentVersion?: Prisma.SortOrder
+  agentInstallationId?: Prisma.SortOrder
   agentConfiguration?: Prisma.SortOrder
   metadata?: Prisma.SortOrder
   systemContext?: Prisma.SortOrder
@@ -499,6 +510,7 @@ export type DialogueScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Dialogue"> | string
   agentId?: Prisma.StringWithAggregatesFilter<"Dialogue"> | string
   agentVersion?: Prisma.StringWithAggregatesFilter<"Dialogue"> | string
+  agentInstallationId?: Prisma.StringWithAggregatesFilter<"Dialogue"> | string
   agentConfiguration?: Prisma.JsonWithAggregatesFilter<"Dialogue">
   metadata?: Prisma.JsonWithAggregatesFilter<"Dialogue">
   systemContext?: Prisma.StringWithAggregatesFilter<"Dialogue"> | string
@@ -526,6 +538,7 @@ export type DialogueCreateInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -558,6 +571,7 @@ export type DialogueUncheckedCreateInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -590,6 +604,7 @@ export type DialogueUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -622,6 +637,7 @@ export type DialogueUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -654,6 +670,7 @@ export type DialogueCreateManyInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -681,6 +698,7 @@ export type DialogueUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -708,6 +726,7 @@ export type DialogueUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -735,6 +754,7 @@ export type DialogueCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   agentId?: Prisma.SortOrder
   agentVersion?: Prisma.SortOrder
+  agentInstallationId?: Prisma.SortOrder
   agentConfiguration?: Prisma.SortOrder
   metadata?: Prisma.SortOrder
   systemContext?: Prisma.SortOrder
@@ -772,6 +792,7 @@ export type DialogueMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   agentId?: Prisma.SortOrder
   agentVersion?: Prisma.SortOrder
+  agentInstallationId?: Prisma.SortOrder
   systemContext?: Prisma.SortOrder
   status?: Prisma.SortOrder
   progress?: Prisma.SortOrder
@@ -797,6 +818,7 @@ export type DialogueMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   agentId?: Prisma.SortOrder
   agentVersion?: Prisma.SortOrder
+  agentInstallationId?: Prisma.SortOrder
   systemContext?: Prisma.SortOrder
   status?: Prisma.SortOrder
   progress?: Prisma.SortOrder
@@ -934,6 +956,7 @@ export type DialogueCreateWithoutTurnsInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -965,6 +988,7 @@ export type DialogueUncheckedCreateWithoutTurnsInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -1012,6 +1036,7 @@ export type DialogueUpdateWithoutTurnsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1043,6 +1068,7 @@ export type DialogueUncheckedUpdateWithoutTurnsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1074,6 +1100,7 @@ export type DialogueCreateWithoutItemsInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -1105,6 +1132,7 @@ export type DialogueUncheckedCreateWithoutItemsInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -1152,6 +1180,7 @@ export type DialogueUpdateWithoutItemsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1183,6 +1212,7 @@ export type DialogueUncheckedUpdateWithoutItemsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1214,6 +1244,7 @@ export type DialogueCreateWithoutInteractionsInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -1245,6 +1276,7 @@ export type DialogueUncheckedCreateWithoutInteractionsInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -1292,6 +1324,7 @@ export type DialogueUpdateWithoutInteractionsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1323,6 +1356,7 @@ export type DialogueUncheckedUpdateWithoutInteractionsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1354,6 +1388,7 @@ export type DialogueCreateWithoutEventStreamsInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -1385,6 +1420,7 @@ export type DialogueUncheckedCreateWithoutEventStreamsInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -1432,6 +1468,7 @@ export type DialogueUpdateWithoutEventStreamsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1463,6 +1500,7 @@ export type DialogueUncheckedUpdateWithoutEventStreamsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1494,6 +1532,7 @@ export type DialogueCreateWithoutChangesInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -1525,6 +1564,7 @@ export type DialogueUncheckedCreateWithoutChangesInput = {
   title: string
   agentId: string
   agentVersion: string
+  agentInstallationId: string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: string
@@ -1572,6 +1612,7 @@ export type DialogueUpdateWithoutChangesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1603,6 +1644,7 @@ export type DialogueUncheckedUpdateWithoutChangesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  agentInstallationId?: Prisma.StringFieldUpdateOperationsInput | string
   agentConfiguration?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   metadata?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   systemContext?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1701,6 +1743,7 @@ export type DialogueSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   title?: boolean
   agentId?: boolean
   agentVersion?: boolean
+  agentInstallationId?: boolean
   agentConfiguration?: boolean
   metadata?: boolean
   systemContext?: boolean
@@ -1734,6 +1777,7 @@ export type DialogueSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   title?: boolean
   agentId?: boolean
   agentVersion?: boolean
+  agentInstallationId?: boolean
   agentConfiguration?: boolean
   metadata?: boolean
   systemContext?: boolean
@@ -1761,6 +1805,7 @@ export type DialogueSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   title?: boolean
   agentId?: boolean
   agentVersion?: boolean
+  agentInstallationId?: boolean
   agentConfiguration?: boolean
   metadata?: boolean
   systemContext?: boolean
@@ -1788,6 +1833,7 @@ export type DialogueSelectScalar = {
   title?: boolean
   agentId?: boolean
   agentVersion?: boolean
+  agentInstallationId?: boolean
   agentConfiguration?: boolean
   metadata?: boolean
   systemContext?: boolean
@@ -1809,7 +1855,7 @@ export type DialogueSelectScalar = {
   updatedAt?: boolean
 }
 
-export type DialogueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ordinal" | "title" | "agentId" | "agentVersion" | "agentConfiguration" | "metadata" | "systemContext" | "status" | "progress" | "pendingCount" | "lastOutcome" | "activeTurnId" | "runtimeSessionId" | "contextMode" | "originDialogueId" | "originTurnId" | "originItemSequence" | "itemSequence" | "significantSequence" | "readSignificantSequence" | "version" | "createdAt" | "updatedAt", ExtArgs["result"]["dialogue"]>
+export type DialogueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ordinal" | "title" | "agentId" | "agentVersion" | "agentInstallationId" | "agentConfiguration" | "metadata" | "systemContext" | "status" | "progress" | "pendingCount" | "lastOutcome" | "activeTurnId" | "runtimeSessionId" | "contextMode" | "originDialogueId" | "originTurnId" | "originItemSequence" | "itemSequence" | "significantSequence" | "readSignificantSequence" | "version" | "createdAt" | "updatedAt", ExtArgs["result"]["dialogue"]>
 export type DialogueInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   turns?: boolean | Prisma.Dialogue$turnsArgs<ExtArgs>
   items?: boolean | Prisma.Dialogue$itemsArgs<ExtArgs>
@@ -1836,6 +1882,7 @@ export type $DialoguePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     title: string
     agentId: string
     agentVersion: string
+    agentInstallationId: string
     agentConfiguration: runtime.JsonValue
     metadata: runtime.JsonValue
     systemContext: string
@@ -2288,6 +2335,7 @@ export interface DialogueFieldRefs {
   readonly title: Prisma.FieldRef<"Dialogue", 'String'>
   readonly agentId: Prisma.FieldRef<"Dialogue", 'String'>
   readonly agentVersion: Prisma.FieldRef<"Dialogue", 'String'>
+  readonly agentInstallationId: Prisma.FieldRef<"Dialogue", 'String'>
   readonly agentConfiguration: Prisma.FieldRef<"Dialogue", 'Json'>
   readonly metadata: Prisma.FieldRef<"Dialogue", 'Json'>
   readonly systemContext: Prisma.FieldRef<"Dialogue", 'String'>

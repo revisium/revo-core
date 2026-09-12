@@ -7,4 +7,7 @@ export class AgentRefModel {
 
   @Field(() => String)
   version: string;
+
+  @Field(() => String)
+  installationId: string;
 }

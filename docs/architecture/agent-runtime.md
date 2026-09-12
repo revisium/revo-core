@@ -23,11 +23,14 @@ resources. Unconfirmed execution shutdown retains working directories.
 
 - `REVO_AGENT_WORKSPACE_ROOT`: runtime workspace; defaults to the user's `.revo/sessions`
   directory. It is independent of the temporary Run workspace root.
-- `REVO_AGENT_INHERIT_ENV`: comma-separated environment variable allowlist; defaults to
-  `HOME,PATH`. Add provider-specific variables only in deployment or local configuration. Core does
-  not forward its entire environment.
-- Dialogue creation persists the selected agent, catalog revision, and configuration selections.
-  Runtime dispatch applies that persisted selection when it opens a session.
+- `REVO_AGENT_INHERIT_ENV`: optional comma-separated replacement for Core's platform-aware
+  environment allowlist. Unix-like defaults preserve home, user identity, path, shell, temporary,
+  and XDG configuration variables; Windows defaults preserve the corresponding profile, app-data,
+  path, system, shell, and temporary variables. Add provider-specific variables explicitly. Core
+  does not forward its entire environment.
+- Dialogue creation persists the selected agent ID, adapter version, installation ID, catalog
+  revision, and configuration selections. Runtime dispatch applies that exact installation and
+  selection when it opens a session.
 
 ## Recovery boundary
 

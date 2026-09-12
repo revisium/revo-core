@@ -2223,6 +2223,7 @@ export const DialogueScalarFieldEnum = {
   title: 'title',
   agentId: 'agentId',
   agentVersion: 'agentVersion',
+  agentInstallationId: 'agentInstallationId',
   agentConfiguration: 'agentConfiguration',
   metadata: 'metadata',
   systemContext: 'systemContext',

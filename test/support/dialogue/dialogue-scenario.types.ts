@@ -47,6 +47,7 @@ export interface CreateDialogueOptions {
   readonly title?: string;
   readonly agentId?: string;
   readonly agentVersion?: string;
+  readonly agentInstallationId?: string;
   readonly agentConfiguration?: Record<string, unknown>;
 }
 

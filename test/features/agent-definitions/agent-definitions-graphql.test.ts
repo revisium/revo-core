@@ -1,3 +1,4 @@
+import type { AgentSessionAgentDescriptor } from '@revisium/revo-agent-runtime';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createAgentDefinitionsGraphqlApp } from '../../fixtures/agent-definitions-graphql.js';
@@ -15,41 +16,50 @@ describe('Agent definitions over GraphQL', () => {
   });
 
   it('lists and gets agent definitions through the feature API', async () => {
-    fixture.sessions.listAgents.mockReturnValue([
-      {
-        agent: { id: 'test', version: '1' },
-        definitionDigest: 'digest',
-        displayName: 'Test agent',
-        capabilities: {
-          session: {
-            multiTurn: true,
-            resume: 'native',
-            interactions: { permission: true, input: true },
-            updates: { message: true, tool: true, usage: true, plan: true, progress: true },
-          },
-          cancellation: true,
-          usage: true,
-          structuredResult: true,
+    const descriptor: AgentSessionAgentDescriptor = {
+      agent: { id: 'test', version: '1', installationId: 'test-installation' },
+      definitionDigest: 'digest',
+      displayName: 'Test agent',
+      capabilities: {
+        session: {
+          multiTurn: true,
+          resume: 'native' as const,
+          interactions: { permission: true, input: true },
+          updates: { message: true, tool: true, usage: true, plan: true, progress: true },
         },
+        cancellation: true,
+        usage: true,
+        structuredResult: true,
+      },
+    };
+    fixture.sessions.listAgents.mockReturnValue([
+      descriptor,
+      {
+        ...descriptor,
+        agent: { ...descriptor.agent, installationId: 'other-installation' },
+        definitionDigest: 'other-digest',
       },
     ]);
 
     const response = await fixture.graphql(`
       {
-        agentDefinitions(first: 1) {
+        agentDefinitions(first: 2) {
           totalCount
           edges {
             node {
-              agent { id version }
+              agent { id version installationId }
               capabilities { session { multiTurn } }
             }
           }
         }
-        found: agentDefinition(agentId: "test", agentVersion: "1") {
-          agent { id version }
+        found: agentDefinition(agentId: "test", agentVersion: "1", installationId: "test-installation") {
+          agent { id version installationId }
         }
-        missing: agentDefinition(agentId: "test", agentVersion: "2") {
-          agent { id version }
+        foundOther: agentDefinition(agentId: "test", agentVersion: "1", installationId: "other-installation") {
+          agent { id version installationId }
+        }
+        missing: agentDefinition(agentId: "test", agentVersion: "1", installationId: "missing-installation") {
+          agent { id version installationId }
         }
       }
     `);
@@ -57,17 +67,24 @@ describe('Agent definitions over GraphQL', () => {
     expect(response.body.errors).toBeUndefined();
     expect(response.body.data).toEqual({
       agentDefinitions: {
-        totalCount: 1,
+        totalCount: 2,
         edges: [
           {
             node: {
-              agent: { id: 'test', version: '1' },
+              agent: { id: 'test', version: '1', installationId: 'test-installation' },
+              capabilities: { session: { multiTurn: true } },
+            },
+          },
+          {
+            node: {
+              agent: { id: 'test', version: '1', installationId: 'other-installation' },
               capabilities: { session: { multiTurn: true } },
             },
           },
         ],
       },
-      found: { agent: { id: 'test', version: '1' } },
+      found: { agent: { id: 'test', version: '1', installationId: 'test-installation' } },
+      foundOther: { agent: { id: 'test', version: '1', installationId: 'other-installation' } },
       missing: null,
     });
   });
