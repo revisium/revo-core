@@ -40,9 +40,7 @@ export class RevoCoreExpressAdapter extends ExpressAdapter {
   }
 
   beginServerClose(): Promise<void> {
-    if (this.serverClosePromise === undefined) {
-      this.serverClosePromise = Promise.resolve(super.close()).then(() => undefined);
-    }
+    this.serverClosePromise ??= Promise.resolve(super.close()).then(() => undefined);
 
     return this.serverClosePromise;
   }

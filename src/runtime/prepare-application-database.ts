@@ -25,7 +25,11 @@ export const prepareApplicationDatabase = (
           return;
         }
 
-        reject(error);
+        reject(
+          error instanceof Error
+            ? error
+            : new Error('Prisma migration process failed.', { cause: error }),
+        );
       },
     );
   });
