@@ -1,8 +1,44 @@
 {
   "name": "@revisium/revo-core",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
+  "description": "Embeddable backend runtime for Revo.",
+  "homepage": "https://github.com/revisium/revo-core#readme",
+  "bugs": {
+    "url": "https://github.com/revisium/revo-core/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/revisium/revo-core.git"
+  },
+  "files": [
+    "dist",
+    "prisma/schema.prisma",
+    "prisma/migrate.config.mjs",
+    "prisma/migrations",
+    "resources",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.ts",
+      "import": "./dist/runtime/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "db:generate": "prisma generate",
@@ -26,7 +62,8 @@
     "verify:checks": "pnpm db:generate && pnpm format:check && pnpm typecheck && pnpm lint && pnpm build && pnpm test:cov",
     "sonar:local": "bash scripts/sonar-local.sh",
     "sonar:issues:local": "bash scripts/sonar-issues-local.sh",
-    "ci:local:sonar": "bash scripts/ci-local-sonar.sh"
+    "ci:local:sonar": "bash scripts/ci-local-sonar.sh",
+    "prepack": "pnpm build"
   },
   "dependencies": {
     "@graphql-yoga/nestjs": "3.22.2",
@@ -41,8 +78,9 @@
     "@prisma/adapter-pg": "7.9.1",
     "@prisma/client": "7.9.1",
     "@revisium/engine": "0.7.0",
-    "@revisium/revo-agent-runtime": "catalog:",
-    "@revisium/revo-run": "0.2.0-alpha.5",
+    "@revisium/revo-agent-runtime": "0.3.0-alpha.6",
+    "@revisium/revo-run": "0.2.0-alpha.6",
+    "@types/express": "5.0.6",
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
     "dotenv": "17.4.2",
@@ -50,6 +88,7 @@
     "graphql-scalars": "1.25.0",
     "nanoid": "6.0.1",
     "pg": "8.22.0",
+    "prisma": "7.9.1",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
     "typebox": "1.3.10"
@@ -66,7 +105,6 @@
     "oxfmt": "0.62.0",
     "oxlint": "1.77.0",
     "oxlint-tsgolint": "7.0.2001",
-    "prisma": "7.9.1",
     "supertest": "7.2.2",
     "tsx": "4.23.5",
     "typescript": "7.0.2",

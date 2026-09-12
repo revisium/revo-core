@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, type ConfigType } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import {
   createAgentManager,
   discoverAgents,
@@ -17,12 +17,18 @@ import { AgentSessionDirectories } from './agent-session-directories.js';
 import { AgentSessionEventJournal } from './agent-session-event-journal.js';
 
 @Module({
-  imports: [ConfigModule.forFeature(agentRuntimeConfig), DialogueEventIngestionModule],
+  imports: [DialogueEventIngestionModule],
   providers: [
     AgentActiveState,
     AgentSessionDirectories,
     AgentSessionEventJournal,
     AgentRuntimeLifecycle,
+    {
+      provide: agentRuntimeConfig.KEY,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) =>
+        config.get<ReturnType<typeof agentRuntimeConfig>>('agentRuntime') ?? agentRuntimeConfig(),
+    },
     {
       provide: AGENT_DEFINITIONS,
       useFactory: async () => (await discoverAgents()).definitions,
@@ -30,7 +36,7 @@ import { AgentSessionEventJournal } from './agent-session-event-journal.js';
     {
       provide: AGENT_LAUNCH_CONTEXT,
       inject: [agentRuntimeConfig.KEY],
-      useFactory: (config: ConfigType<typeof agentRuntimeConfig>): AgentStartContext => ({
+      useFactory: (config: ReturnType<typeof agentRuntimeConfig>): AgentStartContext => ({
         environment: {
           inherit: config.inheritedEnvironmentNames,
           variables: {},

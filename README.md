@@ -4,6 +4,46 @@ Revo's backend for persistent agent dialogues and durable pipeline runs. Core ow
 PostgreSQL data, agent execution, and the GraphQL and REST APIs used by
 [revo-admin](https://github.com/revisium/revo-admin).
 
+## Programmatic runtime
+
+`@revisium/revo-core` is designed to run inside the top-level Revo process. The
+caller owns PostgreSQL startup, process signals, and static admin assets; Core owns
+its application schema, DBOS schema, Nest application, APIs, and shutdown lifecycle.
+The same `databaseUrl` contract works with an embedded PostgreSQL instance or an
+external server.
+
+```ts
+import { createRevoCoreRuntime } from '@revisium/revo-core';
+
+const runtime = await createRevoCoreRuntime({
+  databaseUrl: 'postgresql://user:password@127.0.0.1:54321/revo',
+  onStage: ({ stage, status }) => showProgress(stage, status),
+});
+
+runtime.configureAfterCoreRoutes((app) => {
+  app.use(adminStaticMiddleware);
+  app.use(spaFallback);
+});
+
+await runtime.prepareDatabase();
+const listening = await runtime.listen({ host: '127.0.0.1', port: 0 });
+```
+
+Database preparation always applies Core's Prisma migrations before the DBOS
+system migrations required by `@revisium/revo-run`. It is safe to call repeatedly,
+and `listen()` also performs any missing preparation and initialization. Lifecycle
+events report `started`, `completed`, or `failed` for each preparation, bootstrap,
+and readiness stage without requiring stdout parsing.
+
+Use `configureAfterCoreRoutes()` for static middleware and SPA fallback. It places
+them after GraphQL and REST routes but before Core's final 404/error handlers. The
+raw `runtime.app.use()` method does not provide that ordering guarantee.
+
+Call `await runtime.close()` during shutdown. Closing is idempotent, stops HTTP
+admission, shuts down agent and DBOS resources, closes Nest and Prisma, and waits
+for the listener to terminate. Core supports one initialized runtime per process.
+Consumers must run Node.js 24.15 or newer within the Node 24 release line.
+
 ## Local development
 
 Install Node.js 24 (24.15 or newer), pnpm, and Docker with Compose. With `nvm`,

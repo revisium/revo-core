@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path';
 
 import { registerAs } from '@nestjs/config';
 
-const inheritedEnvironmentDefaults = (): readonly string[] => {
+export const defaultInheritedEnvironmentNames = (): readonly string[] => {
   const names =
     process.platform === 'win32'
       ? [
@@ -37,7 +37,7 @@ export const agentRuntimeConfig = registerAs('agentRuntime', () => ({
   ),
   inheritedEnvironmentNames:
     process.env.REVO_AGENT_INHERIT_ENV === undefined
-      ? inheritedEnvironmentDefaults()
+      ? defaultInheritedEnvironmentNames()
       : process.env.REVO_AGENT_INHERIT_ENV.split(',')
           .map((name) => name.trim())
           .filter(Boolean),
