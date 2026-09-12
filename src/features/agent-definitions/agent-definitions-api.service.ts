@@ -4,7 +4,6 @@ import { QueryBus } from '@nestjs/cqrs';
 import type { AgentDefinitionPageData } from './contracts/agent-definitions.contracts.js';
 import {
   GetAgentDefinitionQuery,
-  InspectAgentConfigurationQuery,
   ListAgentDefinitionsQuery,
 } from './queries/agent-definition.queries.js';
 import { GetAgentConfigurationsQuery } from './queries/impl/get-agent-configurations.query.js';
@@ -28,9 +27,5 @@ export class AgentDefinitionsApiService {
 
   get(agentId: string, agentVersion: string) {
     return this.queries.execute(new GetAgentDefinitionQuery({ agentId, agentVersion }));
-  }
-
-  inspectConfiguration(agentId: string, agentVersion: string) {
-    return this.queries.execute(new InspectAgentConfigurationQuery({ agentId, agentVersion }));
   }
 }

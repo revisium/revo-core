@@ -706,7 +706,6 @@ type Query {
   dialogueInteractions(after: String, dialogueId: ID!, first: Int): DialogueInteractionConnectionModel!
   dialogueTurns(after: String, dialogueId: ID!, first: Int): DialogueTurnConnectionModel!
   dialogues(after: String, first: Int): DialogueSummaryConnectionModel!
-  inspectAgentConfiguration(agentId: String!, agentVersion: String!): AgentConfigurationCatalogModel!
   launchProfile(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): LaunchProfileModel!
   launchProfiles(after: String, first: Int!, pipelineId: ID, revisionId: ID, scope: CatalogScope! = HEAD): LaunchProfileConnection!
   methodDocument(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): MethodDocumentModel!
