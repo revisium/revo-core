@@ -2,7 +2,7 @@ import {
   Inject,
   Injectable,
   Logger,
-  type OnApplicationShutdown,
+  type BeforeApplicationShutdown,
   type OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -30,11 +30,12 @@ import { RunWorkingDirectoryCoordinator } from './infrastructure/working-directo
 import { TemporaryRunDirectoryHost } from './infrastructure/working-directory/temporary-run-directory-host.js';
 
 @Injectable()
-export class RevoRunService implements OnModuleInit, OnApplicationShutdown {
+export class RevoRunService implements OnModuleInit, BeforeApplicationShutdown {
   private readonly logger = new Logger(RevoRunService.name);
   private manager?: RunManager;
   private attemptAdapter?: AgentAttemptExecutionAdapter;
   private workingDirectoryCoordinator?: RunWorkingDirectoryCoordinator;
+  private shutdown?: Promise<void>;
 
   constructor(
     private readonly config: ConfigService,
@@ -63,7 +64,17 @@ export class RevoRunService implements OnModuleInit, OnApplicationShutdown {
     await this.manager.start();
   }
 
-  async onApplicationShutdown(): Promise<void> {
+  async beforeApplicationShutdown(): Promise<void> {
+    await this.quiesce();
+  }
+
+  quiesce(): Promise<void> {
+    this.shutdown ??= this.quiesceOnce();
+
+    return this.shutdown;
+  }
+
+  private async quiesceOnce(): Promise<void> {
     this.workingDirectoryCoordinator?.beginShutdown();
     const failures: unknown[] = [];
     const runtimeStopped = await this.captureShutdownFailure(

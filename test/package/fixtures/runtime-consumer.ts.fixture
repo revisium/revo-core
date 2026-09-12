@@ -1,0 +1,14 @@
+import {
+  createRevoCoreRuntime,
+  type RevoCoreLifecycleEvent,
+  type RevoCoreRuntime,
+  type RevoCoreRuntimeOptions,
+} from '@revisium/revo-core';
+
+const options: RevoCoreRuntimeOptions = {
+  databaseUrl: 'postgresql://localhost/revo',
+  onStage: (event: RevoCoreLifecycleEvent) => event.status,
+};
+
+const runtime: Promise<RevoCoreRuntime> = createRevoCoreRuntime(options);
+void runtime;
