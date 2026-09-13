@@ -1,7 +1,7 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
-import { enginePageArgs } from '../../commands/utils/getOffsetPagination.js';
+import { enginePageArgs } from '../../../../infrastructure/pagination/get-offset-pagination.js';
 import { ProjectTable } from '../../contracts/project-table.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import { ListAdrsQuery, type ListAdrsQueryReturnType } from '../impl/list-adrs.query.js';

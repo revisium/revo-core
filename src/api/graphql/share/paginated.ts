@@ -1,7 +1,7 @@
 import type { Type } from '@nestjs/common';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 
-import { PageInfoModel } from '../project/model/page-info.model.js';
+import { PageInfoModel } from './page-info.model.js';
 
 export type PaginatedClass<T> = Type<{
   edges: Array<{ cursor: string; node: T }>;

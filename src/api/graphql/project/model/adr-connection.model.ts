@@ -1,7 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 
+import { PageInfoModel } from '../../share/page-info.model.js';
 import { AdrEdgeModel } from './adr-edge.model.js';
-import { PageInfoModel } from './page-info.model.js';
 
 @ObjectType()
 export class AdrConnectionModel {
