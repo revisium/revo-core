@@ -399,6 +399,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Project: 'Project',
   Repository: 'Repository',
+  FileSystemPermissionPolicy: 'FileSystemPermissionPolicy',
   ReviewThread: 'ReviewThread',
   ReviewMessage: 'ReviewMessage',
   Branch: 'Branch',
@@ -433,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "project" | "repository" | "reviewThread" | "reviewMessage" | "branch" | "revision" | "table" | "row" | "fileBlob" | "projectFileUsage" | "tableMigration" | "dbosWorkflowStatus" | "dbosOperationOutput" | "dialogue" | "dialogueTurn" | "dialogueHistoryItem" | "dialogueInteraction" | "agentSessionEventStream" | "agentSessionEvent" | "dialogueChange" | "dialogueFeedPosition"
+    modelProps: "project" | "repository" | "fileSystemPermissionPolicy" | "reviewThread" | "reviewMessage" | "branch" | "revision" | "table" | "row" | "fileBlob" | "projectFileUsage" | "tableMigration" | "dbosWorkflowStatus" | "dbosOperationOutput" | "dialogue" | "dialogueTurn" | "dialogueHistoryItem" | "dialogueInteraction" | "agentSessionEventStream" | "agentSessionEvent" | "dialogueChange" | "dialogueFeedPosition"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -582,6 +583,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.RepositoryCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.RepositoryCountAggregateOutputType> | number
+        }
+      }
+    }
+    FileSystemPermissionPolicy: {
+      payload: Prisma.$FileSystemPermissionPolicyPayload<ExtArgs>
+      fields: Prisma.FileSystemPermissionPolicyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FileSystemPermissionPolicyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FileSystemPermissionPolicyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>
+        }
+        findFirst: {
+          args: Prisma.FileSystemPermissionPolicyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FileSystemPermissionPolicyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>
+        }
+        findMany: {
+          args: Prisma.FileSystemPermissionPolicyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>[]
+        }
+        create: {
+          args: Prisma.FileSystemPermissionPolicyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>
+        }
+        createMany: {
+          args: Prisma.FileSystemPermissionPolicyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FileSystemPermissionPolicyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>[]
+        }
+        delete: {
+          args: Prisma.FileSystemPermissionPolicyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>
+        }
+        update: {
+          args: Prisma.FileSystemPermissionPolicyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>
+        }
+        deleteMany: {
+          args: Prisma.FileSystemPermissionPolicyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FileSystemPermissionPolicyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FileSystemPermissionPolicyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>[]
+        }
+        upsert: {
+          args: Prisma.FileSystemPermissionPolicyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>
+        }
+        aggregate: {
+          args: Prisma.FileSystemPermissionPolicyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFileSystemPermissionPolicy>
+        }
+        groupBy: {
+          args: Prisma.FileSystemPermissionPolicyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FileSystemPermissionPolicyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FileSystemPermissionPolicyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FileSystemPermissionPolicyCountAggregateOutputType> | number
         }
       }
     }
@@ -2056,6 +2131,19 @@ export const RepositoryScalarFieldEnum = {
 export type RepositoryScalarFieldEnum = (typeof RepositoryScalarFieldEnum)[keyof typeof RepositoryScalarFieldEnum]
 
 
+export const FileSystemPermissionPolicyScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  document: 'document',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type FileSystemPermissionPolicyScalarFieldEnum = (typeof FileSystemPermissionPolicyScalarFieldEnum)[keyof typeof FileSystemPermissionPolicyScalarFieldEnum]
+
+
 export const ReviewThreadScalarFieldEnum = {
   id: 'id',
   scopeKey: 'scopeKey',
@@ -2818,6 +2906,7 @@ export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaC
 export type GlobalOmitConfig = {
   project?: Prisma.ProjectOmit
   repository?: Prisma.RepositoryOmit
+  fileSystemPermissionPolicy?: Prisma.FileSystemPermissionPolicyOmit
   reviewThread?: Prisma.ReviewThreadOmit
   reviewMessage?: Prisma.ReviewMessageOmit
   branch?: Prisma.BranchOmit
