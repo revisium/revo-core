@@ -141,6 +141,83 @@ enum CatalogTable {
   stacks
 }
 
+input CreateFileSystemDirectoryInput {
+  name: String!
+  parentPath: String!
+}
+
+input FileSystemDirectoryInput {
+  after: String
+  directoriesOnly: Boolean
+  first: Int
+  includeHidden: Boolean
+  path: String!
+}
+
+type FileSystemDirectoryModel {
+  entries: FileSystemEntryConnectionModel!
+  parentPath: String
+  path: String!
+}
+
+type FileSystemEntryConnectionModel {
+  edges: [FileSystemEntryEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type FileSystemEntryEdge {
+  cursor: String!
+  node: FileSystemEntryModel!
+}
+
+input FileSystemEntryInput {
+  path: String!
+}
+
+type FileSystemEntryModel {
+  isSymlink: Boolean!
+  name: String!
+  path: String!
+  type: FileSystemEntryType!
+}
+
+enum FileSystemEntryType {
+  DIRECTORY
+  FILE
+  OTHER
+  SYMLINK
+}
+
+input FileSystemPageInput {
+  after: String
+  first: Int
+}
+
+type FileSystemRootConnectionModel {
+  edges: [FileSystemRootEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type FileSystemRootEdge {
+  cursor: String!
+  node: FileSystemRootModel!
+}
+
+type FileSystemRootModel {
+  name: String!
+  path: String!
+  type: FileSystemRootType!
+}
+
+enum FileSystemRootType {
+  HOME
+  ROOT
+  SCOPE
+  VOLUME
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -216,6 +293,7 @@ type Mutation {
   archiveProject(data: ProjectInput!): Boolean!
   commitCatalog(message: String!): CatalogCommitResultModel!
   createAdr(data: AdrInput!): AdrModel!
+  createFileSystemDirectory(data: CreateFileSystemDirectoryInput!): FileSystemEntryModel!
   createLaunchProfile(data: LaunchProfileInput!): LaunchProfileModel!
   createMethodDocument(data: MethodDocumentInput!): MethodDocumentModel!
   createPipeline(data: PipelineInput!): PipelineModel!
@@ -415,6 +493,9 @@ type Query {
   catalogChangeSet(after: String, first: Int!): CatalogChangeEntryConnection!
   catalogSnapshot(revisionId: ID!): CatalogSnapshotModel!
   catalogStatus: CatalogStatusModel!
+  fileSystemDirectory(data: FileSystemDirectoryInput!): FileSystemDirectoryModel!
+  fileSystemEntry(data: FileSystemEntryInput!): FileSystemEntryModel!
+  fileSystemRoots(data: FileSystemPageInput): FileSystemRootConnectionModel!
   launchProfile(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): LaunchProfileModel!
   launchProfiles(after: String, first: Int!, pipelineId: ID, revisionId: ID, scope: CatalogScope! = HEAD): LaunchProfileConnection!
   methodDocument(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): MethodDocumentModel!

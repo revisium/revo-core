@@ -1,6 +1,161 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/file-system/roots": {
+      "get": {
+        "operationId": "getFileSystemRoots",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileSystemRootConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Filesystem"]
+      }
+    },
+    "/api/file-system/entry": {
+      "get": {
+        "operationId": "getFileSystemEntry",
+        "parameters": [
+          {
+            "name": "path",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileSystemEntryResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Filesystem"]
+      }
+    },
+    "/api/file-system/directory": {
+      "get": {
+        "operationId": "getFileSystemDirectory",
+        "parameters": [
+          {
+            "name": "path",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "directoriesOnly",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "includeHidden",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileSystemDirectoryResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Filesystem"]
+      },
+      "post": {
+        "operationId": "createFileSystemDirectory",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFileSystemDirectoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileSystemEntryResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Filesystem"]
+      }
+    },
     "/api/playbook-catalog/status": {
       "get": {
         "operationId": "getCatalogStatus",
@@ -3313,6 +3468,161 @@
   "servers": [],
   "components": {
     "schemas": {
+      "FileSystemRootType": {
+        "type": "string",
+        "enum": ["HOME", "ROOT", "VOLUME", "SCOPE"]
+      },
+      "FileSystemRootResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FileSystemRootType"
+              }
+            ]
+          }
+        },
+        "required": ["name", "path", "type"]
+      },
+      "FileSystemRootEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/FileSystemRootResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "PageInfoResponse": {
+        "type": "object",
+        "properties": {
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "startCursor": {
+            "type": "string"
+          },
+          "endCursor": {
+            "type": "string"
+          }
+        },
+        "required": ["hasNextPage", "hasPreviousPage"]
+      },
+      "FileSystemRootConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileSystemRootEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "FileSystemEntryType": {
+        "type": "string",
+        "enum": ["FILE", "DIRECTORY", "SYMLINK", "OTHER"]
+      },
+      "FileSystemEntryResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FileSystemEntryType"
+              }
+            ]
+          },
+          "isSymlink": {
+            "type": "boolean"
+          }
+        },
+        "required": ["name", "path", "type", "isSymlink"]
+      },
+      "FileSystemEntryEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/FileSystemEntryResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "FileSystemEntryConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileSystemEntryEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "FileSystemDirectoryResponse": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "parentPath": {
+            "type": "string",
+            "nullable": true
+          },
+          "entries": {
+            "$ref": "#/components/schemas/FileSystemEntryConnectionResponse"
+          }
+        },
+        "required": ["path", "parentPath", "entries"]
+      },
+      "CreateFileSystemDirectoryRequest": {
+        "type": "object",
+        "properties": {
+          "parentPath": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": ["parentPath", "name"]
+      },
       "CatalogStatusResponse": {
         "type": "object",
         "properties": {
@@ -4512,24 +4822,6 @@
           }
         },
         "required": ["cursor", "node"]
-      },
-      "PageInfoResponse": {
-        "type": "object",
-        "properties": {
-          "hasNextPage": {
-            "type": "boolean"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "startCursor": {
-            "type": "string"
-          },
-          "endCursor": {
-            "type": "string"
-          }
-        },
-        "required": ["hasNextPage", "hasPreviousPage"]
       },
       "ProjectConnectionResponse": {
         "type": "object",

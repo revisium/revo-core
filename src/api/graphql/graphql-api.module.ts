@@ -2,10 +2,14 @@ import { YogaDriver, type YogaDriverConfig } from '@graphql-yoga/nestjs';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 
+import { FileSystemAccessModule } from '../../features/file-system-access/file-system-access.module.js';
+import { FileSystemModule } from '../../features/file-system/file-system.module.js';
 import { PlaybookCatalogModule } from '../../features/playbook-catalog/playbook-catalog.module.js';
 import { ProjectModule } from '../../features/project/project.module.js';
 import { RunModule } from '../../features/run/run.module.js';
 import { SystemModule } from '../../features/system/system.module.js';
+import { FileSystemBrowserAccessService } from '../file-system/file-system-browser-access.service.js';
+import { FileSystemResolver } from './file-system/file-system.resolver.js';
 import { initRegisterEnumTypes } from './init-register-enum-types.js';
 import { PlaybookCatalogResolver } from './playbook-catalog/playbook-catalog.resolver.js';
 import { ProjectRecordsResolver } from './project/project-records.resolver.js';
@@ -17,6 +21,8 @@ initRegisterEnumTypes();
 
 @Module({
   imports: [
+    FileSystemAccessModule,
+    FileSystemModule,
     ProjectModule,
     PlaybookCatalogModule,
     RunModule,
@@ -29,6 +35,8 @@ initRegisterEnumTypes();
     }),
   ],
   providers: [
+    FileSystemBrowserAccessService,
+    FileSystemResolver,
     ProjectResolver,
     ProjectRecordsResolver,
     PlaybookCatalogResolver,

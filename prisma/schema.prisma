@@ -55,6 +55,19 @@ model Repository {
   @@schema("public")
 }
 
+model FileSystemPermissionPolicy {
+  id        String    @id @default(nanoid())
+  name      String
+  document  Json
+  version   Int       @default(1)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+
+  @@map("file_system_permission_policies")
+  @@schema("public")
+}
+
 model ReviewThread {
   id         String          @id
   scopeKey   String
