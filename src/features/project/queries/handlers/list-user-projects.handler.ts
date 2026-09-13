@@ -29,10 +29,22 @@ export class ListUserProjectsHandler implements IQueryHandler<
           orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
           take,
           skip,
-          select: USER_PROJECT_SELECT,
+          select: {
+            ...USER_PROJECT_SELECT,
+            workspaces: {
+              where: { disconnectedAt: null },
+              orderBy: [{ name: 'asc' }, { id: 'asc' }],
+              take: 3,
+              select: { name: true, type: true },
+            },
+            _count: { select: { workspaces: { where: { disconnectedAt: null } } } },
+          },
         });
 
-        return projects.map(toUserProject);
+        return projects.map(({ _count: counts, workspaces, ...project }) => ({
+          ...toUserProject(project),
+          summary: { workspaces, workspaceCount: counts.workspaces },
+        }));
       },
       count: () => this.prisma.project.count({ where }),
     });

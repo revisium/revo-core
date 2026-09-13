@@ -1,6 +1,264 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/projects/{projectId}/workspaces": {
+      "get": {
+        "operationId": "listWorkspaces",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      },
+      "post": {
+        "operationId": "createWorkspace",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkspaceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateWorkspaceResultResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      }
+    },
+    "/api/projects/{projectId}/workspaces/{id}": {
+      "get": {
+        "operationId": "getWorkspace",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      },
+      "patch": {
+        "operationId": "updateWorkspace",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkspaceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      }
+    },
+    "/api/projects/{projectId}/workspaces/{id}/check": {
+      "post": {
+        "operationId": "checkWorkspace",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      }
+    },
+    "/api/projects/{projectId}/workspaces/{id}/disconnect": {
+      "post": {
+        "operationId": "disconnectWorkspace",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      }
+    },
     "/api/file-system/roots": {
       "get": {
         "operationId": "getFileSystemRoots",
@@ -3468,6 +3726,181 @@
   "servers": [],
   "components": {
     "schemas": {
+      "WorkspaceResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["folder", "repository"]
+          },
+          "sourcePath": {
+            "type": "string"
+          },
+          "availability": {
+            "type": "string",
+            "enum": [
+              "UNKNOWN",
+              "AVAILABLE",
+              "NOT_FOUND",
+              "NOT_DIRECTORY",
+              "ACCESS_DENIED",
+              "INVALID_REPOSITORY",
+              "CHECK_FAILED"
+            ]
+          },
+          "lastCheckedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastErrorCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "version": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "disconnectedAt": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "name",
+          "description",
+          "type",
+          "sourcePath",
+          "availability",
+          "lastCheckedAt",
+          "lastErrorCode",
+          "version",
+          "createdAt",
+          "updatedAt",
+          "disconnectedAt"
+        ]
+      },
+      "WorkspaceEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/WorkspaceResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "PageInfoResponse": {
+        "type": "object",
+        "properties": {
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "startCursor": {
+            "type": "string"
+          },
+          "endCursor": {
+            "type": "string"
+          }
+        },
+        "required": ["hasNextPage", "hasPreviousPage"]
+      },
+      "WorkspaceConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "CreateWorkspaceRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["folder", "repository"]
+          },
+          "sourcePath": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "type", "sourcePath"]
+      },
+      "CreateWorkspaceResultResponse": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string"
+          }
+        },
+        "required": ["workspaceId"]
+      },
+      "UpdateWorkspaceRequest": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "sourcePath": {
+            "type": "string"
+          }
+        },
+        "required": ["expectedVersion"]
+      },
+      "WorkspaceVersionRequest": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "number"
+          }
+        },
+        "required": ["expectedVersion"]
+      },
       "FileSystemRootType": {
         "type": "string",
         "enum": ["HOME", "ROOT", "VOLUME", "SCOPE"]
@@ -3502,24 +3935,6 @@
           }
         },
         "required": ["cursor", "node"]
-      },
-      "PageInfoResponse": {
-        "type": "object",
-        "properties": {
-          "hasNextPage": {
-            "type": "boolean"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "startCursor": {
-            "type": "string"
-          },
-          "endCursor": {
-            "type": "string"
-          }
-        },
-        "required": ["hasNextPage", "hasPreviousPage"]
       },
       "FileSystemRootConnectionResponse": {
         "type": "object",
@@ -4781,6 +5196,97 @@
         "type": "string",
         "enum": ["active", "archived"]
       },
+      "ProjectWorkspaceSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["folder", "repository"]
+          }
+        },
+        "required": ["name", "type"]
+      },
+      "ProjectSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "workspaces": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectWorkspaceSummaryResponse"
+            }
+          },
+          "workspaceCount": {
+            "type": "number"
+          }
+        },
+        "required": ["workspaces", "workspaceCount"]
+      },
+      "ProjectListItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProjectStatus"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ProjectSummaryResponse"
+          }
+        },
+        "required": ["id", "name", "description", "status", "createdAt", "updatedAt", "summary"]
+      },
+      "ProjectEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/ProjectListItemResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "ProjectConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectEdgeResponse"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfoResponse"
+          },
+          "totalCount": {
+            "type": "number"
+          }
+        },
+        "required": ["edges", "pageInfo", "totalCount"]
+      },
       "ProjectResponse": {
         "type": "object",
         "properties": {
@@ -4810,36 +5316,6 @@
           }
         },
         "required": ["id", "name", "description", "status", "createdAt", "updatedAt"]
-      },
-      "ProjectEdgeResponse": {
-        "type": "object",
-        "properties": {
-          "cursor": {
-            "type": "string"
-          },
-          "node": {
-            "$ref": "#/components/schemas/ProjectResponse"
-          }
-        },
-        "required": ["cursor", "node"]
-      },
-      "ProjectConnectionResponse": {
-        "type": "object",
-        "properties": {
-          "edges": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProjectEdgeResponse"
-            }
-          },
-          "pageInfo": {
-            "$ref": "#/components/schemas/PageInfoResponse"
-          },
-          "totalCount": {
-            "type": "number"
-          }
-        },
-        "required": ["edges", "pageInfo", "totalCount"]
       },
       "ProjectUpdateRequest": {
         "type": "object",

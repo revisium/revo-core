@@ -198,7 +198,7 @@ export type ProjectWhereInput = {
   kind?: Prisma.EnumProjectKindFilter<"Project"> | $Enums.ProjectKind
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
-  repositories?: Prisma.RepositoryListRelationFilter
+  workspaces?: Prisma.WorkspaceListRelationFilter
   branches?: Prisma.BranchListRelationFilter
 }
 
@@ -210,7 +210,7 @@ export type ProjectOrderByWithRelationInput = {
   kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  repositories?: Prisma.RepositoryOrderByRelationAggregateInput
+  workspaces?: Prisma.WorkspaceOrderByRelationAggregateInput
   branches?: Prisma.BranchOrderByRelationAggregateInput
 }
 
@@ -225,7 +225,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   kind?: Prisma.EnumProjectKindFilter<"Project"> | $Enums.ProjectKind
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
-  repositories?: Prisma.RepositoryListRelationFilter
+  workspaces?: Prisma.WorkspaceListRelationFilter
   branches?: Prisma.BranchListRelationFilter
 }, "id">
 
@@ -263,7 +263,7 @@ export type ProjectCreateInput = {
   kind?: $Enums.ProjectKind
   createdAt?: Date | string
   updatedAt?: Date | string
-  repositories?: Prisma.RepositoryCreateNestedManyWithoutProjectInput
+  workspaces?: Prisma.WorkspaceCreateNestedManyWithoutProjectInput
   branches?: Prisma.BranchCreateNestedManyWithoutProjectInput
 }
 
@@ -275,7 +275,7 @@ export type ProjectUncheckedCreateInput = {
   kind?: $Enums.ProjectKind
   createdAt?: Date | string
   updatedAt?: Date | string
-  repositories?: Prisma.RepositoryUncheckedCreateNestedManyWithoutProjectInput
+  workspaces?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutProjectInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -287,7 +287,7 @@ export type ProjectUpdateInput = {
   kind?: Prisma.EnumProjectKindFieldUpdateOperationsInput | $Enums.ProjectKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  repositories?: Prisma.RepositoryUpdateManyWithoutProjectNestedInput
+  workspaces?: Prisma.WorkspaceUpdateManyWithoutProjectNestedInput
   branches?: Prisma.BranchUpdateManyWithoutProjectNestedInput
 }
 
@@ -299,7 +299,7 @@ export type ProjectUncheckedUpdateInput = {
   kind?: Prisma.EnumProjectKindFieldUpdateOperationsInput | $Enums.ProjectKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  repositories?: Prisma.RepositoryUncheckedUpdateManyWithoutProjectNestedInput
+  workspaces?: Prisma.WorkspaceUncheckedUpdateManyWithoutProjectNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -384,18 +384,18 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
-export type ProjectCreateNestedOneWithoutRepositoriesInput = {
-  create?: Prisma.XOR<Prisma.ProjectCreateWithoutRepositoriesInput, Prisma.ProjectUncheckedCreateWithoutRepositoriesInput>
-  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutRepositoriesInput
+export type ProjectCreateNestedOneWithoutWorkspacesInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutWorkspacesInput, Prisma.ProjectUncheckedCreateWithoutWorkspacesInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutWorkspacesInput
   connect?: Prisma.ProjectWhereUniqueInput
 }
 
-export type ProjectUpdateOneRequiredWithoutRepositoriesNestedInput = {
-  create?: Prisma.XOR<Prisma.ProjectCreateWithoutRepositoriesInput, Prisma.ProjectUncheckedCreateWithoutRepositoriesInput>
-  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutRepositoriesInput
-  upsert?: Prisma.ProjectUpsertWithoutRepositoriesInput
+export type ProjectUpdateOneRequiredWithoutWorkspacesNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutWorkspacesInput, Prisma.ProjectUncheckedCreateWithoutWorkspacesInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutWorkspacesInput
+  upsert?: Prisma.ProjectUpsertWithoutWorkspacesInput
   connect?: Prisma.ProjectWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutRepositoriesInput, Prisma.ProjectUpdateWithoutRepositoriesInput>, Prisma.ProjectUncheckedUpdateWithoutRepositoriesInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutWorkspacesInput, Prisma.ProjectUpdateWithoutWorkspacesInput>, Prisma.ProjectUncheckedUpdateWithoutWorkspacesInput>
 }
 
 export type ProjectCreateNestedOneWithoutBranchesInput = {
@@ -412,7 +412,7 @@ export type ProjectUpdateOneRequiredWithoutBranchesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutBranchesInput, Prisma.ProjectUpdateWithoutBranchesInput>, Prisma.ProjectUncheckedUpdateWithoutBranchesInput>
 }
 
-export type ProjectCreateWithoutRepositoriesInput = {
+export type ProjectCreateWithoutWorkspacesInput = {
   id?: string
   name: string
   description?: string
@@ -423,7 +423,7 @@ export type ProjectCreateWithoutRepositoriesInput = {
   branches?: Prisma.BranchCreateNestedManyWithoutProjectInput
 }
 
-export type ProjectUncheckedCreateWithoutRepositoriesInput = {
+export type ProjectUncheckedCreateWithoutWorkspacesInput = {
   id?: string
   name: string
   description?: string
@@ -434,23 +434,23 @@ export type ProjectUncheckedCreateWithoutRepositoriesInput = {
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutProjectInput
 }
 
-export type ProjectCreateOrConnectWithoutRepositoriesInput = {
+export type ProjectCreateOrConnectWithoutWorkspacesInput = {
   where: Prisma.ProjectWhereUniqueInput
-  create: Prisma.XOR<Prisma.ProjectCreateWithoutRepositoriesInput, Prisma.ProjectUncheckedCreateWithoutRepositoriesInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutWorkspacesInput, Prisma.ProjectUncheckedCreateWithoutWorkspacesInput>
 }
 
-export type ProjectUpsertWithoutRepositoriesInput = {
-  update: Prisma.XOR<Prisma.ProjectUpdateWithoutRepositoriesInput, Prisma.ProjectUncheckedUpdateWithoutRepositoriesInput>
-  create: Prisma.XOR<Prisma.ProjectCreateWithoutRepositoriesInput, Prisma.ProjectUncheckedCreateWithoutRepositoriesInput>
+export type ProjectUpsertWithoutWorkspacesInput = {
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutWorkspacesInput, Prisma.ProjectUncheckedUpdateWithoutWorkspacesInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutWorkspacesInput, Prisma.ProjectUncheckedCreateWithoutWorkspacesInput>
   where?: Prisma.ProjectWhereInput
 }
 
-export type ProjectUpdateToOneWithWhereWithoutRepositoriesInput = {
+export type ProjectUpdateToOneWithWhereWithoutWorkspacesInput = {
   where?: Prisma.ProjectWhereInput
-  data: Prisma.XOR<Prisma.ProjectUpdateWithoutRepositoriesInput, Prisma.ProjectUncheckedUpdateWithoutRepositoriesInput>
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutWorkspacesInput, Prisma.ProjectUncheckedUpdateWithoutWorkspacesInput>
 }
 
-export type ProjectUpdateWithoutRepositoriesInput = {
+export type ProjectUpdateWithoutWorkspacesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -461,7 +461,7 @@ export type ProjectUpdateWithoutRepositoriesInput = {
   branches?: Prisma.BranchUpdateManyWithoutProjectNestedInput
 }
 
-export type ProjectUncheckedUpdateWithoutRepositoriesInput = {
+export type ProjectUncheckedUpdateWithoutWorkspacesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -480,7 +480,7 @@ export type ProjectCreateWithoutBranchesInput = {
   kind?: $Enums.ProjectKind
   createdAt?: Date | string
   updatedAt?: Date | string
-  repositories?: Prisma.RepositoryCreateNestedManyWithoutProjectInput
+  workspaces?: Prisma.WorkspaceCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutBranchesInput = {
@@ -491,7 +491,7 @@ export type ProjectUncheckedCreateWithoutBranchesInput = {
   kind?: $Enums.ProjectKind
   createdAt?: Date | string
   updatedAt?: Date | string
-  repositories?: Prisma.RepositoryUncheckedCreateNestedManyWithoutProjectInput
+  workspaces?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutBranchesInput = {
@@ -518,7 +518,7 @@ export type ProjectUpdateWithoutBranchesInput = {
   kind?: Prisma.EnumProjectKindFieldUpdateOperationsInput | $Enums.ProjectKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  repositories?: Prisma.RepositoryUpdateManyWithoutProjectNestedInput
+  workspaces?: Prisma.WorkspaceUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutBranchesInput = {
@@ -529,7 +529,7 @@ export type ProjectUncheckedUpdateWithoutBranchesInput = {
   kind?: Prisma.EnumProjectKindFieldUpdateOperationsInput | $Enums.ProjectKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  repositories?: Prisma.RepositoryUncheckedUpdateManyWithoutProjectNestedInput
+  workspaces?: Prisma.WorkspaceUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 
@@ -538,12 +538,12 @@ export type ProjectUncheckedUpdateWithoutBranchesInput = {
  */
 
 export type ProjectCountOutputType = {
-  repositories: number
+  workspaces: number
   branches: number
 }
 
 export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  repositories?: boolean | ProjectCountOutputTypeCountRepositoriesArgs
+  workspaces?: boolean | ProjectCountOutputTypeCountWorkspacesArgs
   branches?: boolean | ProjectCountOutputTypeCountBranchesArgs
 }
 
@@ -560,8 +560,8 @@ export type ProjectCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
 /**
  * ProjectCountOutputType without action
  */
-export type ProjectCountOutputTypeCountRepositoriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.RepositoryWhereInput
+export type ProjectCountOutputTypeCountWorkspacesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WorkspaceWhereInput
 }
 
 /**
@@ -580,7 +580,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   kind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  repositories?: boolean | Prisma.Project$repositoriesArgs<ExtArgs>
+  workspaces?: boolean | Prisma.Project$workspacesArgs<ExtArgs>
   branches?: boolean | Prisma.Project$branchesArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["project"]>
@@ -617,7 +617,7 @@ export type ProjectSelectScalar = {
 
 export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "status" | "kind" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  repositories?: boolean | Prisma.Project$repositoriesArgs<ExtArgs>
+  workspaces?: boolean | Prisma.Project$workspacesArgs<ExtArgs>
   branches?: boolean | Prisma.Project$branchesArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -627,7 +627,7 @@ export type ProjectIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
 export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Project"
   objects: {
-    repositories: Prisma.$RepositoryPayload<ExtArgs>[]
+    workspaces: Prisma.$WorkspacePayload<ExtArgs>[]
     branches: Prisma.$BranchPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1032,7 +1032,7 @@ readonly fields: ProjectFieldRefs;
  */
 export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  repositories<T extends Prisma.Project$repositoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$repositoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  workspaces<T extends Prisma.Project$workspacesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$workspacesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branches<T extends Prisma.Project$branchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$branchesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1463,27 +1463,27 @@ export type ProjectDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
 }
 
 /**
- * Project.repositories
+ * Project.workspaces
  */
-export type Project$repositoriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Project$workspacesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Repository
+   * Select specific fields to fetch from the Workspace
    */
-  select?: Prisma.RepositorySelect<ExtArgs> | null
+  select?: Prisma.WorkspaceSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Repository
+   * Omit specific fields from the Workspace
    */
-  omit?: Prisma.RepositoryOmit<ExtArgs> | null
+  omit?: Prisma.WorkspaceOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.RepositoryInclude<ExtArgs> | null
-  where?: Prisma.RepositoryWhereInput
-  orderBy?: Prisma.RepositoryOrderByWithRelationInput | Prisma.RepositoryOrderByWithRelationInput[]
-  cursor?: Prisma.RepositoryWhereUniqueInput
+  include?: Prisma.WorkspaceInclude<ExtArgs> | null
+  where?: Prisma.WorkspaceWhereInput
+  orderBy?: Prisma.WorkspaceOrderByWithRelationInput | Prisma.WorkspaceOrderByWithRelationInput[]
+  cursor?: Prisma.WorkspaceWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.RepositoryScalarFieldEnum | Prisma.RepositoryScalarFieldEnum[]
+  distinct?: Prisma.WorkspaceScalarFieldEnum | Prisma.WorkspaceScalarFieldEnum[]
 }
 
 /**

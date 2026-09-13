@@ -9,7 +9,8 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Project.js'
-export type * from './models/Repository.js'
+export type * from './models/Workspace.js'
+export type * from './models/WorkspaceEvent.js'
 export type * from './models/FileSystemPermissionPolicy.js'
 export type * from './models/ReviewThread.js'
 export type * from './models/ReviewMessage.js'

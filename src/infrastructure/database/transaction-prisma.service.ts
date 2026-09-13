@@ -80,10 +80,25 @@ export class TransactionPrismaService {
   }
 
   private isRetryable(error: unknown): boolean {
-    if (typeof error !== 'object' || error === null || !('code' in error)) {
+    if (typeof error !== 'object' || error === null) {
       return false;
     }
 
-    return RETRYABLE_ERROR_CODES.has(String(error.code));
+    if ('code' in error && RETRYABLE_ERROR_CODES.has(String(error.code))) {
+      return true;
+    }
+
+    if (!('name' in error) || error.name !== 'DriverAdapterError' || !('cause' in error)) {
+      return false;
+    }
+
+    const cause = error.cause;
+
+    return (
+      typeof cause === 'object' &&
+      cause !== null &&
+      'originalCode' in cause &&
+      RETRYABLE_ERROR_CODES.has(String(cause.originalCode))
+    );
   }
 }

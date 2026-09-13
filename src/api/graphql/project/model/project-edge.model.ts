@@ -1,12 +1,12 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
-import { ProjectModel } from './project.model.js';
+import { ProjectListItemModel } from './project-list-item.model.js';
 
 @ObjectType()
 export class ProjectEdgeModel {
   @Field()
   cursor: string;
 
-  @Field(() => ProjectModel)
-  node: ProjectModel;
+  @Field(() => ProjectListItemModel)
+  node: ProjectListItemModel;
 }

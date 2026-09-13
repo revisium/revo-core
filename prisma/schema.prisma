@@ -17,7 +17,7 @@ model Project {
   kind         ProjectKind   @default(USER)
   createdAt    DateTime      @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime      @updatedAt @db.Timestamptz(3)
-  repositories Repository[]
+  workspaces  Workspace[]
   branches     Branch[]
 
   @@map("projects")
@@ -39,19 +39,58 @@ enum ProjectKind {
   @@schema("public")
 }
 
-model Repository {
-  id        String   @id @default(nanoid())
-  projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  name      String
-  remoteUrl String?
-  localPath String?
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+model Workspace {
+  id             String                @id @default(nanoid())
+  projectId      String
+  project        Project               @relation(fields: [projectId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  name           String
+  description    String                @default("")
+  type           WorkspaceType
+  sourcePath     String
+  availability   WorkspaceAvailability @default(UNKNOWN)
+  lastCheckedAt  DateTime?             @db.Timestamptz(3)
+  lastErrorCode  String?
+  version        Int                   @default(1)
+  createdAt      DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime              @updatedAt @db.Timestamptz(3)
+  disconnectedAt DateTime?             @db.Timestamptz(3)
+  events         WorkspaceEvent[]
 
-  @@unique([projectId, name])
-  @@index([projectId])
-  @@map("repositories")
+  @@index([projectId, disconnectedAt, name, id])
+  @@map("workspaces")
+  @@schema("public")
+}
+
+enum WorkspaceType {
+  folder
+  repository
+
+  @@schema("public")
+}
+
+enum WorkspaceAvailability {
+  UNKNOWN
+  AVAILABLE
+  NOT_FOUND
+  NOT_DIRECTORY
+  ACCESS_DENIED
+  INVALID_REPOSITORY
+  CHECK_FAILED
+
+  @@schema("public")
+}
+
+model WorkspaceEvent {
+  id          String    @id @default(nanoid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  actorId     String
+  operation   String
+  details     Json
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([workspaceId, createdAt, id])
+  @@map("workspace_events")
   @@schema("public")
 }
 

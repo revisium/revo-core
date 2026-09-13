@@ -10,19 +10,23 @@ import { PlaybookCatalogModule } from '../../features/playbook-catalog/playbook-
 import { ProjectModule } from '../../features/project/project.module.js';
 import { RunModule } from '../../features/run/run.module.js';
 import { SystemModule } from '../../features/system/system.module.js';
+import { WorkspaceModule } from '../../features/workspace/workspace.module.js';
 import { FileSystemBrowserAccessService } from '../file-system/file-system-browser-access.service.js';
+import { WorkspaceRequestContextService } from '../workspace/workspace-request-context.service.js';
 import { AgentDefinitionsGraphqlExceptionFilter } from './agent-definitions/agent-definitions-graphql-exception.filter.js';
 import { AgentDefinitionsResolver } from './agent-definitions/agent-definitions.resolver.js';
 import { DialogueResolver } from './dialogue/dialogue.resolver.js';
 import { FileSystemResolver } from './file-system/file-system.resolver.js';
 import { initRegisterEnumTypes } from './init-register-enum-types.js';
 import { PlaybookCatalogResolver } from './playbook-catalog/playbook-catalog.resolver.js';
+import { ProjectListItemResolver } from './project/project-list-item.resolver.js';
 import { ProjectRecordsResolver } from './project/project-records.resolver.js';
 import { ProjectResolver } from './project/project.resolver.js';
 import { RunResolver } from './run/run.resolver.js';
 import { GraphqlSubscriptionTransport } from './subscriptions/graphql-subscription-transport.js';
 import { GraphqlSubscriptionsModule } from './subscriptions/graphql-subscriptions.module.js';
 import { SystemResolver } from './system/system.resolver.js';
+import { WorkspaceResolver } from './workspace/workspace.resolver.js';
 
 initRegisterEnumTypes();
 
@@ -30,6 +34,7 @@ initRegisterEnumTypes();
   imports: [
     AgentDefinitionsModule,
     DialogueManagementModule,
+    WorkspaceModule,
     FileSystemAccessModule,
     FileSystemModule,
     ProjectModule,
@@ -52,9 +57,12 @@ initRegisterEnumTypes();
     AgentDefinitionsResolver,
     DialogueResolver,
     AgentDefinitionsGraphqlExceptionFilter,
+    WorkspaceRequestContextService,
+    WorkspaceResolver,
     FileSystemBrowserAccessService,
     FileSystemResolver,
     ProjectResolver,
+    ProjectListItemResolver,
     ProjectRecordsResolver,
     PlaybookCatalogResolver,
     RunResolver,
