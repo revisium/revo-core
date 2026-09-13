@@ -1,4 +1,4 @@
-import type { PageDataType } from '../../../features/project/commands/utils/getOffsetPagination.js';
+import type { PageDataType } from '../../../infrastructure/pagination/get-offset-pagination.js';
 
 export function listData(data: { first?: number; after?: string }): PageDataType {
   return {

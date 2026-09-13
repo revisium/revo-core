@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { PageInfoResponse } from './page-info.response.js';
+import { PageInfoResponse } from '../../share/page-info.response.js';
 import { WorkItemEdgeResponse } from './work-item-edge.response.js';
 
 export class WorkItemConnectionResponse {

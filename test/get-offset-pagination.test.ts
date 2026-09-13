@@ -5,7 +5,7 @@ import {
   getOffsetPagination,
   type FindManyType,
   type OffsetPaginationFindManyArgs,
-} from '../src/features/project/commands/utils/getOffsetPagination.js';
+} from '../src/infrastructure/pagination/get-offset-pagination.js';
 
 type TestNode = { id: string };
 

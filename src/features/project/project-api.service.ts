@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
+import type { PageDataType } from '../../infrastructure/pagination/get-offset-pagination.js';
 import {
   ArchiveUserProjectCommand,
   type ArchiveUserProjectCommandData,
@@ -46,7 +47,6 @@ import {
   UpdateWorkPlanCommand,
   type UpdateWorkPlanCommandReturnType,
 } from './commands/index.js';
-import type { PageDataType } from './commands/utils/getOffsetPagination.js';
 import {
   GetAdrQuery,
   type GetAdrQueryReturnType,
