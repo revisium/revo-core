@@ -6,7 +6,9 @@ import { PlaybookCatalogModule } from '../../features/playbook-catalog/playbook-
 import { ProjectModule } from '../../features/project/project.module.js';
 import { RunModule } from '../../features/run/run.module.js';
 import { SystemModule } from '../../features/system/system.module.js';
+import { WorkspaceModule } from '../../features/workspace/workspace.module.js';
 import { FileSystemBrowserAccessService } from '../file-system/file-system-browser-access.service.js';
+import { WorkspaceRequestContextService } from '../workspace/workspace-request-context.service.js';
 import { FileSystemController } from './file-system/file-system.controller.js';
 import { CatalogRecordsController } from './playbook-catalog/catalog-records.controller.js';
 import { CatalogController } from './playbook-catalog/catalog.controller.js';
@@ -17,9 +19,11 @@ import { WorkItemController } from './project/work-item.controller.js';
 import { WorkPlanController } from './project/work-plan.controller.js';
 import { RunController } from './run/run.controller.js';
 import { SystemController } from './system/system.controller.js';
+import { WorkspaceController } from './workspace/workspace.controller.js';
 
 @Module({
   imports: [
+    WorkspaceModule,
     FileSystemAccessModule,
     FileSystemModule,
     ProjectModule,
@@ -27,8 +31,9 @@ import { SystemController } from './system/system.controller.js';
     RunModule,
     SystemModule,
   ],
-  providers: [FileSystemBrowserAccessService],
+  providers: [FileSystemBrowserAccessService, WorkspaceRequestContextService],
   controllers: [
+    WorkspaceController,
     FileSystemController,
     CatalogController,
     CatalogRecordsController,

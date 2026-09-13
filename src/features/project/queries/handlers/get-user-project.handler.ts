@@ -1,7 +1,7 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
 import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
-import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
+import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import {
   GetUserProjectQuery,
   type GetUserProjectQueryReturnType,
@@ -13,10 +13,10 @@ export class GetUserProjectHandler implements IQueryHandler<
   GetUserProjectQuery,
   GetUserProjectQueryReturnType
 > {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly transactions: TransactionPrismaService) {}
 
   async execute({ data }: GetUserProjectQuery): Promise<GetUserProjectQueryReturnType> {
-    const project = await this.prisma.project.findFirst({
+    const project = await this.transactions.getTransactionOrPrisma().project.findFirst({
       where: {
         id: data.id,
         kind: ProjectKind.USER,

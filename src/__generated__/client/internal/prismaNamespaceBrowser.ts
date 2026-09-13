@@ -52,7 +52,8 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Project: 'Project',
-  Repository: 'Repository',
+  Workspace: 'Workspace',
+  WorkspaceEvent: 'WorkspaceEvent',
   FileSystemPermissionPolicy: 'FileSystemPermissionPolicy',
   ReviewThread: 'ReviewThread',
   ReviewMessage: 'ReviewMessage',
@@ -96,17 +97,35 @@ export const ProjectScalarFieldEnum = {
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
 
 
-export const RepositoryScalarFieldEnum = {
+export const WorkspaceScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
   name: 'name',
-  remoteUrl: 'remoteUrl',
-  localPath: 'localPath',
+  description: 'description',
+  type: 'type',
+  sourcePath: 'sourcePath',
+  availability: 'availability',
+  lastCheckedAt: 'lastCheckedAt',
+  lastErrorCode: 'lastErrorCode',
+  version: 'version',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  disconnectedAt: 'disconnectedAt'
 } as const
 
-export type RepositoryScalarFieldEnum = (typeof RepositoryScalarFieldEnum)[keyof typeof RepositoryScalarFieldEnum]
+export type WorkspaceScalarFieldEnum = (typeof WorkspaceScalarFieldEnum)[keyof typeof WorkspaceScalarFieldEnum]
+
+
+export const WorkspaceEventScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  actorId: 'actorId',
+  operation: 'operation',
+  details: 'details',
+  createdAt: 'createdAt'
+} as const
+
+export type WorkspaceEventScalarFieldEnum = (typeof WorkspaceEventScalarFieldEnum)[keyof typeof WorkspaceEventScalarFieldEnum]
 
 
 export const FileSystemPermissionPolicyScalarFieldEnum = {

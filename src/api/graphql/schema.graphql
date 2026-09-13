@@ -146,6 +146,18 @@ input CreateFileSystemDirectoryInput {
   parentPath: String!
 }
 
+input CreateWorkspaceInput {
+  description: String
+  name: String!
+  projectId: ID!
+  sourcePath: String!
+  type: WorkspaceType!
+}
+
+type CreateWorkspaceResultModel {
+  workspaceId: ID!
+}
+
 input FileSystemDirectoryInput {
   after: String
   directoriesOnly: Boolean
@@ -291,6 +303,7 @@ type MethodDocumentModel {
 
 type Mutation {
   archiveProject(data: ProjectInput!): Boolean!
+  checkWorkspace(data: WorkspaceVersionInput!): Boolean!
   commitCatalog(message: String!): CatalogCommitResultModel!
   createAdr(data: AdrInput!): AdrModel!
   createFileSystemDirectory(data: CreateFileSystemDirectoryInput!): FileSystemEntryModel!
@@ -308,6 +321,7 @@ type Mutation {
   createStackRef(data: StackRefInput!): StackRefModel!
   createWorkItem(data: WorkItemInput!): WorkItemModel!
   createWorkPlan(data: WorkPlanInput!): WorkPlanModel!
+  createWorkspace(data: CreateWorkspaceInput!): CreateWorkspaceResultModel!
   deleteAdr(data: RecordDeleteInput!): Boolean!
   deleteLaunchProfile(id: ID!): Boolean!
   deleteMethodDocument(id: ID!): Boolean!
@@ -323,6 +337,7 @@ type Mutation {
   deleteWorkItem(data: RecordDeleteInput!): Boolean!
   deleteWorkPlan(data: RecordDeleteInput!): Boolean!
   discardCatalog: CatalogMutationResultModel!
+  disconnectWorkspace(data: WorkspaceVersionInput!): Boolean!
   importCatalog(data: JSON!): CatalogImportResultModel!
   restoreProject(data: ProjectInput!): Boolean!
   startRun(data: StartRunInput!): StartRunResultModel!
@@ -340,6 +355,7 @@ type Mutation {
   updateStackRef(data: StackRefInput!): StackRefModel!
   updateWorkItem(data: WorkItemInput!): WorkItemModel!
   updateWorkPlan(data: WorkPlanInput!): WorkPlanModel!
+  updateWorkspace(data: UpdateWorkspaceInput!): Boolean!
 }
 
 type PageInfoModel {
@@ -447,7 +463,7 @@ type ProjectCreatedModel {
 
 type ProjectEdgeModel {
   cursor: String!
-  node: ProjectModel!
+  node: ProjectListItemModel!
 }
 
 input ProjectInput {
@@ -459,6 +475,24 @@ input ProjectListInput {
   first: Int
   includeArchived: Boolean
   query: String
+}
+
+type ProjectListItemModel {
+  adr(id: ID!): AdrModel
+  adrs(data: RecordListInput!): AdrConnectionModel!
+  createdAt: String!
+  description: String!
+  id: ID!
+  name: String!
+  requirement(id: ID!): RequirementModel
+  requirements(data: RecordListInput!): RequirementConnectionModel!
+  status: ProjectStatus!
+  summary: ProjectSummaryModel!
+  updatedAt: String!
+  workItem(id: ID!): WorkItemModel
+  workItems(data: RecordListInput!): WorkItemConnectionModel!
+  workPlan(id: ID!): WorkPlanModel
+  workPlans(data: RecordListInput!): WorkPlanConnectionModel!
 }
 
 type ProjectModel {
@@ -483,10 +517,20 @@ enum ProjectStatus {
   archived
 }
 
+type ProjectSummaryModel {
+  workspaceCount: Int!
+  workspaces: [ProjectWorkspaceSummaryModel!]!
+}
+
 input ProjectUpdateInput {
   description: String
   id: ID!
   name: String
+}
+
+type ProjectWorkspaceSummaryModel {
+  name: String!
+  type: WorkspaceType!
 }
 
 type Query {
@@ -520,6 +564,8 @@ type Query {
   stackRefs(after: String, first: Int!, revisionId: ID, scope: CatalogScope! = HEAD, stackId: ID): StackRefConnection!
   stacks(after: String, first: Int!, playbookId: ID, revisionId: ID, scope: CatalogScope! = HEAD): StackConnection!
   systemInfo: SystemInfoModel!
+  workspace(data: WorkspaceInput!): WorkspaceModel!
+  workspaces(data: WorkspaceListInput!): WorkspaceConnectionModel!
 }
 
 input RecordDeleteInput {
@@ -720,6 +766,15 @@ type SystemInfoModel {
   status: String!
 }
 
+input UpdateWorkspaceInput {
+  description: String
+  expectedVersion: Int!
+  id: ID!
+  name: String
+  projectId: ID!
+  sourcePath: String
+}
+
 type WorkItemConnectionModel {
   edges: [WorkItemEdgeModel!]!
   pageInfo: PageInfoModel!
@@ -798,4 +853,63 @@ enum WorkPlanStatus {
   closed
   draft
   ready
+}
+
+enum WorkspaceAvailability {
+  ACCESS_DENIED
+  AVAILABLE
+  CHECK_FAILED
+  INVALID_REPOSITORY
+  NOT_DIRECTORY
+  NOT_FOUND
+  UNKNOWN
+}
+
+type WorkspaceConnectionModel {
+  edges: [WorkspaceEdgeModel!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type WorkspaceEdgeModel {
+  cursor: String!
+  node: WorkspaceModel!
+}
+
+input WorkspaceInput {
+  id: ID!
+  projectId: ID!
+}
+
+input WorkspaceListInput {
+  after: String
+  first: Int
+  projectId: ID!
+}
+
+type WorkspaceModel {
+  availability: WorkspaceAvailability!
+  createdAt: String!
+  description: String!
+  disconnectedAt: String
+  id: ID!
+  lastCheckedAt: String
+  lastErrorCode: String
+  name: String!
+  projectId: ID!
+  sourcePath: String!
+  type: WorkspaceType!
+  updatedAt: String!
+  version: Int!
+}
+
+enum WorkspaceType {
+  folder
+  repository
+}
+
+input WorkspaceVersionInput {
+  expectedVersion: Int!
+  id: ID!
+  projectId: ID!
 }

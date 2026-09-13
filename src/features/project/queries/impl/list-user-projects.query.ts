@@ -10,7 +10,12 @@ export type ListUserProjectsQueryData = {
 };
 
 export type ListUserProjectsQueryReturnType = IPaginatedType<
-  NonNullable<GetUserProjectQueryReturnType>
+  NonNullable<GetUserProjectQueryReturnType> & {
+    summary: {
+      workspaces: { name: string; type: 'folder' | 'repository' }[];
+      workspaceCount: number;
+    };
+  }
 >;
 
 export class ListUserProjectsQuery {
