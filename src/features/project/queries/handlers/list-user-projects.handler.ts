@@ -3,7 +3,7 @@ import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
-import { getOffsetPagination } from '../../commands/utils/getOffsetPagination.js';
+import { getOffsetPagination } from '../../../../infrastructure/pagination/get-offset-pagination.js';
 import {
   ListUserProjectsQuery,
   type ListUserProjectsQueryData,

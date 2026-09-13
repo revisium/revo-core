@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { PageInfoResponse } from '../../share/page-info.response.js';
 import { AdrEdgeResponse } from './adr-edge.response.js';
-import { PageInfoResponse } from './page-info.response.js';
 
 export class AdrConnectionResponse {
   @ApiProperty({ type: [AdrEdgeResponse] })
