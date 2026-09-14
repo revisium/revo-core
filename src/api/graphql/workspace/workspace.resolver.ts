@@ -2,12 +2,12 @@ import { UseFilters } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { WorkspaceApiService } from '../../../features/workspace/workspace-api.service.js';
-import { CreateWorkspaceResultModel } from './model/create-workspace-result.model.js';
 import { CreateWorkspaceInput } from './model/create-workspace.input.js';
 import { UpdateWorkspaceInput } from './model/update-workspace.input.js';
 import { WorkspaceCheckModel } from './model/workspace-check.model.js';
 import { WorkspaceConnectionModel } from './model/workspace-connection.model.js';
 import { WorkspaceListInput } from './model/workspace-list.input.js';
+import { WorkspaceSourceInput } from './model/workspace-source.input.js';
 import { WorkspaceInput } from './model/workspace.input.js';
 import { WorkspaceModel } from './model/workspace.model.js';
 import { WorkspaceGraphqlExceptionFilter } from './workspace-graphql-exception.filter.js';
@@ -30,12 +30,12 @@ export class WorkspaceResolver {
     return this.api.listWorkspaces(data);
   }
 
-  @Mutation(() => CreateWorkspaceResultModel)
+  @Mutation(() => WorkspaceModel)
   createWorkspace(@Args('data') data: CreateWorkspaceInput) {
     return this.api.createWorkspace(data);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => WorkspaceModel)
   updateWorkspace(@Args('data') data: UpdateWorkspaceInput) {
     return this.api.updateWorkspace(data);
   }
@@ -45,8 +45,18 @@ export class WorkspaceResolver {
     return this.api.checkWorkspace(data);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => WorkspaceCheckModel)
+  checkWorkspaceSource(@Args('data') data: WorkspaceSourceInput) {
+    return this.api.checkWorkspaceSource(data);
+  }
+
+  @Mutation(() => WorkspaceModel)
   archiveWorkspace(@Args('data') data: WorkspaceInput) {
     return this.api.archiveWorkspace(data);
+  }
+
+  @Mutation(() => WorkspaceModel)
+  restoreWorkspace(@Args('data') data: WorkspaceInput) {
+    return this.api.restoreWorkspace(data);
   }
 }

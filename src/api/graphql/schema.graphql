@@ -289,10 +289,6 @@ input CreateWorkspaceInput {
   type: WorkspaceType!
 }
 
-type CreateWorkspaceResultModel {
-  workspaceId: ID!
-}
-
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -581,9 +577,10 @@ type MethodDocumentModel {
 
 type Mutation {
   archiveProject(data: ProjectInput!): Boolean!
-  archiveWorkspace(data: WorkspaceInput!): Boolean!
+  archiveWorkspace(data: WorkspaceInput!): WorkspaceModel!
   cancelDialogueTurn(dialogueId: ID!, turnId: ID!): DialogueTurnModel!
   checkWorkspace(data: WorkspaceInput!): WorkspaceCheckModel!
+  checkWorkspaceSource(data: WorkspaceSourceInput!): WorkspaceCheckModel!
   commitCatalog(message: String!): CatalogCommitResultModel!
   createAdr(data: AdrInput!): AdrModel!
   createDialogue(input: CreateDialogueInput!): DialogueSummaryModel!
@@ -602,7 +599,7 @@ type Mutation {
   createStackRef(data: StackRefInput!): StackRefModel!
   createWorkItem(data: WorkItemInput!): WorkItemModel!
   createWorkPlan(data: WorkPlanInput!): WorkPlanModel!
-  createWorkspace(data: CreateWorkspaceInput!): CreateWorkspaceResultModel!
+  createWorkspace(data: CreateWorkspaceInput!): WorkspaceModel!
   deleteAdr(data: RecordDeleteInput!): Boolean!
   deleteLaunchProfile(id: ID!): Boolean!
   deleteMethodDocument(id: ID!): Boolean!
@@ -624,6 +621,7 @@ type Mutation {
   reopenDialogue(dialogueId: ID!): DialogueSummaryModel!
   respondDialogue(input: RespondDialogueInput!): DialogueInteractionModel!
   restoreProject(data: ProjectInput!): Boolean!
+  restoreWorkspace(data: WorkspaceInput!): WorkspaceModel!
   sendDialogueMessage(input: SendDialogueInput!): DialogueTurnModel!
   startRun(data: StartRunInput!): StartRunResultModel!
   updateAdr(data: AdrInput!): AdrModel!
@@ -640,7 +638,7 @@ type Mutation {
   updateStackRef(data: StackRefInput!): StackRefModel!
   updateWorkItem(data: WorkItemInput!): WorkItemModel!
   updateWorkPlan(data: WorkPlanInput!): WorkPlanModel!
-  updateWorkspace(data: UpdateWorkspaceInput!): Boolean!
+  updateWorkspace(data: UpdateWorkspaceInput!): WorkspaceModel!
 }
 
 type PageInfoModel {
@@ -1200,6 +1198,7 @@ input WorkspaceInput {
 input WorkspaceListInput {
   after: String
   first: Int
+  includeArchived: Boolean
   projectId: ID!
 }
 
@@ -1214,6 +1213,11 @@ type WorkspaceModel {
   sourcePath: String!
   type: WorkspaceType!
   updatedAt: String!
+}
+
+input WorkspaceSourceInput {
+  sourcePath: String!
+  type: WorkspaceType!
 }
 
 enum WorkspaceType {

@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -80,17 +80,16 @@ describe('Workspace module and transports', () => {
     type: 'folder' | 'repository' = 'folder',
     targetProject = projectId,
   ) {
-    const result = await api.createWorkspace({ projectId: targetProject, name, type, sourcePath });
-    return api.getWorkspace({ projectId: targetProject, id: result.workspaceId });
+    return api.createWorkspace({ projectId: targetProject, name, type, sourcePath });
   }
 
-  async function createThroughRest(name = 'REST folder'): Promise<string> {
+  async function createThroughRest(name = 'REST folder') {
     const response = await request(app.getHttpServer())
       .post(`/api/projects/${projectId}/workspaces`)
       .send({ name, type: 'folder', sourcePath: source })
       .expect(201);
 
-    return response.body.workspaceId;
+    return response.body;
   }
 
   test('connects a Folder with normalized metadata', async () => {
@@ -147,6 +146,17 @@ describe('Workspace module and transports', () => {
     await expect(
       api.updateWorkspace({ projectId: otherProject, id: a.id, name: 'wrong' }),
     ).rejects.toMatchObject({ code: 'WORKSPACE_NOT_FOUND' });
+    await expect(api.archiveWorkspace({ projectId: otherProject, id: a.id })).rejects.toMatchObject(
+      {
+        code: 'WORKSPACE_NOT_FOUND',
+      },
+    );
+    await api.archiveWorkspace({ projectId, id: a.id });
+    await expect(api.restoreWorkspace({ projectId: otherProject, id: a.id })).rejects.toMatchObject(
+      {
+        code: 'WORKSPACE_NOT_FOUND',
+      },
+    );
   });
 
   test('updates metadata and source with stable id without probing the source', async () => {
@@ -256,6 +266,58 @@ describe('Workspace module and transports', () => {
     });
   });
 
+  test('checks candidate sources before creation without persisting or changing local files', async () => {
+    const missing = path.join(root, 'missing');
+    const file = path.join(source, 'keep.txt');
+    const plainRepository = path.join(root, 'plain-repository');
+    const invalidRepository = path.join(root, 'invalid-repository');
+    const gitRepository = path.join(root, 'git-repository');
+    await Promise.all([mkdir(plainRepository), mkdir(invalidRepository), mkdir(gitRepository)]);
+    await mkdir(path.join(invalidRepository, '.git'));
+    await execute('git', ['init', '--quiet', gitRepository]);
+    const filesBefore = await readdir(root);
+
+    await expect(
+      api.checkWorkspaceSource({ type: 'folder', sourcePath: source }),
+    ).resolves.toMatchObject({
+      availability: 'AVAILABLE',
+      errorCode: null,
+    });
+    await expect(
+      api.checkWorkspaceSource({ type: 'repository', sourcePath: plainRepository }),
+    ).resolves.toMatchObject({
+      availability: 'INVALID_REPOSITORY',
+      errorCode: 'WORKSPACE_INVALID_REPOSITORY',
+    });
+    await expect(
+      api.checkWorkspaceSource({ type: 'repository', sourcePath: invalidRepository }),
+    ).resolves.toMatchObject({
+      availability: 'INVALID_REPOSITORY',
+      errorCode: 'WORKSPACE_INVALID_REPOSITORY',
+    });
+    await expect(
+      api.checkWorkspaceSource({ type: 'repository', sourcePath: gitRepository }),
+    ).resolves.toMatchObject({
+      availability: 'AVAILABLE',
+      errorCode: null,
+    });
+    await expect(
+      api.checkWorkspaceSource({ type: 'folder', sourcePath: missing }),
+    ).resolves.toMatchObject({
+      availability: 'NOT_FOUND',
+      errorCode: 'FILE_SYSTEM_NOT_FOUND',
+    });
+    await expect(
+      api.checkWorkspaceSource({ type: 'folder', sourcePath: file }),
+    ).resolves.toMatchObject({
+      availability: 'NOT_DIRECTORY',
+      errorCode: 'FILE_SYSTEM_NOT_DIRECTORY',
+    });
+    expect(await prisma.workspace.count({ where: { projectId } })).toBe(0);
+    expect(await readdir(root)).toEqual(filesBefore);
+    expect(await readFile(file, 'utf8')).toBe('Keep external files');
+  });
+
   test('text reads do not require a permission context', async () => {
     const fs = app.get(FileSystemApiService);
     const textPath = path.join(source, 'keep.txt');
@@ -305,6 +367,7 @@ describe('Workspace module and transports', () => {
         () => api.updateWorkspace({ projectId, id: workspace.id, name: 'No' }),
         () => api.checkWorkspace({ projectId, id: workspace.id }),
         () => api.archiveWorkspace({ projectId, id: workspace.id }),
+        () => api.restoreWorkspace({ projectId, id: workspace.id }),
       ].map((operation) =>
         expect(operation()).rejects.toMatchObject({ code: 'WORKSPACE_PROJECT_ARCHIVED' }),
       ),
@@ -313,36 +376,43 @@ describe('Workspace module and transports', () => {
     await api.updateWorkspace({ projectId, id: workspace.id, name: 'Restored' });
   });
 
-  test('archive retains source and identity while hiding the Workspace and rejecting mutations', async () => {
+  test('archive, restore, source recovery and repeated state changes preserve the Workspace row', async () => {
     const workspace = await connect();
-    await api.archiveWorkspace({ projectId, id: workspace.id });
+    const archived = await api.archiveWorkspace({ projectId, id: workspace.id });
     expect((await api.listWorkspaces({ projectId })).totalCount).toBe(0);
-    const archived = await api.getWorkspace({ projectId, id: workspace.id });
-    expect(archived.isArchived).toBe(true);
+    expect(archived).toMatchObject({ id: workspace.id, isArchived: true });
     expect(archived.archivedAt).not.toBeNull();
     expect(await readFile(path.join(source, 'keep.txt'), 'utf8')).toBe('Keep external files');
-    await expect(
-      api.updateWorkspace({ projectId, id: workspace.id, name: 'No' }),
-    ).rejects.toMatchObject({
-      code: 'WORKSPACE_ARCHIVED',
+    expect(await api.archiveWorkspace({ projectId, id: workspace.id })).toEqual(archived);
+    await rm(source, { recursive: true });
+    const restored = await api.restoreWorkspace({ projectId, id: workspace.id });
+    expect(restored).toMatchObject({ id: workspace.id, isArchived: false, archivedAt: null });
+    expect(await api.restoreWorkspace({ projectId, id: workspace.id })).toEqual(restored);
+    expect(await api.checkWorkspace({ projectId, id: workspace.id })).toMatchObject({
+      availability: 'NOT_FOUND',
+      errorCode: 'FILE_SYSTEM_NOT_FOUND',
     });
-    await expect(api.checkWorkspace({ projectId, id: workspace.id })).rejects.toMatchObject({
-      code: 'WORKSPACE_ARCHIVED',
+    const replacement = path.join(root, 'replacement');
+    await mkdir(replacement);
+    const updated = await api.updateWorkspace({
+      projectId,
+      id: workspace.id,
+      sourcePath: replacement,
     });
-    await expect(api.archiveWorkspace({ projectId, id: workspace.id })).rejects.toMatchObject({
-      code: 'WORKSPACE_ARCHIVED',
+    expect(updated).toMatchObject({ id: workspace.id, sourcePath: replacement });
+    expect(await api.checkWorkspace({ projectId, id: workspace.id })).toMatchObject({
+      availability: 'AVAILABLE',
+      errorCode: null,
     });
   });
 
   test('lists connected Workspaces by name then id and projects the first three plus total count', async () => {
     const empty = await projects.listUserProjects({ query: projectId });
     expect(empty.edges[0]?.node.summary).toEqual({ workspaces: [], workspaceCount: 0 });
-    const records = [
-      await connect('Delta'),
-      await connect('Bravo'),
-      await connect('Alpha'),
-      await connect('Charlie'),
-    ];
+    await connect('Delta');
+    await connect('Bravo');
+    const alpha = await connect('Alpha');
+    await connect('Charlie');
     const first = await api.listWorkspaces({ projectId, first: 2 });
     expect(first.edges.map((edge) => edge.node.name)).toEqual(['Alpha', 'Bravo']);
     const next = await api.listWorkspaces({
@@ -357,11 +427,18 @@ describe('Workspace module and transports', () => {
       workspaces: ['Alpha', 'Bravo', 'Charlie'].map((name) => ({ name, type: 'folder' })),
       workspaceCount: 4,
     });
-    await api.archiveWorkspace({ projectId, id: records[2]?.id ?? '' });
+    const archived = await api.archiveWorkspace({ projectId, id: alpha.id });
     expect((await projects.listUserProjects({ query: projectId })).edges[0]?.node.summary).toEqual({
       workspaces: ['Bravo', 'Charlie', 'Delta'].map((name) => ({ name, type: 'folder' })),
       workspaceCount: 3,
     });
+    const includingArchived = await api.listWorkspaces({
+      projectId,
+      first: 2,
+      includeArchived: true,
+    });
+    expect(includingArchived.totalCount).toBe(4);
+    expect(includingArchived.edges.map((edge) => edge.node.id)).toContain(archived.id);
   });
 
   test('validates input and rejects missing or non-user Projects', async () => {
@@ -392,21 +469,47 @@ describe('Workspace module and transports', () => {
 
   test('REST creates and retrieves Workspaces', async () => {
     const base = `/api/projects/${projectId}/workspaces`;
-    const id = await createThroughRest();
-    const got = await request(app.getHttpServer()).get(`${base}/${id}`).expect(200);
-    expect(got.body).toMatchObject({ id, projectId, isArchived: false, archivedAt: null });
+    const created = await createThroughRest();
+    expect(created).toMatchObject({ projectId, isArchived: false, archivedAt: null });
+    const got = await request(app.getHttpServer()).get(`${base}/${created.id}`).expect(200);
+    expect(got.body).toEqual(created);
   });
 
-  test('GraphQL updates, checks, archives and lists Workspaces', async () => {
-    const id = await createThroughRest();
+  test('GraphQL exposes full Workspace records for mutations and source checks', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query:
+          'mutation($data: CreateWorkspaceInput!) { createWorkspace(data: $data) { id projectId name description type sourcePath createdAt updatedAt isArchived archivedAt } }',
+        variables: {
+          data: { projectId, name: 'GraphQL folder', type: 'folder', sourcePath: source },
+        },
+      })
+      .expect(200);
+    expect(created.body.errors).toBeUndefined();
+    expect(created.body.data.createWorkspace).toMatchObject({
+      projectId,
+      name: 'GraphQL folder',
+      isArchived: false,
+      archivedAt: null,
+    });
+    const { id } = created.body.data.createWorkspace;
     const changed = await request(app.getHttpServer())
       .post('/graphql')
       .send({
-        query: 'mutation($data: UpdateWorkspaceInput!) { updateWorkspace(data: $data) }',
+        query:
+          'mutation($data: UpdateWorkspaceInput!) { updateWorkspace(data: $data) { id projectId name description type sourcePath createdAt updatedAt isArchived archivedAt } }',
         variables: { data: { projectId, id, name: 'GraphQL folder' } },
       })
       .expect(200);
-    expect(changed.body).toEqual({ data: { updateWorkspace: true } });
+    expect(changed.body.errors).toBeUndefined();
+    expect(changed.body.data.updateWorkspace).toMatchObject({
+      id,
+      projectId,
+      name: 'GraphQL folder',
+      isArchived: false,
+      archivedAt: null,
+    });
     const listed = await request(app.getHttpServer())
       .post('/graphql')
       .send({
@@ -433,12 +536,37 @@ describe('Workspace module and transports', () => {
     const archived = await request(app.getHttpServer())
       .post('/graphql')
       .send({
-        query: 'mutation($data: WorkspaceInput!) { archiveWorkspace(data: $data) }',
+        query:
+          'mutation($data: WorkspaceInput!) { archiveWorkspace(data: $data) { id isArchived archivedAt createdAt updatedAt } }',
         variables: { data: { projectId, id } },
       })
       .expect(200);
-    expect(archived.body).toEqual({ data: { archiveWorkspace: true } });
-    expect((await api.listWorkspaces({ projectId })).totalCount).toBe(0);
+    expect(archived.body.errors).toBeUndefined();
+    expect(archived.body.data.archiveWorkspace).toMatchObject({ id, isArchived: true });
+    expect(archived.body.data.archiveWorkspace.archivedAt).not.toBeNull();
+    const restored = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query:
+          'mutation($data: WorkspaceInput!) { restoreWorkspace(data: $data) { id isArchived archivedAt } }',
+        variables: { data: { projectId, id } },
+      })
+      .expect(200);
+    expect(restored.body).toEqual({
+      data: { restoreWorkspace: { id, isArchived: false, archivedAt: null } },
+    });
+    const preflight = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query:
+          'mutation($data: WorkspaceSourceInput!) { checkWorkspaceSource(data: $data) { availability errorCode } }',
+        variables: { data: { type: 'folder', sourcePath: source } },
+      })
+      .expect(200);
+    expect(preflight.body).toEqual({
+      data: { checkWorkspaceSource: { availability: 'AVAILABLE', errorCode: null } },
+    });
+    expect((await api.listWorkspaces({ projectId })).totalCount).toBe(1);
   });
 
   test('REST Project lists include Workspace summaries', async () => {
@@ -455,18 +583,32 @@ describe('Workspace module and transports', () => {
 
   test('REST checks and archives Workspaces', async () => {
     const base = `/api/projects/${projectId}/workspaces`;
-    const id = await createThroughRest();
+    const { id } = await createThroughRest();
     await request(app.getHttpServer())
       .post(`${base}/${id}/check`)
       .send({})
       .expect(200, { availability: 'AVAILABLE', errorCode: null });
     await request(app.getHttpServer())
+      .post('/api/workspaces/check-source')
+      .send({ type: 'folder', sourcePath: source })
+      .expect(200, { availability: 'AVAILABLE', errorCode: null });
+    const updated = await request(app.getHttpServer())
       .patch(`${base}/${id}`)
       .send({ name: 'Updated' })
-      .expect(200, 'true');
-    await request(app.getHttpServer()).post(`${base}/${id}/archive`).send({}).expect(200, 'true');
+      .expect(200);
+    expect(updated.body).toMatchObject({ id, name: 'Updated', isArchived: false });
+    const archived = await request(app.getHttpServer())
+      .post(`${base}/${id}/archive`)
+      .send({})
+      .expect(200);
+    expect(archived.body).toMatchObject({ id, isArchived: true });
+    const restored = await request(app.getHttpServer())
+      .post(`${base}/${id}/restore`)
+      .send({})
+      .expect(200);
+    expect(restored.body).toMatchObject({ id, isArchived: false, archivedAt: null });
     const page = await request(app.getHttpServer()).get(base).expect(200);
-    expect(page.body.totalCount).toBe(0);
+    expect(page.body.totalCount).toBe(1);
   });
 
   test('REST rejects a null description on create', async () => {
@@ -476,6 +618,7 @@ describe('Workspace module and transports', () => {
       .send({ name: 'Name', description: null, type: 'folder', sourcePath: source })
       .expect(400);
     expect(response.body.code).toBe('WORKSPACE_INVALID_INPUT');
+    expect(response.body.field).toBe('description');
   });
 
   test('REST rejects a null name on update', async () => {
@@ -486,13 +629,65 @@ describe('Workspace module and transports', () => {
       .send({ name: null })
       .expect(400);
     expect(response.body.code).toBe('WORKSPACE_INVALID_INPUT');
+    expect(response.body.field).toBe('name');
   });
 
-  test('REST rejects a nonnumeric page size', async () => {
+  test('REST maps generic malformed requests to INVALID_REQUEST', async () => {
+    const base = `/api/projects/${projectId}/workspaces`;
+    const malformed = await request(app.getHttpServer())
+      .post(base)
+      .set('Content-Type', 'application/json')
+      .send('{"name":')
+      .expect(400);
+    expect(malformed.body.code).toBe('INVALID_REQUEST');
+    const nullBody = await request(app.getHttpServer())
+      .post(base)
+      .set('Content-Type', 'application/json')
+      .send('null')
+      .expect(400);
+    expect(nullBody.body.code).toBe('INVALID_REQUEST');
+  });
+
+  test('REST rejects a nonnumeric page size with INVALID_REQUEST', async () => {
     const response = await request(app.getHttpServer())
       .get(`/api/projects/${projectId}/workspaces`)
       .query({ first: 'bad' })
       .expect(400);
-    expect(response.body.message).toBe('Validation failed (numeric string is expected)');
+    expect(response.body).toMatchObject({
+      code: 'INVALID_REQUEST',
+      message: 'Validation failed (numeric string is expected)',
+    });
+  });
+
+  test('GraphQL preserves feature and native validation errors', async () => {
+    const featureError = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: 'mutation($data: CreateWorkspaceInput!) { createWorkspace(data: $data) { id } }',
+        variables: { data: { projectId, name: ' ', type: 'folder', sourcePath: source } },
+      })
+      .expect(200);
+    expect(featureError.body.data).toBeNull();
+    expect(featureError.body.errors[0].extensions).toMatchObject({
+      code: 'WORKSPACE_INVALID_INPUT',
+      field: 'name',
+    });
+    const nativeError = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: 'query { workspaces(data: { projectId: "project", first: "bad" }) { totalCount } }',
+      })
+      .expect(200);
+    expect(nativeError.body.data).toBeUndefined();
+    expect(nativeError.body.errors[0].extensions.code).toBe('GRAPHQL_VALIDATION_FAILED');
+    const paginationError = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: 'query($data: WorkspaceListInput!) { workspaces(data: $data) { totalCount } }',
+        variables: { data: { projectId, first: 0 } },
+      })
+      .expect(200);
+    expect(paginationError.body.data).toBeNull();
+    expect(paginationError.body).toMatchObject({ errors: [{ message: expect.any(String) }] });
   });
 });

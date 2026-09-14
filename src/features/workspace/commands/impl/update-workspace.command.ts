@@ -5,8 +5,9 @@ export type UpdateWorkspaceCommandData = {
   description?: string;
   sourcePath?: string;
 };
-export type UpdateWorkspaceCommandReturnType = boolean;
+export type UpdateWorkspaceCommandReturnType = WorkspaceRecord;
 
 export class UpdateWorkspaceCommand {
   constructor(readonly data: UpdateWorkspaceCommandData) {}
 }
+import type { WorkspaceRecord } from '../../contracts/workspace.contracts.js';

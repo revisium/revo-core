@@ -28,6 +28,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "includeArchived",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -73,7 +81,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateWorkspaceResultResponse"
+                  "$ref": "#/components/schemas/WorkspaceResponse"
                 }
               }
             }
@@ -155,7 +163,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/WorkspaceResponse"
                 }
               }
             }
@@ -229,7 +237,74 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/WorkspaceResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      }
+    },
+    "/api/projects/{projectId}/workspaces/{id}/restore": {
+      "post": {
+        "operationId": "restoreWorkspace",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      }
+    },
+    "/api/workspaces/check-source": {
+      "post": {
+        "operationId": "checkWorkspaceSource",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceCheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceCheckResponse"
                 }
               }
             }
@@ -3822,15 +3897,6 @@
         },
         "required": ["name", "type", "sourcePath"]
       },
-      "CreateWorkspaceResultResponse": {
-        "type": "object",
-        "properties": {
-          "workspaceId": {
-            "type": "string"
-          }
-        },
-        "required": ["workspaceId"]
-      },
       "UpdateWorkspaceRequest": {
         "type": "object",
         "properties": {
@@ -3865,6 +3931,19 @@
           }
         },
         "required": ["availability", "errorCode"]
+      },
+      "WorkspaceCheckRequest": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["folder", "repository"]
+          },
+          "sourcePath": {
+            "type": "string"
+          }
+        },
+        "required": ["type", "sourcePath"]
       },
       "FileSystemRootType": {
         "type": "string",

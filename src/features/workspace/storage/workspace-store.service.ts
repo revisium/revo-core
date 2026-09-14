@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import type { Workspace } from '../../../__generated__/client/client.js';
 import { TransactionPrismaService } from '../../../infrastructure/database/transaction-prisma.service.js';
 import { WorkspaceError } from '../contracts/workspace.errors.js';
 
@@ -37,19 +38,19 @@ export class WorkspaceStoreService {
       description?: string;
       sourcePath?: string;
       isArchived?: boolean;
-      archivedAt?: Date;
+      archivedAt?: Date | null;
     },
-  ): Promise<boolean> {
+  ): Promise<Workspace> {
     const transaction = this.transactions.getTransaction();
-    const result = await transaction.workspace.updateMany({
-      where: { id, projectId, isArchived: false },
+    const [record] = await transaction.workspace.updateManyAndReturn({
+      where: { id, projectId },
       data: changes,
     });
 
-    if (result.count !== 1) {
-      throw new WorkspaceError('WORKSPACE_ARCHIVED');
+    if (record === undefined) {
+      throw new WorkspaceError('WORKSPACE_NOT_FOUND');
     }
 
-    return true;
+    return record;
   }
 }

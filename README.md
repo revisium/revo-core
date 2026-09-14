@@ -114,3 +114,7 @@ for adding a feed and deploying SSE.
 Follow [VERIFICATION.md](VERIFICATION.md) for the local checks and
 [REVIEW.md](REVIEW.md) for repository conventions. Regenerate API contracts only
 when intentionally changing a public API.
+
+Local Workspaces can be checked, archived, and restored without changing their
+external files. See [Workspace API flows](docs/architecture/workspaces.md) for
+source selection, archive recovery, and form error handling.

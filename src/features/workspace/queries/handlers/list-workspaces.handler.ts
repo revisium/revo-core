@@ -4,6 +4,7 @@ import { PrismaService } from '../../../../infrastructure/database/prisma.servic
 import { getOffsetPagination } from '../../../../infrastructure/pagination/get-offset-pagination.js';
 import { WorkspaceProjectService } from '../../application/workspace-project.service.js';
 import { toWorkspace } from '../../storage/workspace.mapper.js';
+import { workspaceIncludeArchived } from '../../validation/workspace-input.js';
 import {
   ListWorkspacesQuery,
   type ListWorkspacesQueryReturnType,
@@ -21,7 +22,11 @@ export class ListWorkspacesHandler implements IQueryHandler<
 
   async execute({ data }: ListWorkspacesQuery): Promise<ListWorkspacesQueryReturnType> {
     await this.projects.assertAccessible(data.projectId);
-    const where = { projectId: data.projectId, isArchived: false };
+    const includeArchived = workspaceIncludeArchived(data.includeArchived);
+    const where = {
+      projectId: data.projectId,
+      ...(includeArchived === true ? {} : { isArchived: false }),
+    };
 
     return getOffsetPagination({
       pageData: data,

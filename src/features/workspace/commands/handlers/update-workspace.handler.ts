@@ -3,6 +3,7 @@ import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import { WorkspaceProjectService } from '../../application/workspace-project.service.js';
 import { WorkspaceStoreService } from '../../storage/workspace-store.service.js';
+import { toWorkspace } from '../../storage/workspace.mapper.js';
 import {
   workspaceName,
   workspaceDescription,
@@ -35,13 +36,13 @@ export class UpdateWorkspaceHandler implements ICommandHandler<
 
     return this.transactions.runSerializable(async () => {
       await this.projects.assertAccessible(data.projectId, true);
-      await this.store.getActive(data.projectId, data.id);
+      const current = await this.store.getActive(data.projectId, data.id);
 
       if (Object.keys(changes).length === 0) {
-        return true;
+        return toWorkspace(current);
       }
 
-      return this.store.update(data.projectId, data.id, changes);
+      return toWorkspace(await this.store.update(data.projectId, data.id, changes));
     });
   }
 }

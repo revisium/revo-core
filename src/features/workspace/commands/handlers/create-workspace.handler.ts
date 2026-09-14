@@ -2,6 +2,7 @@ import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import { WorkspaceProjectService } from '../../application/workspace-project.service.js';
+import { toWorkspace } from '../../storage/workspace.mapper.js';
 import {
   workspaceName,
   workspaceDescription,
@@ -38,7 +39,7 @@ export class CreateWorkspaceHandler implements ICommandHandler<
         data: input,
       });
 
-      return { workspaceId: record.id };
+      return toWorkspace(record);
     });
   }
 }

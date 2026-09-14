@@ -10,4 +10,7 @@ export class WorkspaceListInput {
 
   @Field(() => String, { nullable: true })
   after?: string;
+
+  @Field(() => Boolean, { nullable: true })
+  includeArchived?: boolean;
 }

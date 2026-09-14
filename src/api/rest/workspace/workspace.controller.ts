@@ -1,9 +1,11 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   HttpCode,
   Param,
+  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
@@ -18,7 +20,6 @@ import {
 } from '@nestjs/swagger';
 
 import { WorkspaceApiService } from '../../../features/workspace/workspace-api.service.js';
-import { CreateWorkspaceResultResponse } from './model/create-workspace-result.response.js';
 import { CreateWorkspaceRequest } from './model/create-workspace.request.js';
 import { UpdateWorkspaceRequest } from './model/update-workspace.request.js';
 import { WorkspaceCheckResponse } from './model/workspace-check.response.js';
@@ -35,15 +36,18 @@ export class WorkspaceController {
   @ApiOkResponse({ type: WorkspaceConnectionResponse })
   @ApiQuery({ name: 'first', required: false, type: Number })
   @ApiQuery({ name: 'after', required: false, type: String })
+  @ApiQuery({ name: 'includeArchived', required: false, type: Boolean })
   list(
     @Param('projectId') projectId: string,
     @Query('first', new ParseIntPipe({ optional: true })) first?: number,
     @Query('after') after?: string,
+    @Query('includeArchived', new ParseBoolPipe({ optional: true })) includeArchived?: boolean,
   ) {
     return this.api.listWorkspaces({
       projectId,
       ...(first === undefined ? {} : { first }),
       ...(after === undefined ? {} : { after }),
+      ...(includeArchived === undefined ? {} : { includeArchived }),
     });
   }
 
@@ -56,8 +60,12 @@ export class WorkspaceController {
 
   @Post()
   @ApiOperation({ operationId: 'createWorkspace' })
-  @ApiCreatedResponse({ type: CreateWorkspaceResultResponse })
+  @ApiCreatedResponse({ type: WorkspaceResponse })
   create(@Param('projectId') projectId: string, @Body() data: CreateWorkspaceRequest) {
+    if (data === null) {
+      throw new BadRequestException();
+    }
+
     return this.api.createWorkspace({
       projectId,
       name: data?.name,
@@ -69,12 +77,16 @@ export class WorkspaceController {
 
   @Patch(':id')
   @ApiOperation({ operationId: 'updateWorkspace' })
-  @ApiOkResponse({ type: Boolean })
+  @ApiOkResponse({ type: WorkspaceResponse })
   update(
     @Param('projectId') projectId: string,
     @Param('id') id: string,
     @Body() data: UpdateWorkspaceRequest,
   ) {
+    if (data === null) {
+      throw new BadRequestException();
+    }
+
     return this.api.updateWorkspace({
       projectId,
       id,
@@ -95,8 +107,16 @@ export class WorkspaceController {
   @Post(':id/archive')
   @HttpCode(200)
   @ApiOperation({ operationId: 'archiveWorkspace' })
-  @ApiOkResponse({ type: Boolean })
+  @ApiOkResponse({ type: WorkspaceResponse })
   archive(@Param('projectId') projectId: string, @Param('id') id: string) {
     return this.api.archiveWorkspace({ projectId, id });
+  }
+
+  @Post(':id/restore')
+  @HttpCode(200)
+  @ApiOperation({ operationId: 'restoreWorkspace' })
+  @ApiOkResponse({ type: WorkspaceResponse })
+  restore(@Param('projectId') projectId: string, @Param('id') id: string) {
+    return this.api.restoreWorkspace({ projectId, id });
   }
 }

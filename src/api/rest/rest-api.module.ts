@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 
 import { FileSystemModule } from '../../features/file-system/file-system.module.js';
 import { PlaybookCatalogModule } from '../../features/playbook-catalog/playbook-catalog.module.js';
@@ -7,6 +8,7 @@ import { RunModule } from '../../features/run/run.module.js';
 import { SystemModule } from '../../features/system/system.module.js';
 import { WorkspaceModule } from '../../features/workspace/workspace.module.js';
 import { FileSystemController } from './file-system/file-system.controller.js';
+import { HttpBadRequestExceptionFilter } from './http-bad-request-exception.filter.js';
 import { CatalogRecordsController } from './playbook-catalog/catalog-records.controller.js';
 import { CatalogController } from './playbook-catalog/catalog.controller.js';
 import { AdrController } from './project/adr.controller.js';
@@ -16,6 +18,7 @@ import { WorkItemController } from './project/work-item.controller.js';
 import { WorkPlanController } from './project/work-plan.controller.js';
 import { RunController } from './run/run.controller.js';
 import { SystemController } from './system/system.controller.js';
+import { WorkspaceSourceController } from './workspace/workspace-source.controller.js';
 import { WorkspaceController } from './workspace/workspace.controller.js';
 
 @Module({
@@ -29,6 +32,7 @@ import { WorkspaceController } from './workspace/workspace.controller.js';
   ],
   controllers: [
     WorkspaceController,
+    WorkspaceSourceController,
     FileSystemController,
     CatalogController,
     CatalogRecordsController,
@@ -40,5 +44,6 @@ import { WorkspaceController } from './workspace/workspace.controller.js';
     RunController,
     SystemController,
   ],
+  providers: [{ provide: APP_FILTER, useClass: HttpBadRequestExceptionFilter }],
 })
 export class RestApiModule {}

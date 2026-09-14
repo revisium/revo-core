@@ -8,9 +8,19 @@ const errors = {
   WORKSPACE_INVALID_INPUT: [400, 'Workspace input is invalid.'],
 } as const;
 
+export type WorkspaceInputField =
+  | 'name'
+  | 'description'
+  | 'type'
+  | 'sourcePath'
+  | 'includeArchived';
+
 export class WorkspaceError extends HttpException {
-  constructor(readonly code: keyof typeof errors) {
+  constructor(
+    readonly code: keyof typeof errors,
+    readonly field?: WorkspaceInputField,
+  ) {
     const [statusCode, message] = errors[code];
-    super({ code, statusCode, message }, statusCode);
+    super({ code, statusCode, message, ...(field === undefined ? {} : { field }) }, statusCode);
   }
 }

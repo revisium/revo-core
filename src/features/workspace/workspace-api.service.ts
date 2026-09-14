@@ -17,10 +17,20 @@ import {
   type CreateWorkspaceCommandReturnType,
 } from './commands/impl/create-workspace.command.js';
 import {
+  RestoreWorkspaceCommand,
+  type RestoreWorkspaceCommandData,
+  type RestoreWorkspaceCommandReturnType,
+} from './commands/impl/restore-workspace.command.js';
+import {
   UpdateWorkspaceCommand,
   type UpdateWorkspaceCommandData,
   type UpdateWorkspaceCommandReturnType,
 } from './commands/impl/update-workspace.command.js';
+import {
+  CheckWorkspaceSourceQuery,
+  type CheckWorkspaceSourceQueryData,
+  type CheckWorkspaceSourceQueryReturnType,
+} from './queries/impl/check-workspace-source.query.js';
 import {
   GetWorkspaceQuery,
   type GetWorkspaceQueryData,
@@ -57,9 +67,23 @@ export class WorkspaceApiService {
     );
   }
 
+  restoreWorkspace(data: RestoreWorkspaceCommandData): Promise<RestoreWorkspaceCommandReturnType> {
+    return this.commands.execute<RestoreWorkspaceCommand, RestoreWorkspaceCommandReturnType>(
+      new RestoreWorkspaceCommand(data),
+    );
+  }
+
   checkWorkspace(data: CheckWorkspaceCommandData): Promise<CheckWorkspaceCommandReturnType> {
     return this.commands.execute<CheckWorkspaceCommand, CheckWorkspaceCommandReturnType>(
       new CheckWorkspaceCommand(data),
+    );
+  }
+
+  checkWorkspaceSource(
+    data: CheckWorkspaceSourceQueryData,
+  ): Promise<CheckWorkspaceSourceQueryReturnType> {
+    return this.queries.execute<CheckWorkspaceSourceQuery, CheckWorkspaceSourceQueryReturnType>(
+      new CheckWorkspaceSourceQuery(data),
     );
   }
 

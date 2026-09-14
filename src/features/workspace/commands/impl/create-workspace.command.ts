@@ -1,4 +1,4 @@
-import type { WorkspaceType } from '../../contracts/workspace.contracts.js';
+import type { WorkspaceRecord, WorkspaceType } from '../../contracts/workspace.contracts.js';
 
 export type CreateWorkspaceCommandData = {
   projectId: string;
@@ -7,7 +7,7 @@ export type CreateWorkspaceCommandData = {
   type: WorkspaceType;
   sourcePath: string;
 };
-export type CreateWorkspaceCommandReturnType = { workspaceId: string };
+export type CreateWorkspaceCommandReturnType = WorkspaceRecord;
 
 export class CreateWorkspaceCommand {
   constructor(readonly data: CreateWorkspaceCommandData) {}

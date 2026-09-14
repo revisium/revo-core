@@ -5,14 +5,14 @@ import { WorkspaceProjectService } from '../../application/workspace-project.ser
 import { WorkspaceStoreService } from '../../storage/workspace-store.service.js';
 import { toWorkspace } from '../../storage/workspace.mapper.js';
 import {
-  ArchiveWorkspaceCommand,
-  type ArchiveWorkspaceCommandReturnType,
-} from '../impl/archive-workspace.command.js';
+  RestoreWorkspaceCommand,
+  type RestoreWorkspaceCommandReturnType,
+} from '../impl/restore-workspace.command.js';
 
-@CommandHandler(ArchiveWorkspaceCommand)
-export class ArchiveWorkspaceHandler implements ICommandHandler<
-  ArchiveWorkspaceCommand,
-  ArchiveWorkspaceCommandReturnType
+@CommandHandler(RestoreWorkspaceCommand)
+export class RestoreWorkspaceHandler implements ICommandHandler<
+  RestoreWorkspaceCommand,
+  RestoreWorkspaceCommandReturnType
 > {
   constructor(
     private readonly projects: WorkspaceProjectService,
@@ -20,19 +20,19 @@ export class ArchiveWorkspaceHandler implements ICommandHandler<
     private readonly store: WorkspaceStoreService,
   ) {}
 
-  async execute({ data }: ArchiveWorkspaceCommand): Promise<ArchiveWorkspaceCommandReturnType> {
+  async execute({ data }: RestoreWorkspaceCommand): Promise<RestoreWorkspaceCommandReturnType> {
     return this.transactions.runSerializable(async () => {
       await this.projects.assertAccessible(data.projectId, true);
       const current = await this.store.get(data.projectId, data.id);
 
-      if (current.isArchived) {
+      if (!current.isArchived) {
         return toWorkspace(current);
       }
 
       return toWorkspace(
         await this.store.update(data.projectId, data.id, {
-          isArchived: true,
-          archivedAt: new Date(),
+          isArchived: false,
+          archivedAt: null,
         }),
       );
     });

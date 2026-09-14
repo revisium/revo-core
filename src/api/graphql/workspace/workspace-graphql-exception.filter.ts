@@ -9,7 +9,13 @@ import { WorkspaceError } from '../../../features/workspace/contracts/workspace.
 export class WorkspaceGraphqlExceptionFilter implements GqlExceptionFilter {
   catch(error: WorkspaceError | FileSystemError): Error {
     return new GraphQLError(error.message, {
-      extensions: { code: error.code, statusCode: error.getStatus() },
+      extensions: {
+        code: error.code,
+        statusCode: error.getStatus(),
+        ...(error instanceof WorkspaceError && error.field !== undefined
+          ? { field: error.field }
+          : {}),
+      },
     });
   }
 }
