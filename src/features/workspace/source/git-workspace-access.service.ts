@@ -54,11 +54,7 @@ export class GitWorkspaceAccessService {
       this.optionalText(path.join(gitPath, 'config.worktree'), context),
     ]);
 
-    if (
-      configs.some(
-        (config) => config !== null && /^\s*\[\s*include(?:if)?(?=[\s."\]])/imu.test(config),
-      )
-    ) {
+    if (configs.some((config) => config !== null && hasIncludeSection(config))) {
       throw new WorkspaceSourceError();
     }
 
@@ -73,4 +69,29 @@ export class GitWorkspaceAccessService {
       ? this.filesystem.readTextFile({ path: location }, context)
       : null;
   }
+}
+
+function hasIncludeSection(config: string): boolean {
+  return config.split(/\r?\n/u).some((line) => isIncludeSection(line.trimStart()));
+}
+
+function isIncludeSection(line: string): boolean {
+  if (!line.startsWith('[')) {
+    return false;
+  }
+
+  const section = line.slice(1).trimStart().toLowerCase();
+  const suffix = section.startsWith('includeif')
+    ? section.slice('includeif'.length)
+    : section.startsWith('include')
+      ? section.slice('include'.length)
+      : undefined;
+
+  return suffix !== undefined && isIncludeSectionSuffix(suffix);
+}
+
+function isIncludeSectionSuffix(suffix: string): boolean {
+  const next = suffix[0];
+
+  return next === undefined || next === ']' || next === '"' || next === '.' || next.trim() === '';
 }

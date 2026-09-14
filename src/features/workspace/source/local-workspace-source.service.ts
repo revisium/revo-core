@@ -31,51 +31,7 @@ export class LocalWorkspaceSourceService {
     const lastCheckedAt = new Date();
 
     try {
-      const entry = await this.filesystem.getEntry({ path: sourcePath }, access);
-
-      if (entry.type !== FileSystemEntryType.DIRECTORY) {
-        return {
-          availability: WorkspaceAvailability.NOT_DIRECTORY,
-          lastCheckedAt,
-          lastErrorCode: 'FILE_SYSTEM_NOT_DIRECTORY',
-        };
-      }
-
-      if (type === WorkspaceType.repository) {
-        const canonical = await this.filesystem.canonicalize({ path: sourcePath }, access);
-        const marker = path.join(sourcePath, '.git');
-
-        if (!(await this.filesystem.exists({ path: marker }, access))) {
-          return {
-            availability: WorkspaceAvailability.INVALID_REPOSITORY,
-            lastCheckedAt,
-            lastErrorCode: 'WORKSPACE_INVALID_REPOSITORY',
-          };
-        }
-
-        const repository = await this.git.inspect(sourcePath, access);
-
-        if (repository === null) {
-          return {
-            availability: WorkspaceAvailability.INVALID_REPOSITORY,
-            lastCheckedAt,
-            lastErrorCode: 'WORKSPACE_INVALID_REPOSITORY',
-          };
-        }
-
-        const gitRoot = await this.filesystem.canonicalize({ path: repository.rootPath }, access);
-        await this.filesystem.getEntry({ path: repository.gitPath }, access);
-
-        if (path.relative(canonical, gitRoot) !== '') {
-          return {
-            availability: WorkspaceAvailability.INVALID_REPOSITORY,
-            lastCheckedAt,
-            lastErrorCode: 'WORKSPACE_INVALID_REPOSITORY',
-          };
-        }
-      }
-
-      return { availability: WorkspaceAvailability.AVAILABLE, lastCheckedAt, lastErrorCode: null };
+      return await this.inspect(sourcePath, type, access, lastCheckedAt);
     } catch (error) {
       if (error instanceof WorkspaceSourceError) {
         return {
@@ -128,5 +84,55 @@ export class LocalWorkspaceSourceService {
         lastErrorCode: 'WORKSPACE_CHECK_FAILED',
       };
     }
+  }
+
+  private async inspect(
+    sourcePath: string,
+    type: WorkspaceType,
+    access: FileSystemAccessContext | undefined,
+    lastCheckedAt: Date,
+  ): Promise<WorkspaceCheck> {
+    const entry = await this.filesystem.getEntry({ path: sourcePath }, access);
+
+    if (entry.type !== FileSystemEntryType.DIRECTORY) {
+      return {
+        availability: WorkspaceAvailability.NOT_DIRECTORY,
+        lastCheckedAt,
+        lastErrorCode: 'FILE_SYSTEM_NOT_DIRECTORY',
+      };
+    }
+
+    if (type === WorkspaceType.repository && !(await this.isRepository(sourcePath, access))) {
+      return {
+        availability: WorkspaceAvailability.INVALID_REPOSITORY,
+        lastCheckedAt,
+        lastErrorCode: 'WORKSPACE_INVALID_REPOSITORY',
+      };
+    }
+
+    return { availability: WorkspaceAvailability.AVAILABLE, lastCheckedAt, lastErrorCode: null };
+  }
+
+  private async isRepository(
+    sourcePath: string,
+    access: FileSystemAccessContext | undefined,
+  ): Promise<boolean> {
+    const canonical = await this.filesystem.canonicalize({ path: sourcePath }, access);
+    const marker = path.join(sourcePath, '.git');
+
+    if (!(await this.filesystem.exists({ path: marker }, access))) {
+      return false;
+    }
+
+    const repository = await this.git.inspect(sourcePath, access);
+
+    if (repository === null) {
+      return false;
+    }
+
+    const gitRoot = await this.filesystem.canonicalize({ path: repository.rootPath }, access);
+    await this.filesystem.getEntry({ path: repository.gitPath }, access);
+
+    return path.relative(canonical, gitRoot) === '';
   }
 }

@@ -362,7 +362,10 @@ describe('Workspace module and transports', () => {
         metadataOnly,
       ),
     ).rejects.toMatchObject({ code: 'FILE_SYSTEM_PERMISSION_DENIED' });
-    await writeFile(path.join(source, '.git', 'config'), '[include]\n  path = /outside/secret\n');
+    await writeFile(
+      path.join(source, '.git', 'config'),
+      '[includeIf "gitdir:/workspace/"]\n  path = /outside/secret\n',
+    );
     expect(await connect('Includes', source, 'repository')).toMatchObject({
       availability: 'CHECK_FAILED',
       lastErrorCode: 'WORKSPACE_UNSUPPORTED_GIT_CONFIG',
@@ -423,9 +426,7 @@ describe('Workspace module and transports', () => {
     const fs = app.get(FileSystemApiService);
     const textPath = path.join(source, 'keep.txt');
     await writeFile(textPath, 'x'.repeat(65536));
-    expect((await fs.readTextFile({ path: textPath }, context.fileSystemAccess)).length).toBe(
-      65536,
-    );
+    expect(await fs.readTextFile({ path: textPath }, context.fileSystemAccess)).toHaveLength(65536);
     await writeFile(textPath, 'x'.repeat(65537));
     await expect(
       fs.readTextFile({ path: textPath }, context.fileSystemAccess),

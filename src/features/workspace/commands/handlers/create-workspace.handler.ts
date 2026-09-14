@@ -34,7 +34,7 @@ export class CreateWorkspaceHandler implements ICommandHandler<
     const input = {
       projectId: data.projectId,
       name: workspaceName(data.name),
-      description: workspaceDescription(data.description === undefined ? '' : data.description),
+      description: workspaceInputDescription(data.description),
       type: workspaceType(data.type),
       sourcePath: workspacePath(data.sourcePath),
     };
@@ -68,4 +68,12 @@ export class CreateWorkspaceHandler implements ICommandHandler<
       return { workspaceId: record.id };
     });
   }
+}
+
+function workspaceInputDescription(description: string | undefined): string {
+  if (description === null) {
+    return workspaceDescription(description);
+  }
+
+  return workspaceDescription(description ?? '');
 }
