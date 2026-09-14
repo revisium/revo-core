@@ -10,13 +10,8 @@ import type { FileSystemAccessContext } from './contracts/file-system.contracts.
 import {
   CanonicalizeQuery,
   type CanonicalizeQueryData,
-  type CanonicalizeQueryReturnType,
 } from './queries/impl/canonicalize.query.js';
-import {
-  ExistsQuery,
-  type ExistsQueryData,
-  type ExistsQueryReturnType,
-} from './queries/impl/exists.query.js';
+import { ExistsQuery, type ExistsQueryData } from './queries/impl/exists.query.js';
 import {
   GetDirectoryQuery,
   type GetDirectoryQueryData,
@@ -32,15 +27,10 @@ import {
   type GetRootsQueryData,
   type GetRootsQueryReturnType,
 } from './queries/impl/get-roots.query.js';
-import {
-  IsDirectoryQuery,
-  type IsDirectoryQueryData,
-  type IsDirectoryQueryReturnType,
-} from './queries/impl/is-directory.query.js';
+import { IsDirectoryQuery, type IsDirectoryQueryData } from './queries/impl/is-directory.query.js';
 import {
   ReadTextFileQuery,
   type ReadTextFileQueryData,
-  type ReadTextFileQueryReturnType,
 } from './queries/impl/read-text-file.query.js';
 
 @Injectable()
@@ -77,35 +67,20 @@ export class FileSystemApiService {
     );
   }
 
-  exists(data: ExistsQueryData, context?: FileSystemAccessContext): Promise<ExistsQueryReturnType> {
-    return this.queries.execute<ExistsQuery, ExistsQueryReturnType>(new ExistsQuery(data, context));
+  exists(data: ExistsQueryData, context?: FileSystemAccessContext): Promise<boolean> {
+    return this.queries.execute<ExistsQuery, boolean>(new ExistsQuery(data, context));
   }
 
-  isDirectory(
-    data: IsDirectoryQueryData,
-    context?: FileSystemAccessContext,
-  ): Promise<IsDirectoryQueryReturnType> {
-    return this.queries.execute<IsDirectoryQuery, IsDirectoryQueryReturnType>(
-      new IsDirectoryQuery(data, context),
-    );
+  isDirectory(data: IsDirectoryQueryData, context?: FileSystemAccessContext): Promise<boolean> {
+    return this.queries.execute<IsDirectoryQuery, boolean>(new IsDirectoryQuery(data, context));
   }
 
-  canonicalize(
-    data: CanonicalizeQueryData,
-    context?: FileSystemAccessContext,
-  ): Promise<CanonicalizeQueryReturnType> {
-    return this.queries.execute<CanonicalizeQuery, CanonicalizeQueryReturnType>(
-      new CanonicalizeQuery(data, context),
-    );
+  canonicalize(data: CanonicalizeQueryData, context?: FileSystemAccessContext): Promise<string> {
+    return this.queries.execute<CanonicalizeQuery, string>(new CanonicalizeQuery(data, context));
   }
 
-  readTextFile(
-    data: ReadTextFileQueryData,
-    context?: FileSystemAccessContext,
-  ): Promise<ReadTextFileQueryReturnType> {
-    return this.queries.execute<ReadTextFileQuery, ReadTextFileQueryReturnType>(
-      new ReadTextFileQuery(data, context),
-    );
+  readTextFile(data: ReadTextFileQueryData, context?: FileSystemAccessContext): Promise<string> {
+    return this.queries.execute<ReadTextFileQuery, string>(new ReadTextFileQuery(data, context));
   }
 
   createDirectory(

@@ -32,11 +32,7 @@ export class FileSystemService {
       const target = link.isSymbolicLink() ? await stat(location) : link;
 
       return {
-        type: target.isDirectory()
-          ? FileSystemEntryType.DIRECTORY
-          : target.isFile()
-            ? FileSystemEntryType.FILE
-            : FileSystemEntryType.OTHER,
+        type: this.entryType(target),
         isSymlink: link.isSymbolicLink(),
         size: target.size,
         modifiedAt: target.mtime,
@@ -53,13 +49,7 @@ export class FileSystemService {
       return entries.map((entry) => ({
         name: entry.name,
         path: path.join(location, entry.name),
-        type: entry.isDirectory()
-          ? FileSystemEntryType.DIRECTORY
-          : entry.isFile()
-            ? FileSystemEntryType.FILE
-            : entry.isSymbolicLink()
-              ? FileSystemEntryType.SYMLINK
-              : FileSystemEntryType.OTHER,
+        type: this.entryType(entry, entry.isSymbolicLink()),
         isSymlink: entry.isSymbolicLink(),
       }));
     } catch (error) {
@@ -163,5 +153,24 @@ export class FileSystemService {
 
       throw error;
     }
+  }
+
+  private entryType(
+    entry: { isDirectory(): boolean; isFile(): boolean },
+    isSymlink = false,
+  ): FileSystemEntryType {
+    if (entry.isDirectory()) {
+      return FileSystemEntryType.DIRECTORY;
+    }
+
+    if (entry.isFile()) {
+      return FileSystemEntryType.FILE;
+    }
+
+    if (isSymlink) {
+      return FileSystemEntryType.SYMLINK;
+    }
+
+    return FileSystemEntryType.OTHER;
   }
 }

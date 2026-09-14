@@ -5,7 +5,9 @@ import { Injectable } from '@nestjs/common';
 import {
   FileSystemAccessContext,
   type FileSystemAccessPolicy,
+  type FileSystemPathRule,
   type FileSystemPermission,
+  type FileSystemScope,
 } from '../contracts/file-system.contracts.js';
 import { FileSystemError } from '../contracts/file-system.error.js';
 import { FileSystemService } from '../filesystem/file-system.service.js';
@@ -73,47 +75,81 @@ export class FileSystemPolicyService {
     let allowed = false;
 
     for (const scope of policy.scopes) {
-      const root = absolutePath(scope.rootPath);
+      const scopeDecision = this.evaluateScope(scope, permission, location);
 
-      if (!containsPath(root, location)) {
-        continue;
-      }
-
-      if (scope.deny?.includes(permission)) {
+      if (scopeDecision === false) {
         return false;
       }
 
-      allowed ||= scope.allow.includes(permission);
-
-      for (const rule of scope.rules ?? []) {
-        if (path.isAbsolute(rule.path) || rule.path.includes('\0')) {
-          throw new FileSystemError('FILE_SYSTEM_INVALID_PATH');
-        }
-
-        const target = path.resolve(root, rule.path);
-
-        if (!containsPath(root, target)) {
-          throw new FileSystemError('FILE_SYSTEM_INVALID_PATH');
-        }
-
-        const matches =
-          rule.match === 'SUBTREE'
-            ? containsPath(target, location)
-            : path.relative(target, location) === '';
-
-        if (!matches) {
-          continue;
-        }
-
-        if (rule.deny?.includes(permission)) {
-          return false;
-        }
-
-        allowed ||= rule.allow?.includes(permission) ?? false;
-      }
+      allowed ||= scopeDecision === true;
     }
 
     return allowed;
+  }
+
+  private evaluateScope(
+    scope: FileSystemScope,
+    permission: FileSystemPermission,
+    location: string,
+  ): boolean | undefined {
+    const root = absolutePath(scope.rootPath);
+
+    if (!containsPath(root, location)) {
+      return undefined;
+    }
+
+    if (scope.deny?.includes(permission)) {
+      return false;
+    }
+
+    let allowed = scope.allow.includes(permission);
+
+    for (const rule of scope.rules ?? []) {
+      const ruleDecision = this.evaluateRule(rule, root, permission, location);
+
+      if (ruleDecision === false) {
+        return false;
+      }
+
+      allowed ||= ruleDecision === true;
+    }
+
+    return allowed ? true : undefined;
+  }
+
+  private evaluateRule(
+    rule: FileSystemPathRule,
+    root: string,
+    permission: FileSystemPermission,
+    location: string,
+  ): boolean | undefined {
+    if (path.isAbsolute(rule.path) || rule.path.includes('\0')) {
+      throw new FileSystemError('FILE_SYSTEM_INVALID_PATH');
+    }
+
+    const target = path.resolve(root, rule.path);
+
+    if (!containsPath(root, target)) {
+      throw new FileSystemError('FILE_SYSTEM_INVALID_PATH');
+    }
+
+    if (!this.ruleMatches(rule, target, location)) {
+      return undefined;
+    }
+
+    if (rule.deny?.includes(permission)) {
+      return false;
+    }
+
+    return rule.allow?.includes(permission) ? true : undefined;
+  }
+
+  private ruleMatches(rule: FileSystemPathRule, target: string, location: string): boolean {
+    if (rule.match === 'SUBTREE') {
+      return containsPath(target, location);
+    }
+
+    return path.relative(target, location) === '';
   }
 
   private async resolveExistingAncestor(location: string): Promise<string> {

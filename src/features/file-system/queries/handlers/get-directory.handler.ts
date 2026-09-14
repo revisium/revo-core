@@ -55,7 +55,17 @@ export class GetDirectoryHandler implements IQueryHandler<
     );
     const visible = candidates.filter((entry) => entry !== undefined);
 
-    visible.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+    visible.sort((left, right) => {
+      if (left.name < right.name) {
+        return -1;
+      }
+
+      if (left.name > right.name) {
+        return 1;
+      }
+
+      return 0;
+    });
     const parent = path.dirname(location);
     const parentPath =
       parent !== location &&

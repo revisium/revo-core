@@ -105,6 +105,17 @@ describe('FileSystemModule public operations', () => {
     expect(roots.edges.map((edge) => edge.node.path)).toEqual([scope]);
   });
 
+  test('sorts directory children with JavaScript string ordering', async () => {
+    await writeFile(path.join(scope, '\u{10000}.txt'), 'first');
+    await writeFile(path.join(scope, '\uE000.txt'), 'second');
+
+    expect(
+      (await api.getDirectory({ path: scope }, context)).entries.edges.map(
+        (edge) => edge.node.name,
+      ),
+    ).toEqual(['a.txt', 'docs', '\u{10000}.txt', '\uE000.txt']);
+  });
+
   test('creates directories and rejects collisions', async () => {
     const entry = await api.createDirectory({ parentPath: scope, name: 'new' }, context);
     expect(entry.path).toBe(path.join(scope, 'new'));
@@ -177,6 +188,70 @@ describe('FileSystemModule public operations', () => {
         });
       }),
     );
+  });
+
+  test('unions grants from scopes and matching rules while explicit denies win', async () => {
+    const metadata = { rootPath: scope, allow: [P.READ_METADATA] };
+    const list = { rootPath: scope, allow: [P.LIST] };
+    const location = path.join(scope, 'docs');
+
+    await expect(
+      api.getEntry(
+        { path: location },
+        FileSystemAccessContext.create({
+          scopes: [
+            {
+              ...metadata,
+              rules: [{ path: 'docs', match: 'SUBTREE', allow: [P.LIST] }],
+            },
+          ],
+        }),
+      ),
+    ).resolves.toMatchObject({ path: location });
+
+    await Promise.all(
+      [
+        [list, metadata],
+        [metadata, list],
+      ].map(async (scopes) => {
+        await expect(
+          api.getEntry({ path: location }, FileSystemAccessContext.create({ scopes })),
+        ).resolves.toMatchObject({ path: location });
+      }),
+    );
+
+    await expect(
+      api.getEntry(
+        { path: location },
+        FileSystemAccessContext.create({
+          scopes: [
+            {
+              rootPath: scope,
+              allow: [],
+              rules: [
+                { path: 'docs', match: 'EXACT', allow: [P.LIST] },
+                { path: 'docs', match: 'EXACT', allow: [P.READ_METADATA] },
+              ],
+            },
+          ],
+        }),
+      ),
+    ).resolves.toMatchObject({ path: location });
+
+    await expect(
+      api.getEntry(
+        { path: location },
+        FileSystemAccessContext.create({
+          scopes: [
+            {
+              rootPath: scope,
+              allow: [P.READ_METADATA],
+              rules: [{ path: 'docs', match: 'EXACT', deny: [P.READ_METADATA] }],
+            },
+          ],
+        }),
+      ),
+    ).rejects.toMatchObject({ code: 'FILE_SYSTEM_PERMISSION_DENIED' });
   });
 
   test('symlinks cannot escape, leak entries, or bypass exact denies', async () => {

@@ -40,7 +40,7 @@ export function directoryChild(parent: string, name: string): string {
     name === '.' ||
     name === '..' ||
     /[/\\<>:"|?*]/u.test(name) ||
-    Array.from(name).some((character) => character.charCodeAt(0) < 32) ||
+    Array.from(name).some((character) => (character.codePointAt(0) ?? 0) < 32) ||
     /[. ]$/u.test(name) ||
     /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu.test(name)
   ) {

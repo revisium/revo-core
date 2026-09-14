@@ -54,7 +54,17 @@ export class GetRootsHandler implements IQueryHandler<GetRootsQuery, GetRootsQue
     );
     const roots = visible.filter((root) => root !== undefined);
 
-    roots.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+    roots.sort((left, right) => {
+      if (left.path < right.path) {
+        return -1;
+      }
+
+      if (left.path > right.path) {
+        return 1;
+      }
+
+      return 0;
+    });
 
     return getOffsetPagination({
       pageData: query.data,

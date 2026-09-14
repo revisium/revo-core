@@ -3,19 +3,16 @@ import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { FileSystemPermission } from '../../contracts/file-system.contracts.js';
 import { FileSystemService } from '../../filesystem/file-system.service.js';
 import { FileSystemPolicyService } from '../../policy/file-system-policy.service.js';
-import { IsDirectoryQuery, type IsDirectoryQueryReturnType } from '../impl/is-directory.query.js';
+import { IsDirectoryQuery } from '../impl/is-directory.query.js';
 
 @QueryHandler(IsDirectoryQuery)
-export class IsDirectoryHandler implements IQueryHandler<
-  IsDirectoryQuery,
-  IsDirectoryQueryReturnType
-> {
+export class IsDirectoryHandler implements IQueryHandler<IsDirectoryQuery, boolean> {
   constructor(
     private readonly policy: FileSystemPolicyService,
     private readonly filesystem: FileSystemService,
   ) {}
 
-  async execute(query: IsDirectoryQuery): Promise<IsDirectoryQueryReturnType> {
+  async execute(query: IsDirectoryQuery): Promise<boolean> {
     const location = await this.policy.assertAllowed(
       query.context,
       FileSystemPermission.READ_METADATA,
