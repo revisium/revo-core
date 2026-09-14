@@ -9,7 +9,6 @@ import {
 } from '../../contracts/file-system.contracts.js';
 import { absolutePath } from '../../filesystem/file-system-path.js';
 import { FileSystemService } from '../../filesystem/file-system.service.js';
-import { FileSystemListingService } from '../../listing/file-system-listing.service.js';
 import {
   GetDirectoryQuery,
   type GetDirectoryQueryReturnType,
@@ -20,10 +19,7 @@ export class GetDirectoryHandler implements IQueryHandler<
   GetDirectoryQuery,
   GetDirectoryQueryReturnType
 > {
-  constructor(
-    private readonly filesystem: FileSystemService,
-    private readonly listing: FileSystemListingService,
-  ) {}
+  constructor(private readonly filesystem: FileSystemService) {}
 
   async execute(query: GetDirectoryQuery): Promise<GetDirectoryQueryReturnType> {
     const { data } = query;
@@ -39,7 +35,7 @@ export class GetDirectoryHandler implements IQueryHandler<
         }
 
         const entry = child.isSymlink
-          ? await this.listing.entry(requested)
+          ? await this.filesystem.entry(requested)
           : { ...child, path: requested };
 
         return !data.directoriesOnly || entry.type === FileSystemEntryType.DIRECTORY

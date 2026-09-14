@@ -12,6 +12,9 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
+  ApiNotFoundResponse,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
@@ -24,9 +27,18 @@ import { CreateWorkspaceRequest } from './model/create-workspace.request.js';
 import { UpdateWorkspaceRequest } from './model/update-workspace.request.js';
 import { WorkspaceCheckResponse } from './model/workspace-check.response.js';
 import { WorkspaceConnectionResponse } from './model/workspace-connection.response.js';
+import { WorkspaceErrorResponse } from './model/workspace-error.response.js';
 import { WorkspaceResponse } from './model/workspace.response.js';
 
 @ApiTags('Workspace')
+@ApiBadRequestResponse({
+  type: WorkspaceErrorResponse,
+  description: 'Invalid input or malformed request (INVALID_REQUEST).',
+})
+@ApiNotFoundResponse({
+  type: WorkspaceErrorResponse,
+  description: 'Project or Workspace was not found.',
+})
 @Controller('projects/:projectId/workspaces')
 export class WorkspaceController {
   constructor(private readonly api: WorkspaceApiService) {}
@@ -34,7 +46,7 @@ export class WorkspaceController {
   @Get()
   @ApiOperation({ operationId: 'listWorkspaces' })
   @ApiOkResponse({ type: WorkspaceConnectionResponse })
-  @ApiQuery({ name: 'first', required: false, type: Number })
+  @ApiQuery({ name: 'first', required: false, schema: { type: 'integer' } })
   @ApiQuery({ name: 'after', required: false, type: String })
   @ApiQuery({ name: 'includeArchived', required: false, type: Boolean })
   list(
@@ -60,6 +72,10 @@ export class WorkspaceController {
 
   @Post()
   @ApiOperation({ operationId: 'createWorkspace' })
+  @ApiConflictResponse({
+    type: WorkspaceErrorResponse,
+    description: 'Project or Workspace archive state prevents this operation.',
+  })
   @ApiCreatedResponse({ type: WorkspaceResponse })
   create(@Param('projectId') projectId: string, @Body() data: CreateWorkspaceRequest) {
     if (data === null) {
@@ -77,6 +93,10 @@ export class WorkspaceController {
 
   @Patch(':id')
   @ApiOperation({ operationId: 'updateWorkspace' })
+  @ApiConflictResponse({
+    type: WorkspaceErrorResponse,
+    description: 'Project or Workspace archive state prevents this operation.',
+  })
   @ApiOkResponse({ type: WorkspaceResponse })
   update(
     @Param('projectId') projectId: string,
@@ -99,6 +119,10 @@ export class WorkspaceController {
   @Post(':id/check')
   @HttpCode(200)
   @ApiOperation({ operationId: 'checkWorkspace' })
+  @ApiConflictResponse({
+    type: WorkspaceErrorResponse,
+    description: 'Project or Workspace archive state prevents this operation.',
+  })
   @ApiOkResponse({ type: WorkspaceCheckResponse })
   check(@Param('projectId') projectId: string, @Param('id') id: string) {
     return this.api.checkWorkspace({ projectId, id });
@@ -107,6 +131,10 @@ export class WorkspaceController {
   @Post(':id/archive')
   @HttpCode(200)
   @ApiOperation({ operationId: 'archiveWorkspace' })
+  @ApiConflictResponse({
+    type: WorkspaceErrorResponse,
+    description: 'Project or Workspace archive state prevents this operation.',
+  })
   @ApiOkResponse({ type: WorkspaceResponse })
   archive(@Param('projectId') projectId: string, @Param('id') id: string) {
     return this.api.archiveWorkspace({ projectId, id });
@@ -115,6 +143,10 @@ export class WorkspaceController {
   @Post(':id/restore')
   @HttpCode(200)
   @ApiOperation({ operationId: 'restoreWorkspace' })
+  @ApiConflictResponse({
+    type: WorkspaceErrorResponse,
+    description: 'Project or Workspace archive state prevents this operation.',
+  })
   @ApiOkResponse({ type: WorkspaceResponse })
   restore(@Param('projectId') projectId: string, @Param('id') id: string) {
     return this.api.restoreWorkspace({ projectId, id });

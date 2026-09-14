@@ -34,12 +34,10 @@ export class ProjectResolver {
       return project.summary;
     }
 
-    const workspaces = await this.workspaceApi.listWorkspaces({ projectId: project.id, first: 3 });
-
-    return {
-      workspaceCount: workspaces.totalCount,
-      workspaces: workspaces.edges.map(({ node }) => ({ name: node.name, type: node.type })),
-    };
+    const summaries = await this.workspaceApi.getProjectWorkspaceSummaries({
+      projectIds: [project.id],
+    });
+    return summaries[project.id] ?? { workspaces: [], workspaceCount: 0 };
   }
 
   @Query(() => ProjectModel, { nullable: true })
@@ -48,8 +46,18 @@ export class ProjectResolver {
   }
 
   @Query(() => ProjectConnectionModel)
-  projects(@Args('data', { type: () => ProjectListInput }) data: ProjectListInput) {
-    return this.projectApi.listUserProjects(data);
+  async projects(@Args('data', { type: () => ProjectListInput }) data: ProjectListInput) {
+    const page = await this.projectApi.listUserProjects(data);
+    const summaries = await this.workspaceApi.getProjectWorkspaceSummaries({
+      projectIds: page.edges.map(({ node }) => node.id),
+    });
+    return {
+      ...page,
+      edges: page.edges.map((edge) => ({
+        ...edge,
+        node: { ...edge.node, summary: summaries[edge.node.id] },
+      })),
+    };
   }
 
   @Mutation(() => ProjectCreatedModel)

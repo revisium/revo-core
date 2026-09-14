@@ -18,7 +18,7 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -45,6 +45,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WorkspaceConnectionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
                 }
               }
             }
@@ -85,6 +105,36 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Project or Workspace archive state prevents this operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
           }
         },
         "summary": "",
@@ -119,6 +169,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WorkspaceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
                 }
               }
             }
@@ -167,6 +237,36 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Project or Workspace archive state prevents this operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
           }
         },
         "summary": "",
@@ -201,6 +301,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WorkspaceCheckResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Project or Workspace archive state prevents this operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
                 }
               }
             }
@@ -241,6 +371,36 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Project or Workspace archive state prevents this operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
           }
         },
         "summary": "",
@@ -278,6 +438,36 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Project or Workspace archive state prevents this operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
           }
         },
         "summary": "",
@@ -305,6 +495,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WorkspaceCheckResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid source input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
                 }
               }
             }
@@ -2579,7 +2779,7 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -3781,6 +3981,34 @@
   "servers": [],
   "components": {
     "schemas": {
+      "WorkspaceErrorResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "integer"
+          },
+          "message": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "field": {
+            "type": "string"
+          }
+        },
+        "required": ["code", "statusCode", "message"]
+      },
       "WorkspaceResponse": {
         "type": "object",
         "properties": {
@@ -3804,16 +4032,19 @@
             "type": "string"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           },
           "updatedAt": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           },
           "isArchived": {
             "type": "boolean"
           },
           "archivedAt": {
             "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         },

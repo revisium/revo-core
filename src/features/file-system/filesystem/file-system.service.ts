@@ -5,6 +5,7 @@ import path from 'node:path';
 
 import { Injectable } from '@nestjs/common';
 
+import type { FileSystemEntry } from '../contracts/file-system.contracts.js';
 import {
   FileSystemEntryType,
   FileSystemRootType,
@@ -14,6 +15,17 @@ import { FileSystemError, rethrowFileSystemError } from '../contracts/file-syste
 
 @Injectable()
 export class FileSystemService {
+  async entry(location: string): Promise<FileSystemEntry> {
+    const metadata = await this.metadata(location);
+
+    return {
+      name: path.basename(location) || location,
+      path: location,
+      type: metadata.type,
+      isSymlink: metadata.isSymlink,
+    };
+  }
+
   async exists(location: string): Promise<boolean> {
     return (await this.metadataOrMissing(location)) !== undefined;
   }

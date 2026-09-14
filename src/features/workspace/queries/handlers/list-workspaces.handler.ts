@@ -1,6 +1,6 @@
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
-import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
+import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import { getOffsetPagination } from '../../../../infrastructure/pagination/get-offset-pagination.js';
 import { WorkspaceProjectService } from '../../application/workspace-project.service.js';
 import { workspaceIncludeArchived } from '../../validation/workspace-input.js';
@@ -16,34 +16,36 @@ export class ListWorkspacesHandler implements IQueryHandler<
 > {
   constructor(
     private readonly projects: WorkspaceProjectService,
-    private readonly prisma: PrismaService,
+    private readonly transactions: TransactionPrismaService,
   ) {}
 
   async execute({ data }: ListWorkspacesQuery): Promise<ListWorkspacesQueryReturnType> {
-    await this.projects.assertAccessible(data.projectId);
-    const includeArchived = workspaceIncludeArchived(data.includeArchived);
-    const where = {
-      projectId: data.projectId,
-      ...(includeArchived === true ? {} : { isArchived: false }),
-    };
+    return this.transactions.runRepeatableRead(async (prisma) => {
+      await this.projects.assertAccessible(data.projectId);
+      const includeArchived = workspaceIncludeArchived(data.includeArchived);
+      const where = {
+        projectId: data.projectId,
+        ...(includeArchived === true ? {} : { isArchived: false }),
+      };
 
-    return getOffsetPagination({
-      pageData: data,
-      findMany: async ({ skip, take }) =>
-        (
-          await this.prisma.workspace.findMany({
-            where,
-            skip,
-            take,
-            orderBy: [{ name: 'asc' }, { id: 'asc' }],
-          })
-        ).map((record) => ({
-          ...record,
-          createdAt: record.createdAt.toISOString(),
-          updatedAt: record.updatedAt.toISOString(),
-          archivedAt: record.archivedAt?.toISOString() ?? null,
-        })),
-      count: () => this.prisma.workspace.count({ where }),
+      return getOffsetPagination({
+        pageData: data,
+        findMany: async ({ skip, take }) =>
+          (
+            await prisma.workspace.findMany({
+              where,
+              skip,
+              take,
+              orderBy: [{ name: 'asc' }, { id: 'asc' }],
+            })
+          ).map((record) => ({
+            ...record,
+            createdAt: record.createdAt.toISOString(),
+            updatedAt: record.updatedAt.toISOString(),
+            archivedAt: record.archivedAt?.toISOString() ?? null,
+          })),
+        count: () => prisma.workspace.count({ where }),
+      });
     });
   }
 }

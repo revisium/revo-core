@@ -5,6 +5,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 
 import type { INestApplication } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Test } from '@nestjs/testing';
 import { nanoid } from 'nanoid';
 import request from 'supertest';
@@ -429,8 +430,8 @@ describe('Workspace module and transports', () => {
   });
 
   test('lists connected Workspaces by name then id and projects the first three plus total count', async () => {
-    const empty = await projects.listUserProjects({ query: projectId });
-    expect(empty.edges[0]?.node.summary).toEqual({ workspaces: [], workspaceCount: 0 });
+    const empty = await api.getProjectWorkspaceSummaries({ projectIds: [projectId] });
+    expect(empty[projectId]).toEqual({ workspaces: [], workspaceCount: 0 });
     await connect('Delta');
     await connect('Bravo');
     const alpha = await connect('Alpha');
@@ -444,13 +445,16 @@ describe('Workspace module and transports', () => {
     });
     expect(next.edges.map((edge) => edge.node.name)).toEqual(['Charlie', 'Delta']);
     expect(next.totalCount).toBe(4);
-    const listed = await projects.listUserProjects({ query: projectId });
-    expect(listed.edges[0]?.node.summary).toEqual({
+    expect(
+      (await api.getProjectWorkspaceSummaries({ projectIds: [projectId] }))[projectId],
+    ).toEqual({
       workspaces: ['Alpha', 'Bravo', 'Charlie'].map((name) => ({ name, type: 'folder' })),
       workspaceCount: 4,
     });
     const archived = await api.archiveWorkspace({ projectId, id: alpha.id });
-    expect((await projects.listUserProjects({ query: projectId })).edges[0]?.node.summary).toEqual({
+    expect(
+      (await api.getProjectWorkspaceSummaries({ projectIds: [projectId] }))[projectId],
+    ).toEqual({
       workspaces: ['Bravo', 'Charlie', 'Delta'].map((name) => ({ name, type: 'folder' })),
       workspaceCount: 3,
     });
@@ -461,6 +465,73 @@ describe('Workspace module and transports', () => {
     });
     expect(includingArchived.totalCount).toBe(4);
     expect(includingArchived.edges.map((edge) => edge.node.id)).toContain(archived.id);
+  });
+
+  test('batch summaries keep projects isolated and count beyond the preview limit', async () => {
+    const other = await seedProject();
+    const empty = await seedProject();
+    await Promise.all(['Delta', 'Charlie', 'Bravo', 'Alpha'].map((name) => connect(name)));
+    const first = await connect('Same', source, 'folder', other);
+    const second = await connect('Same', source, 'repository', other);
+    const archived = await connect('Archived', source, 'folder', other);
+    await api.archiveWorkspace({ projectId: other, id: archived.id });
+    const missing = "missing' OR true --";
+    const summaries = await api.getProjectWorkspaceSummaries({
+      projectIds: [projectId, other, empty, missing],
+    });
+    expect(summaries[projectId]).toEqual({
+      workspaceCount: 4,
+      workspaces: ['Alpha', 'Bravo', 'Charlie'].map((name) => ({ name, type: 'folder' })),
+    });
+    expect(summaries[other]).toEqual({
+      workspaceCount: 2,
+      workspaces: [first, second]
+        .sort((a, b) => (a.id < b.id ? -1 : 1))
+        .map(({ name, type }) => ({ name, type })),
+    });
+    expect(summaries[empty]).toEqual({ workspaceCount: 0, workspaces: [] });
+    expect(summaries[missing]).toEqual({ workspaceCount: 0, workspaces: [] });
+    expect(await api.getProjectWorkspaceSummaries({ projectIds: [] })).toEqual({});
+    expect(
+      (await projects.listUserProjects({ query: projectId })).edges[0]?.node,
+    ).not.toHaveProperty('summary');
+  });
+
+  test('OpenAPI exposes Workspace errors and integer/date-time representations', () => {
+    const document = SwaggerModule.createDocument(app, new DocumentBuilder().build());
+    const collection = document.paths['/api/projects/{projectId}/workspaces'];
+    expect(collection?.get?.parameters).toContainEqual(
+      expect.objectContaining({ name: 'first', schema: { type: 'integer' } }),
+    );
+    expect(collection?.post?.responses).toMatchObject({
+      '400': {
+        content: {
+          'application/json': { schema: { $ref: '#/components/schemas/WorkspaceErrorResponse' } },
+        },
+      },
+      '404': expect.any(Object),
+      '409': expect.any(Object),
+    });
+    const sourceResponses = document.paths['/api/workspaces/check-source']?.post?.responses;
+    expect(sourceResponses).toHaveProperty('200');
+    expect(sourceResponses).toHaveProperty('400');
+    expect(sourceResponses).not.toHaveProperty('404');
+    expect(sourceResponses).not.toHaveProperty('409');
+    expect(document.components?.schemas?.WorkspaceErrorResponse).toMatchObject({
+      required: ['code', 'statusCode', 'message'],
+      properties: {
+        code: { type: 'string' },
+        statusCode: { type: 'integer' },
+        field: { type: 'string' },
+      },
+    });
+    expect(document.components?.schemas?.WorkspaceResponse).toMatchObject({
+      properties: {
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' },
+        archivedAt: { type: 'string', format: 'date-time', nullable: true },
+      },
+    });
   });
 
   test('validates input and rejects missing or non-user Projects', async () => {

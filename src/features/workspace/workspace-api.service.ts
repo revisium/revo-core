@@ -32,6 +32,11 @@ import {
   type CheckWorkspaceSourceQueryReturnType,
 } from './queries/impl/check-workspace-source.query.js';
 import {
+  GetProjectWorkspaceSummariesQuery,
+  type GetProjectWorkspaceSummariesQueryData,
+  type GetProjectWorkspaceSummariesQueryReturnType,
+} from './queries/impl/get-project-workspace-summaries.query.js';
+import {
   GetWorkspaceQuery,
   type GetWorkspaceQueryData,
   type GetWorkspaceQueryReturnType,
@@ -97,5 +102,11 @@ export class WorkspaceApiService {
     return this.queries.execute<ListWorkspacesQuery, ListWorkspacesQueryReturnType>(
       new ListWorkspacesQuery(data),
     );
+  }
+
+  getProjectWorkspaceSummaries(
+    data: GetProjectWorkspaceSummariesQueryData,
+  ): Promise<GetProjectWorkspaceSummariesQueryReturnType> {
+    return this.queries.execute(new GetProjectWorkspaceSummariesQuery(data));
   }
 }

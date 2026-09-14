@@ -42,6 +42,11 @@ feature's exported API when it needs that result and accepts its consistency and
 Events are the default for fan-out and eventual work. Work that requires one transaction or one
 snapshot stays behind a single explicit owning boundary.
 
+For Project responses with Workspace summaries, Workspace owns the summary query and Project
+returns only Project data. REST controllers and GraphQL resolvers compose the two public APIs,
+loading summaries for a page of Project IDs in one batch. Project does not depend on Workspace;
+the existing Workspace-to-Project dependency remains one-way.
+
 Storage representations are private to their owning adapter. Public APIs expose typed application
 contracts instead. Runtime validation belongs at untrusted transport, persistence, library, file,
 and JSON boundaries and runs before mutation; typed internal calls do not repeat validation owned

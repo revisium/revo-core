@@ -4,7 +4,6 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { CreateDirectoryHandler } from './commands/handlers/create-directory.handler.js';
 import { FileSystemApiService } from './file-system-api.service.js';
 import { FileSystemService } from './filesystem/file-system.service.js';
-import { FileSystemListingService } from './listing/file-system-listing.service.js';
 import { CanonicalizeHandler } from './queries/handlers/canonicalize.handler.js';
 import { ExistsHandler } from './queries/handlers/exists.handler.js';
 import { GetDirectoryHandler } from './queries/handlers/get-directory.handler.js';
@@ -19,7 +18,6 @@ import { ReadTextFileHandler } from './queries/handlers/read-text-file.handler.j
     ReadTextFileHandler,
     FileSystemApiService,
     FileSystemService,
-    FileSystemListingService,
     GetRootsHandler,
     GetEntryHandler,
     GetDirectoryHandler,
