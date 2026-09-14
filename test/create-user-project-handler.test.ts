@@ -8,6 +8,8 @@ import { databaseConfig } from '../src/config/database.config.js';
 import { ProjectApiService } from '../src/features/project/project-api.service.js';
 import { ProjectModule } from '../src/features/project/project.module.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
+import { RunRuntimeModule } from '../src/infrastructure/run-runtime/run-runtime.module.js';
+import { ProjectTestRuntimeModule } from './support/project-test-runtime.module.js';
 
 const DEFAULT_BRANCH_NAME = 'master';
 const CONTENT_MODEL_FAILURE = 'Content model installation failed in the test.';
@@ -131,6 +133,8 @@ async function start(options: { failContentModel?: boolean } = {}): Promise<Star
       ProjectModule,
     ],
   });
+
+  builder.overrideModule(RunRuntimeModule).useModule(ProjectTestRuntimeModule);
 
   if (options.failContentModel === true) {
     builder.overrideProvider(SystemTablesService).useValue({

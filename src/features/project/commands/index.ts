@@ -11,6 +11,8 @@ import { DeleteUserProjectHandler } from './handlers/delete-user-project.handler
 import { DeleteWorkItemHandler } from './handlers/delete-work-item.handler.js';
 import { DeleteWorkPlanHandler } from './handlers/delete-work-plan.handler.js';
 import { EnsureProjectHandler } from './handlers/ensure-project.handler.js';
+import { ReleaseProjectRunHandler } from './handlers/release-project-run.handler.js';
+import { ReserveProjectRunHandler } from './handlers/reserve-project-run.handler.js';
 import { RestoreUserProjectHandler } from './handlers/restore-user-project.handler.js';
 import { UpdateAdrHandler } from './handlers/update-adr.handler.js';
 import { UpdateRequirementHandler } from './handlers/update-requirement.handler.js';
@@ -88,6 +90,16 @@ export type {
   RestoreUserProjectCommandData,
   RestoreUserProjectCommandReturnType,
 } from './impl/restore-user-project.command.js';
+export { ReleaseProjectRunCommand } from './impl/release-project-run.command.js';
+export type {
+  ReleaseProjectRunCommandData,
+  ReleaseProjectRunCommandReturnType,
+} from './impl/release-project-run.command.js';
+export { ReserveProjectRunCommand } from './impl/reserve-project-run.command.js';
+export type {
+  ReserveProjectRunCommandData,
+  ReserveProjectRunCommandReturnType,
+} from './impl/reserve-project-run.command.js';
 export { UpdateAdrCommand } from './impl/update-adr.command.js';
 export type {
   UpdateAdrCommandData,
@@ -121,6 +133,8 @@ export const PROJECT_COMMAND_HANDLERS = [
   ArchiveUserProjectHandler,
   DeleteUserProjectHandler,
   RestoreUserProjectHandler,
+  ReserveProjectRunHandler,
+  ReleaseProjectRunHandler,
   CleanupProjectDatasetHandler,
   CreateAdrHandler,
   UpdateAdrHandler,

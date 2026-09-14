@@ -27,7 +27,9 @@ import { PlaybookCatalogApiService } from '../../src/features/playbook-catalog/p
 import { PlaybookCatalogModule } from '../../src/features/playbook-catalog/playbook-catalog.module.js';
 import { ProjectModule } from '../../src/features/project/project.module.js';
 import { RevisiumBootstrapModule } from '../../src/features/revisium-bootstrap/revisium-bootstrap.module.js';
+import { RunRuntimeModule } from '../../src/infrastructure/run-runtime/run-runtime.module.js';
 import { taskPipeline, taskProfile } from '../fixtures/task-pipeline.js';
+import { ProjectTestRuntimeModule } from './project-test-runtime.module.js';
 
 export type CatalogTree = {
   playbook: CatalogRecord;
@@ -57,7 +59,10 @@ export class CatalogTestKit {
         PlaybookCatalogModule,
         RevisiumBootstrapModule,
       ],
-    }).compile();
+    })
+      .overrideModule(RunRuntimeModule)
+      .useModule(ProjectTestRuntimeModule)
+      .compile();
     await module.init();
 
     return new CatalogTestKit(module, module.get(PlaybookCatalogApiService));

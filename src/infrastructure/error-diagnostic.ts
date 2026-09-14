@@ -13,6 +13,7 @@ export type ErrorDiagnosticContext = Readonly<{
   dialogueId?: string;
   turnId?: string;
   runId?: string;
+  projectId?: string;
 }>;
 
 export type ErrorDiagnostic = Readonly<{
@@ -119,6 +120,9 @@ function sanitizeContext(context: ErrorDiagnosticContext): ErrorDiagnosticContex
     ...(context.turnId === undefined
       ? {}
       : { turnId: sanitizeText(context.turnId, MAX_MESSAGE_LENGTH) }),
+    ...(context.projectId === undefined
+      ? {}
+      : { projectId: sanitizeText(context.projectId, MAX_MESSAGE_LENGTH) }),
     ...(context.runId === undefined
       ? {}
       : { runId: sanitizeText(context.runId, MAX_MESSAGE_LENGTH) }),

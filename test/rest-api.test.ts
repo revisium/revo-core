@@ -2,8 +2,9 @@ import { readFile } from 'node:fs/promises';
 
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { nanoid } from 'nanoid';
 import request from 'supertest';
-import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 
 import packageJson from '../package.json' with { type: 'json' };
 import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
@@ -12,6 +13,7 @@ import { AppModule } from '../src/app.module.js';
 import { AgentConfigurationWarmup } from '../src/features/agent-definitions/configurations/agent-configuration-warmup.js';
 import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
+import { RevoRunService } from '../src/infrastructure/run-runtime/revo-run.service.js';
 import { invalidPipeline, taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
 
 const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
@@ -31,6 +33,7 @@ describe('REST API', () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     const ids = createdProjectIds.splice(0);
 
     if (ids.length === 0) {
@@ -39,6 +42,7 @@ describe('REST API', () => {
 
     const prisma = app.get(PrismaService);
     await prisma.$transaction([
+      prisma.projectRun.deleteMany({ where: { projectId: { in: ids } } }),
       prisma.branch.deleteMany({ where: { projectId: { in: ids } } }),
       prisma.project.deleteMany({ where: { id: { in: ids } } }),
     ]);
@@ -53,12 +57,13 @@ describe('REST API', () => {
   });
 
   test('starts and reads a durable run', async () => {
+    const project = await createProject(app, createdProjectIds, 'Run owner');
     const pipeline = taskPipeline();
     const profile = taskProfile();
     const input = {};
     const started = await request(app.getHttpServer())
       .post('/api/runs')
-      .send({ pipeline, profile, input })
+      .send({ projectId: project.id, pipeline, profile, input })
       .expect(201);
 
     expect(started.body.runId).toEqual(expect.any(String));
@@ -74,7 +79,7 @@ describe('REST API', () => {
       })
       .toBe('succeeded');
 
-    expect(snapshot).toMatchObject({ runId, status: 'succeeded' });
+    expect(snapshot).toMatchObject({ runId, projectId: project.id, status: 'succeeded' });
 
     const details = await request(app.getHttpServer())
       .get(`/api/runs/${runId}/details`)
@@ -82,6 +87,7 @@ describe('REST API', () => {
     expect(details.body).toMatchObject({
       schemaVersion: 'run-details/v1',
       runId,
+      projectId: project.id,
       status: 'succeeded',
     });
 
@@ -97,9 +103,15 @@ describe('REST API', () => {
   });
 
   test('rejects an invalid pipeline', async () => {
+    const project = await createProject(app, createdProjectIds, 'Invalid pipeline owner');
     const response = await request(app.getHttpServer())
       .post('/api/runs')
-      .send({ pipeline: invalidPipeline(), profile: taskProfile(), input: null })
+      .send({
+        projectId: project.id,
+        pipeline: invalidPipeline(),
+        profile: taskProfile(),
+        input: null,
+      })
       .expect(422);
 
     expect(response.body).toMatchObject({
@@ -108,6 +120,131 @@ describe('REST API', () => {
       message: 'Pipeline compilation failed.',
       path: null,
     });
+  });
+
+  test.each([null, { bindings: null }, { bindings: {} }])(
+    'rejects malformed profile %j without admission or ownership',
+    async (profile) => {
+      const project = await createProject(app, createdProjectIds, 'Malformed profile');
+      const admission = vi.spyOn(app.get(RevoRunService), 'createRun');
+      const response = await request(app.getHttpServer())
+        .post('/api/runs')
+        .send({ projectId: project.id, pipeline: taskPipeline(), profile, input: {} })
+        .expect(400);
+
+      expect(response.body).toMatchObject({ code: 'invalid_create_run_input' });
+      expect(admission).not.toHaveBeenCalled();
+      expect(
+        await app.get(PrismaService).projectRun.count({ where: { projectId: project.id } }),
+      ).toBe(0);
+    },
+  );
+
+  test.each([
+    {
+      kind: ProjectKind.USER,
+      status: ProjectStatus.ARCHIVED,
+      statusCode: 409,
+      code: 'project_archived',
+    },
+    {
+      kind: ProjectKind.USER,
+      status: ProjectStatus.CREATING,
+      statusCode: 404,
+      code: 'project_unavailable',
+    },
+    {
+      kind: ProjectKind.SYSTEM,
+      status: ProjectStatus.ACTIVE,
+      statusCode: 404,
+      code: 'project_unavailable',
+    },
+  ])('rejects $kind $status owners through the Run error contract', async (scenario) => {
+    const project = await app.get(PrismaService).project.create({
+      data: { name: 'Unavailable', kind: scenario.kind, status: scenario.status },
+    });
+    createdProjectIds.push(project.id);
+    const admission = vi.spyOn(app.get(RevoRunService), 'createRun');
+    const response = await request(app.getHttpServer())
+      .post('/api/runs')
+      .send({ projectId: project.id, pipeline: taskPipeline(), profile: taskProfile(), input: {} })
+      .expect(scenario.statusCode);
+
+    expect(response.body).toMatchObject({
+      statusCode: scenario.statusCode,
+      code: scenario.code,
+      path: '/projectId',
+      details: {},
+    });
+    expect(admission).not.toHaveBeenCalled();
+    expect(
+      await app.get(PrismaService).projectRun.count({ where: { projectId: project.id } }),
+    ).toBe(0);
+  });
+
+  test('rejects a missing owner with a stable Run error', async () => {
+    const admission = vi.spyOn(app.get(RevoRunService), 'createRun');
+    const response = await request(app.getHttpServer())
+      .post('/api/runs')
+      .send({
+        projectId: 'missing-owner',
+        pipeline: taskPipeline(),
+        profile: taskProfile(),
+        input: {},
+      })
+      .expect(404);
+
+    expect(response.body).toMatchObject({
+      code: 'project_unavailable',
+      path: '/projectId',
+      details: {},
+    });
+    expect(admission).not.toHaveBeenCalled();
+  });
+
+  test.each([undefined, null, 42, '', '   '])(
+    'rejects invalid project ID %j before admission',
+    async (projectId) => {
+      const admission = vi.spyOn(app.get(RevoRunService), 'createRun');
+      await request(app.getHttpServer())
+        .post('/api/runs')
+        .send({ projectId, pipeline: taskPipeline(), profile: taskProfile(), input: {} })
+        .expect(400);
+
+      expect(admission).not.toHaveBeenCalled();
+    },
+  );
+
+  test('reads a legacy runtime execution with null ownership', async () => {
+    const { runId } = await app.get(RevoRunService).createRun({
+      runId: `r${nanoid()}`,
+      pipeline: taskPipeline(),
+      profile: taskProfile(),
+      input: {},
+    });
+    await expect
+      .poll(
+        async () =>
+          (await request(app.getHttpServer()).get(`/api/runs/${runId}`).expect(200)).body.status,
+      )
+      .toBe('succeeded');
+
+    const snapshot = await request(app.getHttpServer()).get(`/api/runs/${runId}`).expect(200);
+    const details = await request(app.getHttpServer())
+      .get(`/api/runs/${runId}/details`)
+      .expect(200);
+    expect(snapshot.body).toMatchObject({ runId, projectId: null });
+    expect(details.body).toMatchObject({ runId, projectId: null });
+  });
+
+  test('does not expose a reservation as an execution', async () => {
+    const project = await createProject(app, createdProjectIds, 'Pending reservation');
+    const runId = `r${nanoid()}`;
+    await app.get(PrismaService).projectRun.create({ data: { projectId: project.id, runId } });
+
+    await request(app.getHttpServer()).get(`/api/runs/${runId}`).expect(404);
+    await request(app.getHttpServer()).get(`/api/runs/${runId}/details`).expect(404);
+    expect(await app.get(PrismaService).projectRun.findUnique({ where: { runId } })).not.toBeNull();
   });
 
   test('creates, lists, and gets a USER project', async () => {
@@ -911,6 +1048,11 @@ describe('REST API', () => {
     );
 
     expect(response.body).toEqual(expected);
+    expect(response.body.components.schemas.RunResponse.properties.projectId).toEqual({
+      type: 'string',
+      nullable: true,
+    });
+    expect(response.body.components.schemas.RunResponse.required).toContain('projectId');
     expect(response.body.info.version).toBe(packageJson.version);
   });
 });

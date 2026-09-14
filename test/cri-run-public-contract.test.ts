@@ -13,8 +13,8 @@ import { CatalogTable } from '../src/features/playbook-catalog/contracts/catalog
 import { LaunchProfileStatus } from '../src/features/playbook-catalog/contracts/catalog.enums.js';
 import { CatalogRevisionService } from '../src/features/playbook-catalog/engine/catalog-revision.service.js';
 import { PlaybookCatalogApiService } from '../src/features/playbook-catalog/playbook-catalog-api.service.js';
-import { RevoRunService } from '../src/features/run/revo-run.service.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
+import { RevoRunService } from '../src/infrastructure/run-runtime/revo-run.service.js';
 import {
   brokenPipeline,
   echoPipeline,
@@ -34,6 +34,8 @@ type PublicError = {
   readonly details: Record<string, unknown>;
 };
 
+const RUN_PROJECT_ID = `cri-run-project-${nanoid()}`;
+
 describe('CRI public run contract', () => {
   let app: INestApplication;
   let catalog: PlaybookCatalogApiService;
@@ -45,9 +47,22 @@ describe('CRI public run contract', () => {
     catalog = app.get(PlaybookCatalogApiService);
     engine = app.get(EngineApiService);
     drafts = app.get(CatalogRevisionService);
+    await app.get(PrismaService).project.create({
+      data: { id: RUN_PROJECT_ID, name: RUN_PROJECT_ID, status: 'ACTIVE', kind: 'USER' },
+    });
   });
 
-  afterAll(async () => app?.close());
+  afterAll(async () => {
+    try {
+      const prisma = app.get(PrismaService);
+      await prisma.$transaction([
+        prisma.projectRun.deleteMany({ where: { projectId: RUN_PROJECT_ID } }),
+        prisma.project.deleteMany({ where: { id: RUN_PROJECT_ID } }),
+      ]);
+    } finally {
+      await app?.close();
+    }
+  });
 
   test('generates exact OpenAPI XOR selectors and GraphQL selector scalar types', async () => {
     const openapi: unknown = JSON.parse(
@@ -101,6 +116,7 @@ describe('CRI public run contract', () => {
     expect(json.schema).toEqual({
       allOf: [
         { $ref: '#/components/schemas/StartRunRequest' },
+        { required: ['projectId'] },
         {
           oneOf: [
             { required: ['pipelineId'], not: { required: ['pipeline'] } },
@@ -121,10 +137,10 @@ describe('CRI public run contract', () => {
       'utf8',
     );
     expect(graphql).toContain(
-      'input StartRunInput {\n  input: JSON!\n  pipeline: JSON\n  pipelineId: ID\n  profile: JSON\n  profileId: ID\n}',
+      'input StartRunInput {\n  input: JSON!\n  pipeline: JSON\n  pipelineId: ID\n  profile: JSON\n  profileId: ID\n  projectId: ID!\n}',
     );
     expect(graphql).toContain(
-      'type RunModel {\n  createdAt: String!\n  runId: ID!\n  schemaVersion: String!\n  status: String!\n  terminal: JSON\n  updatedAt: String!\n}',
+      'type RunModel {\n  createdAt: String!\n  projectId: ID\n  runId: ID!\n  schemaVersion: String!\n  status: String!\n  terminal: JSON\n  updatedAt: String!\n}',
     );
     expect(graphql).toContain('input PipelineInput {\n  id: ID!\n  pipeline: JSON!');
     expect(graphql).toContain(
@@ -400,7 +416,12 @@ describe('CRI public run contract', () => {
 
     await request(app.getHttpServer())
       .post('/api/runs')
-      .send({ pipeline: taskPipeline(), profile: taskProfile(), input: {} })
+      .send({
+        projectId: RUN_PROJECT_ID,
+        pipeline: taskPipeline(),
+        profile: taskProfile(),
+        input: {},
+      })
       .expect(201);
 
     expect(getPipeline).not.toHaveBeenCalled();
@@ -412,7 +433,12 @@ describe('CRI public run contract', () => {
   test('lets ordinary catalog lookup errors flow from ID selectors', async () => {
     const rest = await request(app.getHttpServer())
       .post('/api/runs')
-      .send({ pipelineId: 'missing-pipeline', profile: taskProfile(), input: {} })
+      .send({
+        projectId: RUN_PROJECT_ID,
+        pipelineId: 'missing-pipeline',
+        profile: taskProfile(),
+        input: {},
+      })
       .expect(404);
     expect(rest.body).toEqual({
       message: 'Record unavailable',
@@ -425,7 +451,12 @@ describe('CRI public run contract', () => {
       .send({
         query: 'mutation($data: StartRunInput!) { startRun(data: $data) { runId } }',
         variables: {
-          data: { pipeline: taskPipeline(), profileId: 'missing-profile', input: {} },
+          data: {
+            projectId: RUN_PROJECT_ID,
+            pipeline: taskPipeline(),
+            profileId: 'missing-profile',
+            input: {},
+          },
         },
       })
       .expect(200);
@@ -494,7 +525,7 @@ async function expectPublicError(
 ): Promise<void> {
   const rest = await request(app.getHttpServer())
     .post('/api/runs')
-    .send(input)
+    .send({ projectId: RUN_PROJECT_ID, ...input })
     .expect(expected.statusCode);
   expect(rest.body).toEqual(expected);
 
@@ -502,7 +533,7 @@ async function expectPublicError(
     .post('/graphql')
     .send({
       query: 'mutation($data: StartRunInput!) { startRun(data: $data) { runId } }',
-      variables: { data: input },
+      variables: { data: { projectId: RUN_PROJECT_ID, ...input } },
     })
     .expect(200);
   expect(graphql.body.data).toBeNull();

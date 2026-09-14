@@ -4,6 +4,9 @@ import { GraphQLJSON } from 'graphql-scalars';
 
 @InputType()
 export class StartRunInput {
+  @Field(() => ID)
+  projectId: string;
+
   @Field(() => ID, { nullable: true })
   pipelineId?: string;
 

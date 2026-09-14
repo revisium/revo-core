@@ -8,7 +8,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import type { RunDetails, RunEventPage } from '@revisium/revo-run';
+import type { RunEventPage } from '@revisium/revo-run';
 
 import { RunApiService } from '../../../features/run/run-api.service.js';
 import { START_RUN_REQUEST_SCHEMA, StartRunRequest } from './dto/start-run.request.js';
@@ -33,7 +33,7 @@ export class RunController {
   @ApiOperation({ operationId: 'getRunDetails', summary: 'Get run details' })
   @ApiOkResponse()
   @ApiNotFoundResponse({ description: 'Run not found' })
-  async getRunDetails(@Param('runId') runId: string): Promise<RunDetails> {
+  async getRunDetails(@Param('runId') runId: string) {
     const details = await this.runs.getRunDetails({ runId });
 
     if (details === undefined) {

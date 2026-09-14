@@ -47,6 +47,11 @@ export { Prisma }
  */
 export type Project = Prisma.ProjectModel
 /**
+ * Model ProjectRun
+ * 
+ */
+export type ProjectRun = Prisma.ProjectRunModel
+/**
  * Model Workspace
  * 
  */

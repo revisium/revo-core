@@ -8,6 +8,7 @@ import { AppModule } from '../src/app.module.js';
 import { AgentConfigurationWarmup } from '../src/features/agent-definitions/configurations/agent-configuration-warmup.js';
 import { LaunchProfileStatus } from '../src/features/playbook-catalog/contracts/catalog.enums.js';
 import { PlaybookCatalogApiService } from '../src/features/playbook-catalog/playbook-catalog-api.service.js';
+import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
 import { taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
 
 // oxlint-disable eslint/no-await-in-loop -- Transport cases intentionally execute serially on DBOS.
@@ -17,9 +18,13 @@ const PROFILE_ID = `cri-terminal-profile-${nanoid()}`;
 
 describe('CRI selector matrix', () => {
   let app: INestApplication;
+  const projectId = `cri-project-${nanoid()}`;
 
   beforeAll(async () => {
     app = await startApp();
+    await app
+      .get(PrismaService)
+      .project.create({ data: { id: projectId, name: projectId, status: 'ACTIVE', kind: 'USER' } });
     const catalog = app.get(PlaybookCatalogApiService);
 
     await catalog.createPipeline({
@@ -36,7 +41,17 @@ describe('CRI selector matrix', () => {
     await catalog.commitCatalog('CRI selector matrix fixtures');
   });
 
-  afterAll(async () => app?.close());
+  afterAll(async () => {
+    try {
+      const prisma = app.get(PrismaService);
+      await prisma.$transaction([
+        prisma.projectRun.deleteMany({ where: { projectId: projectId } }),
+        prisma.project.deleteMany({ where: { id: projectId } }),
+      ]);
+    } finally {
+      await app?.close();
+    }
+  });
 
   test('completes four selector combinations through REST and GraphQL and survives restart', async () => {
     const pipeline = taskPipeline();
@@ -52,7 +67,7 @@ describe('CRI selector matrix', () => {
     for (const selector of selectors) {
       const started = await request(app.getHttpServer())
         .post('/api/runs')
-        .send({ ...selector, input: {} })
+        .send({ projectId, ...selector, input: {} })
         .expect(201);
       const runId = started.body.runId as string;
       runIds.push(runId);
@@ -64,7 +79,7 @@ describe('CRI selector matrix', () => {
         .post('/graphql')
         .send({
           query: 'mutation($data: StartRunInput!) { startRun(data: $data) { runId } }',
-          variables: { data: { ...selector, input: {} } },
+          variables: { data: { projectId, ...selector, input: {} } },
         })
         .expect(200);
       expect(started.body.errors).toBeUndefined();
@@ -106,7 +121,7 @@ describe('CRI selector matrix', () => {
     for (const input of invalidInputs) {
       const rest = await request(app.getHttpServer())
         .post('/api/runs')
-        .send({ ...input, input: {} });
+        .send({ projectId, ...input, input: {} });
       expect(rest.status).toBeGreaterThanOrEqual(400);
       expect(rest.status).toBeLessThan(500);
 
@@ -114,7 +129,7 @@ describe('CRI selector matrix', () => {
         .post('/graphql')
         .send({
           query: 'mutation($data: StartRunInput!) { startRun(data: $data) { runId } }',
-          variables: { data: { ...input, input: {} } },
+          variables: { data: { projectId, ...input, input: {} } },
         });
       expect(graphql.status).toBe(200);
       expect(graphql.body.errors).toBeDefined();

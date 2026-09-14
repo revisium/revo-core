@@ -1,6 +1,7 @@
 import type { JsonValue, PipelineSourcePackage, RunProfile } from '@revisium/revo-run';
 
 export type StartRunCommandData = {
+  readonly projectId: string;
   readonly pipelineId?: string;
   readonly pipeline?: PipelineSourcePackage;
   readonly profileId?: string;

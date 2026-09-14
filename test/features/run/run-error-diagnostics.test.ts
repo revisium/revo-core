@@ -3,6 +3,7 @@ import { RunManagerError } from '@revisium/revo-run';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { PlaybookCatalogApiService } from '../../../src/features/playbook-catalog/playbook-catalog-api.service.js';
+import type { ProjectApiService } from '../../../src/features/project/project-api.service.js';
 import { StartRunHandler } from '../../../src/features/run/commands/handlers/start-run.handler.js';
 import { StartRunCommand } from '../../../src/features/run/commands/impl/start-run.command.js';
 import { GetRunDetailsHandler } from '../../../src/features/run/queries/handlers/get-run-details.handler.js';
@@ -11,7 +12,7 @@ import { GetRunHandler } from '../../../src/features/run/queries/handlers/get-ru
 import { GetRunDetailsQuery } from '../../../src/features/run/queries/impl/get-run-details.query.js';
 import { GetRunEventsQuery } from '../../../src/features/run/queries/impl/get-run-events.query.js';
 import { GetRunQuery } from '../../../src/features/run/queries/impl/get-run.query.js';
-import type { RevoRunService } from '../../../src/features/run/revo-run.service.js';
+import type { RevoRunService } from '../../../src/infrastructure/run-runtime/revo-run.service.js';
 import { taskPipeline, taskProfile } from '../../fixtures/task-pipeline.js';
 
 afterEach(() => vi.restoreAllMocks());
@@ -21,11 +22,16 @@ describe('run library error diagnostics', () => {
     const error = new RunManagerError('run_admission_failed', { operation: 'workflow_start' });
     error.cause = new Error('provider password=private');
     const runs = runService({ createRun: vi.fn<() => Promise<never>>().mockRejectedValue(error) });
-    const handler = new StartRunHandler({} as PlaybookCatalogApiService, runs);
+    const handler = new StartRunHandler({} as PlaybookCatalogApiService, projects(), runs);
     const logged = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
     const result = handler.execute(
-      new StartRunCommand({ pipeline: taskPipeline(), profile: taskProfile(), input: {} }),
+      new StartRunCommand({
+        projectId: 'project',
+        pipeline: taskPipeline(),
+        profile: taskProfile(),
+        input: {},
+      }),
     );
 
     await expect(result).rejects.toBeInstanceOf(HttpException);
@@ -47,12 +53,17 @@ describe('run library error diagnostics', () => {
       reason: 'invalid',
     });
     const runs = runService({ createRun: vi.fn<() => Promise<never>>().mockRejectedValue(error) });
-    const handler = new StartRunHandler({} as PlaybookCatalogApiService, runs);
+    const handler = new StartRunHandler({} as PlaybookCatalogApiService, projects(), runs);
     const logged = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
     await expect(
       handler.execute(
-        new StartRunCommand({ pipeline: taskPipeline(), profile: taskProfile(), input: {} }),
+        new StartRunCommand({
+          projectId: 'project',
+          pipeline: taskPipeline(),
+          profile: taskProfile(),
+          input: {},
+        }),
       ),
     ).rejects.toBeInstanceOf(HttpException);
     expect(logged).not.toHaveBeenCalled();
@@ -62,14 +73,16 @@ describe('run library error diagnostics', () => {
     {
       operation: 'run.get',
       execute: (runs: RevoRunService) =>
-        new GetRunHandler(runs).execute(new GetRunQuery({ runId: 'r_read' })),
+        new GetRunHandler(runs, projects()).execute(new GetRunQuery({ runId: 'r_read' })),
       method: 'getRun',
       libraryOperation: 'get_run',
     },
     {
       operation: 'run.details.get',
       execute: (runs: RevoRunService) =>
-        new GetRunDetailsHandler(runs).execute(new GetRunDetailsQuery({ runId: 'r_read' })),
+        new GetRunDetailsHandler(runs, projects()).execute(
+          new GetRunDetailsQuery({ runId: 'r_read' }),
+        ),
       method: 'getRunDetails',
       libraryOperation: 'get_details',
     },
@@ -111,4 +124,12 @@ describe('run library error diagnostics', () => {
 
 function runService(methods: Partial<Record<keyof RevoRunService, unknown>>): RevoRunService {
   return methods as RevoRunService;
+}
+
+function projects(): ProjectApiService {
+  return {
+    reserveRun: vi.fn<() => Promise<void>>().mockResolvedValue(),
+    releaseRun: vi.fn<() => Promise<void>>().mockResolvedValue(),
+    getRunProjectId: vi.fn<() => Promise<null>>().mockResolvedValue(null),
+  } as unknown as ProjectApiService;
 }

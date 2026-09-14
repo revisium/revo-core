@@ -20,14 +20,11 @@ import {
   type RunSnapshot,
 } from '@revisium/revo-run';
 
-import { AgentRuntimeLifecycle } from '../../infrastructure/agent-runtime/agent-runtime-lifecycle.js';
-import {
-  AGENT_MANAGER,
-  AGENT_DEFINITIONS,
-} from '../../infrastructure/agent-runtime/agent-runtime.tokens.js';
-import { reportErrorDiagnostic } from '../../infrastructure/error-diagnostic.js';
-import { RunWorkingDirectoryCoordinator } from './infrastructure/working-directory/run-working-directory-coordinator.js';
-import { TemporaryRunDirectoryHost } from './infrastructure/working-directory/temporary-run-directory-host.js';
+import { AgentRuntimeLifecycle } from '../agent-runtime/agent-runtime-lifecycle.js';
+import { AGENT_MANAGER, AGENT_DEFINITIONS } from '../agent-runtime/agent-runtime.tokens.js';
+import { reportErrorDiagnostic } from '../error-diagnostic.js';
+import { RunWorkingDirectoryCoordinator } from './working-directory/run-working-directory-coordinator.js';
+import { TemporaryRunDirectoryHost } from './working-directory/temporary-run-directory-host.js';
 
 @Injectable()
 export class RevoRunService implements OnModuleInit, BeforeApplicationShutdown {

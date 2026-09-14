@@ -2,7 +2,8 @@ import { Logger } from '@nestjs/common';
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
 import { reportErrorDiagnostic } from '../../../../infrastructure/error-diagnostic.js';
-import { RevoRunService } from '../../revo-run.service.js';
+import { RevoRunService } from '../../../../infrastructure/run-runtime/revo-run.service.js';
+import { ProjectApiService } from '../../../project/project-api.service.js';
 import { isReportableRunError, rethrowPublicRunError } from '../../run-manager-error.mapper.js';
 import {
   GetRunDetailsQuery,
@@ -16,11 +17,20 @@ export class GetRunDetailsHandler implements IQueryHandler<
 > {
   private readonly logger = new Logger(GetRunDetailsHandler.name);
 
-  constructor(private readonly runs: RevoRunService) {}
+  constructor(
+    private readonly runs: RevoRunService,
+    private readonly projects: ProjectApiService,
+  ) {}
 
   async execute(query: GetRunDetailsQuery): Promise<GetRunDetailsQueryReturnType> {
     try {
-      return await this.runs.getRunDetails(query.data.runId);
+      const details = await this.runs.getRunDetails(query.data.runId);
+
+      if (details === undefined) {
+        return undefined;
+      }
+
+      return { ...details, projectId: await this.projects.getRunProjectId(query.data) };
     } catch (error) {
       if (isReportableRunError(error)) {
         reportErrorDiagnostic(

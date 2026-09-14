@@ -3799,6 +3799,9 @@
                     "$ref": "#/components/schemas/StartRunRequest"
                   },
                   {
+                    "required": ["projectId"]
+                  },
+                  {
                     "oneOf": [
                       {
                         "required": ["pipelineId"],
@@ -6173,6 +6176,10 @@
       "StartRunRequest": {
         "type": "object",
         "properties": {
+          "projectId": {
+            "type": "string",
+            "minLength": 1
+          },
           "pipelineId": {
             "type": "string",
             "minLength": 1,
@@ -6218,7 +6225,7 @@
             ]
           }
         },
-        "required": ["input"]
+        "required": ["projectId", "input"]
       },
       "StartRunResponse": {
         "type": "object",
@@ -6232,6 +6239,10 @@
       "RunResponse": {
         "type": "object",
         "properties": {
+          "projectId": {
+            "type": "string",
+            "nullable": true
+          },
           "schemaVersion": {
             "type": "string",
             "enum": ["run-snapshot/v1"]
@@ -6265,7 +6276,15 @@
             "format": "date-time"
           }
         },
-        "required": ["schemaVersion", "runId", "status", "terminal", "createdAt", "updatedAt"]
+        "required": [
+          "projectId",
+          "schemaVersion",
+          "runId",
+          "status",
+          "terminal",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "SystemInfoResponse": {
         "type": "object",

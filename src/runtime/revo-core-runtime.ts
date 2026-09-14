@@ -4,7 +4,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { prepareRunManagerDatabase } from '@revisium/revo-run';
 
 import { initSwagger } from '../api/rest/swagger.js';
-import { RevoRunService } from '../features/run/revo-run.service.js';
+import { RevoRunService } from '../infrastructure/run-runtime/revo-run.service.js';
 import { createWithEngineDatabaseUrl } from './engine-database-environment.js';
 import { prepareApplicationDatabase } from './prepare-application-database.js';
 import { RevoCoreExpressAdapter } from './revo-core-express-adapter.js';

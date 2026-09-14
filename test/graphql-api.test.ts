@@ -8,14 +8,16 @@ import {
   printSchema,
   type IntrospectionQuery,
 } from 'graphql';
+import { nanoid } from 'nanoid';
 import request from 'supertest';
-import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
 import { AppModule } from '../src/app.module.js';
 import { AgentConfigurationWarmup } from '../src/features/agent-definitions/configurations/agent-configuration-warmup.js';
 import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
+import { RevoRunService } from '../src/infrastructure/run-runtime/revo-run.service.js';
 import { taskPipeline, taskProfile } from './fixtures/task-pipeline.js';
 
 describe('GraphQL API', () => {
@@ -27,6 +29,7 @@ describe('GraphQL API', () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     const ids = createdProjectIds.splice(0);
 
     if (ids.length === 0) {
@@ -35,6 +38,7 @@ describe('GraphQL API', () => {
 
     const prisma = app.get(PrismaService);
     await prisma.$transaction([
+      prisma.projectRun.deleteMany({ where: { projectId: { in: ids } } }),
       prisma.branch.deleteMany({ where: { projectId: { in: ids } } }),
       prisma.project.deleteMany({ where: { id: { in: ids } } }),
     ]);
@@ -54,6 +58,7 @@ describe('GraphQL API', () => {
   });
 
   test('starts and reads a durable run', async () => {
+    const project = await createProject(app, createdProjectIds, 'Run owner');
     const pipeline = taskPipeline();
     const profile = taskProfile();
     const input = {};
@@ -65,7 +70,7 @@ describe('GraphQL API', () => {
             startRun(data: $data) { runId }
           }
         `,
-        variables: { data: { pipeline, profile, input } },
+        variables: { data: { projectId: project.id, pipeline, profile, input } },
       })
       .expect(200);
 
@@ -80,7 +85,7 @@ describe('GraphQL API', () => {
           .send({
             query: `
               query Run($id: ID!) {
-                run(id: $id) { runId status terminal }
+                run(id: $id) { projectId runId status terminal }
               }
             `,
             variables: { id: runId },
@@ -91,7 +96,7 @@ describe('GraphQL API', () => {
       })
       .toBe('succeeded');
 
-    expect(snapshot).toMatchObject({ runId, status: 'succeeded' });
+    expect(snapshot).toMatchObject({ runId, projectId: project.id, status: 'succeeded' });
   });
 
   test('returns null for an unknown run', async () => {
@@ -101,6 +106,148 @@ describe('GraphQL API', () => {
       .expect(200);
 
     expect(response.body).toEqual({ data: { run: null } });
+  });
+
+  test.each([null, { bindings: null }, { bindings: {} }])(
+    'rejects malformed profile %j without reservation',
+    async (profile) => {
+      const project = await createProject(app, createdProjectIds, 'Malformed profile');
+      const admission = vi.spyOn(app.get(RevoRunService), 'createRun');
+      const response = await graphql(app, START_RUN, {
+        data: { projectId: project.id, pipeline: taskPipeline(), profile, input: {} },
+      });
+
+      expect(response.body.errors).toEqual([
+        expect.objectContaining({
+          extensions: expect.objectContaining({ code: 'invalid_create_run_input' }),
+        }),
+      ]);
+      expect(admission).not.toHaveBeenCalled();
+      expect(
+        await app.get(PrismaService).projectRun.count({ where: { projectId: project.id } }),
+      ).toBe(0);
+    },
+  );
+
+  test.each([
+    { kind: ProjectKind.USER, status: ProjectStatus.ARCHIVED, code: 'project_archived' },
+    { kind: ProjectKind.USER, status: ProjectStatus.CREATING, code: 'project_unavailable' },
+    { kind: ProjectKind.SYSTEM, status: ProjectStatus.ACTIVE, code: 'project_unavailable' },
+  ])('rejects $kind $status owners with structured Run errors', async (scenario) => {
+    const project = await app.get(PrismaService).project.create({
+      data: { name: 'Unavailable', kind: scenario.kind, status: scenario.status },
+    });
+    createdProjectIds.push(project.id);
+    const admission = vi.spyOn(app.get(RevoRunService), 'createRun');
+    const response = await graphql(app, START_RUN, {
+      data: { projectId: project.id, pipeline: taskPipeline(), profile: taskProfile(), input: {} },
+    });
+
+    expect(response.body.errors).toEqual([
+      expect.objectContaining({
+        extensions: expect.objectContaining({
+          code: scenario.code,
+          path: '/projectId',
+          details: {},
+        }),
+      }),
+    ]);
+    expect(admission).not.toHaveBeenCalled();
+    expect(
+      await app.get(PrismaService).projectRun.count({ where: { projectId: project.id } }),
+    ).toBe(0);
+  });
+
+  test.each(['missing-owner', 42])(
+    'preserves unavailable-owner errors for ID %j',
+    async (projectId) => {
+      const admission = vi.spyOn(app.get(RevoRunService), 'createRun');
+      const response = await graphql(app, START_RUN, {
+        data: { projectId, pipeline: taskPipeline(), profile: taskProfile(), input: {} },
+      });
+
+      expect(response.body.errors).toEqual([
+        expect.objectContaining({
+          extensions: expect.objectContaining({
+            code: 'project_unavailable',
+            path: '/projectId',
+            details: {},
+          }),
+        }),
+      ]);
+      expect(admission).not.toHaveBeenCalled();
+    },
+  );
+
+  test.each(['', '   '])(
+    'rejects blank owner %j at the application boundary',
+    async (projectId) => {
+      const admission = vi.spyOn(app.get(RevoRunService), 'createRun');
+      const response = await graphql(app, START_RUN, {
+        data: { projectId, pipeline: taskPipeline(), profile: taskProfile(), input: {} },
+      });
+
+      expect(response.body.errors).toEqual([
+        expect.objectContaining({
+          extensions: expect.objectContaining({ code: 'project_id_invalid', path: '/projectId' }),
+        }),
+      ]);
+      expect(admission).not.toHaveBeenCalled();
+    },
+  );
+
+  test.each([undefined, null])('requires a non-null project ID %j', async (projectId) => {
+    const admission = vi.spyOn(app.get(RevoRunService), 'createRun');
+    const response = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: START_RUN,
+        variables: {
+          data: { projectId, pipeline: taskPipeline(), profile: taskProfile(), input: {} },
+        },
+      })
+      .expect(400);
+
+    expect(response.body.errors).toEqual([
+      expect.objectContaining({ message: expect.stringContaining('projectId') }),
+    ]);
+    expect(admission).not.toHaveBeenCalled();
+  });
+
+  test('reads a legacy execution with null owner', async () => {
+    const { runId } = await app.get(RevoRunService).createRun({
+      runId: `r${nanoid()}`,
+      pipeline: taskPipeline(),
+      profile: taskProfile(),
+      input: {},
+    });
+    await expect
+      .poll(async () => {
+        const response = await graphql(
+          app,
+          'query($id: ID!) { run(id: $id) { runId projectId status } }',
+          { id: runId },
+        );
+        return response.body.data.run.status;
+      })
+      .toBe('succeeded');
+
+    const response = await graphql(app, 'query($id: ID!) { run(id: $id) { runId projectId } }', {
+      id: runId,
+    });
+    expect(response.body).toEqual({ data: { run: { runId, projectId: null } } });
+  });
+
+  test('keeps reservation-only executions unreadable', async () => {
+    const project = await createProject(app, createdProjectIds, 'Pending reservation');
+    const runId = `r${nanoid()}`;
+    await app.get(PrismaService).projectRun.create({ data: { projectId: project.id, runId } });
+
+    const response = await graphql(app, 'query($id: ID!) { run(id: $id) { runId projectId } }', {
+      id: runId,
+    });
+    expect(response.body).toEqual({ data: { run: null } });
+    expect(await app.get(PrismaService).projectRun.findUnique({ where: { runId } })).not.toBeNull();
   });
 
   test('creates, lists, and gets a USER project', async () => {
@@ -1373,3 +1520,5 @@ function adrInput(projectId: string, id: string, title: string) {
     relatedRequirements: [],
   };
 }
+
+const START_RUN = 'mutation($data: StartRunInput!) { startRun(data: $data) { runId } }';
