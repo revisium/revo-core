@@ -1,9 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateWorkspaceRequest {
-  @ApiProperty({ type: Number })
-  expectedVersion: number;
-
   @ApiPropertyOptional({ type: String })
   name?: string;
 

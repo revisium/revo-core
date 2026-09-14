@@ -443,6 +443,14 @@ export type ReviewThreadScalarRelationFilter = {
   isNot?: Prisma.ReviewThreadWhereInput
 }
 
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type ReviewThreadCreateNestedOneWithoutMessagesInput = {
   create?: Prisma.XOR<Prisma.ReviewThreadCreateWithoutMessagesInput, Prisma.ReviewThreadUncheckedCreateWithoutMessagesInput>
   connectOrCreate?: Prisma.ReviewThreadCreateOrConnectWithoutMessagesInput

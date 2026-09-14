@@ -20,18 +20,8 @@ export type WorkspaceModel = runtime.Types.Result.DefaultSelection<Prisma.$Works
 
 export type AggregateWorkspace = {
   _count: WorkspaceCountAggregateOutputType | null
-  _avg: WorkspaceAvgAggregateOutputType | null
-  _sum: WorkspaceSumAggregateOutputType | null
   _min: WorkspaceMinAggregateOutputType | null
   _max: WorkspaceMaxAggregateOutputType | null
-}
-
-export type WorkspaceAvgAggregateOutputType = {
-  version: number | null
-}
-
-export type WorkspaceSumAggregateOutputType = {
-  version: number | null
 }
 
 export type WorkspaceMinAggregateOutputType = {
@@ -44,7 +34,6 @@ export type WorkspaceMinAggregateOutputType = {
   availability: $Enums.WorkspaceAvailability | null
   lastCheckedAt: Date | null
   lastErrorCode: string | null
-  version: number | null
   createdAt: Date | null
   updatedAt: Date | null
   disconnectedAt: Date | null
@@ -60,7 +49,6 @@ export type WorkspaceMaxAggregateOutputType = {
   availability: $Enums.WorkspaceAvailability | null
   lastCheckedAt: Date | null
   lastErrorCode: string | null
-  version: number | null
   createdAt: Date | null
   updatedAt: Date | null
   disconnectedAt: Date | null
@@ -76,21 +64,12 @@ export type WorkspaceCountAggregateOutputType = {
   availability: number
   lastCheckedAt: number
   lastErrorCode: number
-  version: number
   createdAt: number
   updatedAt: number
   disconnectedAt: number
   _all: number
 }
 
-
-export type WorkspaceAvgAggregateInputType = {
-  version?: true
-}
-
-export type WorkspaceSumAggregateInputType = {
-  version?: true
-}
 
 export type WorkspaceMinAggregateInputType = {
   id?: true
@@ -102,7 +81,6 @@ export type WorkspaceMinAggregateInputType = {
   availability?: true
   lastCheckedAt?: true
   lastErrorCode?: true
-  version?: true
   createdAt?: true
   updatedAt?: true
   disconnectedAt?: true
@@ -118,7 +96,6 @@ export type WorkspaceMaxAggregateInputType = {
   availability?: true
   lastCheckedAt?: true
   lastErrorCode?: true
-  version?: true
   createdAt?: true
   updatedAt?: true
   disconnectedAt?: true
@@ -134,7 +111,6 @@ export type WorkspaceCountAggregateInputType = {
   availability?: true
   lastCheckedAt?: true
   lastErrorCode?: true
-  version?: true
   createdAt?: true
   updatedAt?: true
   disconnectedAt?: true
@@ -179,18 +155,6 @@ export type WorkspaceAggregateArgs<ExtArgs extends runtime.Types.Extensions.Inte
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
-   * Select which fields to average
-  **/
-  _avg?: WorkspaceAvgAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
-   * Select which fields to sum
-  **/
-  _sum?: WorkspaceSumAggregateInputType
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-   * 
    * Select which fields to find the minimum value
   **/
   _min?: WorkspaceMinAggregateInputType
@@ -221,8 +185,6 @@ export type WorkspaceGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   _count?: WorkspaceCountAggregateInputType | true
-  _avg?: WorkspaceAvgAggregateInputType
-  _sum?: WorkspaceSumAggregateInputType
   _min?: WorkspaceMinAggregateInputType
   _max?: WorkspaceMaxAggregateInputType
 }
@@ -237,13 +199,10 @@ export type WorkspaceGroupByOutputType = {
   availability: $Enums.WorkspaceAvailability
   lastCheckedAt: Date | null
   lastErrorCode: string | null
-  version: number
   createdAt: Date
   updatedAt: Date
   disconnectedAt: Date | null
   _count: WorkspaceCountAggregateOutputType | null
-  _avg: WorkspaceAvgAggregateOutputType | null
-  _sum: WorkspaceSumAggregateOutputType | null
   _min: WorkspaceMinAggregateOutputType | null
   _max: WorkspaceMaxAggregateOutputType | null
 }
@@ -276,7 +235,6 @@ export type WorkspaceWhereInput = {
   availability?: Prisma.EnumWorkspaceAvailabilityFilter<"Workspace"> | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
   lastErrorCode?: Prisma.StringNullableFilter<"Workspace"> | string | null
-  version?: Prisma.IntFilter<"Workspace"> | number
   createdAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
   disconnectedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
@@ -294,7 +252,6 @@ export type WorkspaceOrderByWithRelationInput = {
   availability?: Prisma.SortOrder
   lastCheckedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastErrorCode?: Prisma.SortOrderInput | Prisma.SortOrder
-  version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   disconnectedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -315,7 +272,6 @@ export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
   availability?: Prisma.EnumWorkspaceAvailabilityFilter<"Workspace"> | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
   lastErrorCode?: Prisma.StringNullableFilter<"Workspace"> | string | null
-  version?: Prisma.IntFilter<"Workspace"> | number
   createdAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
   disconnectedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
@@ -333,15 +289,12 @@ export type WorkspaceOrderByWithAggregationInput = {
   availability?: Prisma.SortOrder
   lastCheckedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastErrorCode?: Prisma.SortOrderInput | Prisma.SortOrder
-  version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   disconnectedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.WorkspaceCountOrderByAggregateInput
-  _avg?: Prisma.WorkspaceAvgOrderByAggregateInput
   _max?: Prisma.WorkspaceMaxOrderByAggregateInput
   _min?: Prisma.WorkspaceMinOrderByAggregateInput
-  _sum?: Prisma.WorkspaceSumOrderByAggregateInput
 }
 
 export type WorkspaceScalarWhereWithAggregatesInput = {
@@ -357,7 +310,6 @@ export type WorkspaceScalarWhereWithAggregatesInput = {
   availability?: Prisma.EnumWorkspaceAvailabilityWithAggregatesFilter<"Workspace"> | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Workspace"> | Date | string | null
   lastErrorCode?: Prisma.StringNullableWithAggregatesFilter<"Workspace"> | string | null
-  version?: Prisma.IntWithAggregatesFilter<"Workspace"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Workspace"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Workspace"> | Date | string
   disconnectedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Workspace"> | Date | string | null
@@ -372,7 +324,6 @@ export type WorkspaceCreateInput = {
   availability?: $Enums.WorkspaceAvailability
   lastCheckedAt?: Date | string | null
   lastErrorCode?: string | null
-  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   disconnectedAt?: Date | string | null
@@ -390,7 +341,6 @@ export type WorkspaceUncheckedCreateInput = {
   availability?: $Enums.WorkspaceAvailability
   lastCheckedAt?: Date | string | null
   lastErrorCode?: string | null
-  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   disconnectedAt?: Date | string | null
@@ -406,7 +356,6 @@ export type WorkspaceUpdateInput = {
   availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -424,7 +373,6 @@ export type WorkspaceUncheckedUpdateInput = {
   availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -441,7 +389,6 @@ export type WorkspaceCreateManyInput = {
   availability?: $Enums.WorkspaceAvailability
   lastCheckedAt?: Date | string | null
   lastErrorCode?: string | null
-  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   disconnectedAt?: Date | string | null
@@ -456,7 +403,6 @@ export type WorkspaceUpdateManyMutationInput = {
   availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -472,7 +418,6 @@ export type WorkspaceUncheckedUpdateManyInput = {
   availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -498,14 +443,9 @@ export type WorkspaceCountOrderByAggregateInput = {
   availability?: Prisma.SortOrder
   lastCheckedAt?: Prisma.SortOrder
   lastErrorCode?: Prisma.SortOrder
-  version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   disconnectedAt?: Prisma.SortOrder
-}
-
-export type WorkspaceAvgOrderByAggregateInput = {
-  version?: Prisma.SortOrder
 }
 
 export type WorkspaceMaxOrderByAggregateInput = {
@@ -518,7 +458,6 @@ export type WorkspaceMaxOrderByAggregateInput = {
   availability?: Prisma.SortOrder
   lastCheckedAt?: Prisma.SortOrder
   lastErrorCode?: Prisma.SortOrder
-  version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   disconnectedAt?: Prisma.SortOrder
@@ -534,14 +473,9 @@ export type WorkspaceMinOrderByAggregateInput = {
   availability?: Prisma.SortOrder
   lastCheckedAt?: Prisma.SortOrder
   lastErrorCode?: Prisma.SortOrder
-  version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   disconnectedAt?: Prisma.SortOrder
-}
-
-export type WorkspaceSumOrderByAggregateInput = {
-  version?: Prisma.SortOrder
 }
 
 export type WorkspaceScalarRelationFilter = {
@@ -607,14 +541,6 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type WorkspaceCreateNestedOneWithoutEventsInput = {
   create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutEventsInput, Prisma.WorkspaceUncheckedCreateWithoutEventsInput>
   connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutEventsInput
@@ -638,7 +564,6 @@ export type WorkspaceCreateWithoutProjectInput = {
   availability?: $Enums.WorkspaceAvailability
   lastCheckedAt?: Date | string | null
   lastErrorCode?: string | null
-  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   disconnectedAt?: Date | string | null
@@ -654,7 +579,6 @@ export type WorkspaceUncheckedCreateWithoutProjectInput = {
   availability?: $Enums.WorkspaceAvailability
   lastCheckedAt?: Date | string | null
   lastErrorCode?: string | null
-  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   disconnectedAt?: Date | string | null
@@ -700,7 +624,6 @@ export type WorkspaceScalarWhereInput = {
   availability?: Prisma.EnumWorkspaceAvailabilityFilter<"Workspace"> | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
   lastErrorCode?: Prisma.StringNullableFilter<"Workspace"> | string | null
-  version?: Prisma.IntFilter<"Workspace"> | number
   createdAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
   disconnectedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
@@ -715,7 +638,6 @@ export type WorkspaceCreateWithoutEventsInput = {
   availability?: $Enums.WorkspaceAvailability
   lastCheckedAt?: Date | string | null
   lastErrorCode?: string | null
-  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   disconnectedAt?: Date | string | null
@@ -732,7 +654,6 @@ export type WorkspaceUncheckedCreateWithoutEventsInput = {
   availability?: $Enums.WorkspaceAvailability
   lastCheckedAt?: Date | string | null
   lastErrorCode?: string | null
-  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   disconnectedAt?: Date | string | null
@@ -763,7 +684,6 @@ export type WorkspaceUpdateWithoutEventsInput = {
   availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -780,7 +700,6 @@ export type WorkspaceUncheckedUpdateWithoutEventsInput = {
   availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -795,7 +714,6 @@ export type WorkspaceCreateManyProjectInput = {
   availability?: $Enums.WorkspaceAvailability
   lastCheckedAt?: Date | string | null
   lastErrorCode?: string | null
-  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   disconnectedAt?: Date | string | null
@@ -810,7 +728,6 @@ export type WorkspaceUpdateWithoutProjectInput = {
   availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -826,7 +743,6 @@ export type WorkspaceUncheckedUpdateWithoutProjectInput = {
   availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -842,7 +758,6 @@ export type WorkspaceUncheckedUpdateManyWithoutProjectInput = {
   availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
   lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -889,7 +804,6 @@ export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   availability?: boolean
   lastCheckedAt?: boolean
   lastErrorCode?: boolean
-  version?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   disconnectedAt?: boolean
@@ -908,7 +822,6 @@ export type WorkspaceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   availability?: boolean
   lastCheckedAt?: boolean
   lastErrorCode?: boolean
-  version?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   disconnectedAt?: boolean
@@ -925,7 +838,6 @@ export type WorkspaceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   availability?: boolean
   lastCheckedAt?: boolean
   lastErrorCode?: boolean
-  version?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   disconnectedAt?: boolean
@@ -942,13 +854,12 @@ export type WorkspaceSelectScalar = {
   availability?: boolean
   lastCheckedAt?: boolean
   lastErrorCode?: boolean
-  version?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   disconnectedAt?: boolean
 }
 
-export type WorkspaceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "name" | "description" | "type" | "sourcePath" | "availability" | "lastCheckedAt" | "lastErrorCode" | "version" | "createdAt" | "updatedAt" | "disconnectedAt", ExtArgs["result"]["workspace"]>
+export type WorkspaceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "name" | "description" | "type" | "sourcePath" | "availability" | "lastCheckedAt" | "lastErrorCode" | "createdAt" | "updatedAt" | "disconnectedAt", ExtArgs["result"]["workspace"]>
 export type WorkspaceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   events?: boolean | Prisma.Workspace$eventsArgs<ExtArgs>
@@ -977,7 +888,6 @@ export type $WorkspacePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     availability: $Enums.WorkspaceAvailability
     lastCheckedAt: Date | null
     lastErrorCode: string | null
-    version: number
     createdAt: Date
     updatedAt: Date
     disconnectedAt: Date | null
@@ -1415,7 +1325,6 @@ export interface WorkspaceFieldRefs {
   readonly availability: Prisma.FieldRef<"Workspace", 'WorkspaceAvailability'>
   readonly lastCheckedAt: Prisma.FieldRef<"Workspace", 'DateTime'>
   readonly lastErrorCode: Prisma.FieldRef<"Workspace", 'String'>
-  readonly version: Prisma.FieldRef<"Workspace", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Workspace", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Workspace", 'DateTime'>
   readonly disconnectedAt: Prisma.FieldRef<"Workspace", 'DateTime'>

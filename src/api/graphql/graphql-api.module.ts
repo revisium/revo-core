@@ -4,14 +4,12 @@ import { GraphQLModule } from '@nestjs/graphql';
 
 import { AgentDefinitionsModule } from '../../features/agent-definitions/agent-definitions.module.js';
 import { DialogueManagementModule } from '../../features/dialogues/management/dialogue-management.module.js';
-import { FileSystemAccessModule } from '../../features/file-system-access/file-system-access.module.js';
 import { FileSystemModule } from '../../features/file-system/file-system.module.js';
 import { PlaybookCatalogModule } from '../../features/playbook-catalog/playbook-catalog.module.js';
 import { ProjectModule } from '../../features/project/project.module.js';
 import { RunModule } from '../../features/run/run.module.js';
 import { SystemModule } from '../../features/system/system.module.js';
 import { WorkspaceModule } from '../../features/workspace/workspace.module.js';
-import { FileSystemBrowserAccessService } from '../file-system/file-system-browser-access.service.js';
 import { WorkspaceRequestContextService } from '../workspace/workspace-request-context.service.js';
 import { AgentDefinitionsGraphqlExceptionFilter } from './agent-definitions/agent-definitions-graphql-exception.filter.js';
 import { AgentDefinitionsResolver } from './agent-definitions/agent-definitions.resolver.js';
@@ -35,7 +33,6 @@ initRegisterEnumTypes();
     AgentDefinitionsModule,
     DialogueManagementModule,
     WorkspaceModule,
-    FileSystemAccessModule,
     FileSystemModule,
     ProjectModule,
     PlaybookCatalogModule,
@@ -59,7 +56,6 @@ initRegisterEnumTypes();
     AgentDefinitionsGraphqlExceptionFilter,
     WorkspaceRequestContextService,
     WorkspaceResolver,
-    FileSystemBrowserAccessService,
     FileSystemResolver,
     ProjectResolver,
     ProjectListItemResolver,

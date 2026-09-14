@@ -8,7 +8,6 @@ import { CreateWorkspaceInput } from './model/create-workspace.input.js';
 import { UpdateWorkspaceInput } from './model/update-workspace.input.js';
 import { WorkspaceConnectionModel } from './model/workspace-connection.model.js';
 import { WorkspaceListInput } from './model/workspace-list.input.js';
-import { WorkspaceVersionInput } from './model/workspace-version.input.js';
 import { WorkspaceInput } from './model/workspace.input.js';
 import { WorkspaceModel } from './model/workspace.model.js';
 import { WorkspaceGraphqlExceptionFilter } from './workspace-graphql-exception.filter.js';
@@ -35,25 +34,22 @@ export class WorkspaceResolver {
   }
 
   @Mutation(() => CreateWorkspaceResultModel)
-  async createWorkspace(@Args('data') data: CreateWorkspaceInput) {
-    return this.api.createWorkspace(data, await this.context.getContext(true));
+  createWorkspace(@Args('data') data: CreateWorkspaceInput) {
+    return this.api.createWorkspace(data, this.context.getContext());
   }
 
   @Mutation(() => Boolean)
-  async updateWorkspace(@Args('data') data: UpdateWorkspaceInput) {
-    return this.api.updateWorkspace(
-      data,
-      await this.context.getContext(data.sourcePath !== undefined),
-    );
+  updateWorkspace(@Args('data') data: UpdateWorkspaceInput) {
+    return this.api.updateWorkspace(data, this.context.getContext());
   }
 
   @Mutation(() => Boolean)
-  async checkWorkspace(@Args('data') data: WorkspaceVersionInput) {
-    return this.api.checkWorkspace(data, await this.context.getContext(true));
+  checkWorkspace(@Args('data') data: WorkspaceInput) {
+    return this.api.checkWorkspace(data, this.context.getContext());
   }
 
   @Mutation(() => Boolean)
-  async disconnectWorkspace(@Args('data') data: WorkspaceVersionInput) {
-    return this.api.disconnectWorkspace(data, await this.context.getContext(false));
+  disconnectWorkspace(@Args('data') data: WorkspaceInput) {
+    return this.api.disconnectWorkspace(data, this.context.getContext());
   }
 }

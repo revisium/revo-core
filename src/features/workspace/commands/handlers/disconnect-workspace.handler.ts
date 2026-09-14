@@ -3,7 +3,7 @@ import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import { WorkspaceProjectService } from '../../application/workspace-project.service.js';
 import { WorkspaceStoreService } from '../../storage/workspace-store.service.js';
-import { workspaceActor, workspaceVersion } from '../../validation/workspace-input.js';
+import { workspaceActor } from '../../validation/workspace-input.js';
 import {
   DisconnectWorkspaceCommand,
   type DisconnectWorkspaceCommandReturnType,
@@ -25,16 +25,13 @@ export class DisconnectWorkspaceHandler implements ICommandHandler<
     context,
   }: DisconnectWorkspaceCommand): Promise<DisconnectWorkspaceCommandReturnType> {
     const actorId = workspaceActor(context);
-    const expectedVersion = workspaceVersion(data.expectedVersion);
-
     return this.transactions.runSerializable(async () => {
       await this.projects.assertAccessible(data.projectId, true);
-      await this.store.getConnected(data.projectId, data.id, expectedVersion);
+      await this.store.getConnected(data.projectId, data.id);
 
       return this.store.update(
         data.projectId,
         data.id,
-        expectedVersion,
         { disconnectedAt: new Date() },
         actorId,
         'disconnect',

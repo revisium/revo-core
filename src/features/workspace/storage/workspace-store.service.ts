@@ -20,10 +20,10 @@ export class WorkspaceStoreService {
     return record;
   }
 
-  async getConnected(projectId: string, id: string, expectedVersion: number) {
+  async getConnected(projectId: string, id: string) {
     const record = await this.get(projectId, id);
 
-    if (record.disconnectedAt !== null || record.version !== expectedVersion) {
+    if (record.disconnectedAt !== null) {
       throw new WorkspaceError('WORKSPACE_CONFLICT');
     }
 
@@ -33,7 +33,6 @@ export class WorkspaceStoreService {
   async update(
     projectId: string,
     id: string,
-    expectedVersion: number,
     changes: Prisma.WorkspaceUpdateManyMutationInput,
     actorId: string,
     operation: string,
@@ -41,8 +40,8 @@ export class WorkspaceStoreService {
   ): Promise<boolean> {
     const transaction = this.transactions.getTransaction();
     const result = await transaction.workspace.updateMany({
-      where: { id, projectId, version: expectedVersion, disconnectedAt: null },
-      data: { ...changes, version: { increment: 1 } },
+      where: { id, projectId, disconnectedAt: null },
+      data: changes,
     });
 
     if (result.count !== 1) {

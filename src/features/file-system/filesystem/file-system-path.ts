@@ -24,15 +24,6 @@ export function absolutePath(location: string): string {
   return path.resolve(location);
 }
 
-export function containsPath(root: string, location: string): boolean {
-  const relative = path.relative(root, location);
-
-  return (
-    relative === '' ||
-    (!path.isAbsolute(relative) && relative !== '..' && !relative.startsWith(`..${path.sep}`))
-  );
-}
-
 export function directoryChild(parent: string, name: string): string {
   if (
     typeof name !== 'string' ||

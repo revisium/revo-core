@@ -9,6 +9,10 @@ const migration = await readFile(
   'prisma/migrations/20260913133859_unify_project_workspaces/migration.sql',
   'utf8',
 );
+const simplificationMigration = await readFile(
+  'prisma/migrations/20260914130000_remove_file_system_permissions_and_workspace_version/migration.sql',
+  'utf8',
+);
 let client: Client;
 
 beforeEach(async () => {
@@ -81,4 +85,30 @@ test('rejects a populated legacy table without losing source metadata or changin
   expect((await client.query('SELECT "projectId" FROM workspaces')).rows).toEqual([
     { projectId: 'renamed' },
   ]);
+});
+
+test('removes permissions and technical versions while preserving Workspaces and their history', async () => {
+  await client.query(`
+    ALTER TABLE workspaces ADD COLUMN version INTEGER NOT NULL DEFAULT 1;
+    CREATE TEMP TABLE file_system_permission_policies (id TEXT PRIMARY KEY);
+    CREATE TEMP TABLE workspace_events (
+      id TEXT PRIMARY KEY,
+      "workspaceId" TEXT REFERENCES workspaces(id) ON DELETE RESTRICT
+    );
+    INSERT INTO file_system_permission_policies VALUES ('policy');
+    INSERT INTO workspace_events VALUES ('event', 'workspace');
+  `);
+
+  await client.query(simplificationMigration.replaceAll('"public".', 'pg_temp.'));
+
+  expect((await client.query('SELECT * FROM workspaces')).rows).toEqual([
+    { id: 'workspace', projectId: 'project' },
+  ]);
+  expect((await client.query('SELECT * FROM workspace_events')).rows).toEqual([
+    { id: 'event', workspaceId: 'workspace' },
+  ]);
+  expect(
+    (await client.query("SELECT to_regclass('pg_temp.file_system_permission_policies') AS policy"))
+      .rows,
+  ).toEqual([{ policy: null }]);
 });

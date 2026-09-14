@@ -3,7 +3,6 @@ import type { WorkspaceActorContext } from '../../contracts/workspace.contracts.
 export type UpdateWorkspaceCommandData = {
   projectId: string;
   id: string;
-  expectedVersion: number;
   name?: string;
   description?: string;
   sourcePath?: string;

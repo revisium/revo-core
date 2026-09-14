@@ -186,16 +186,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorkspaceVersionRequest"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "",
@@ -233,16 +223,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorkspaceVersionRequest"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "",
@@ -3768,9 +3748,6 @@
             "type": "string",
             "nullable": true
           },
-          "version": {
-            "type": "number"
-          },
           "createdAt": {
             "type": "string"
           },
@@ -3792,7 +3769,6 @@
           "availability",
           "lastCheckedAt",
           "lastErrorCode",
-          "version",
           "createdAt",
           "updatedAt",
           "disconnectedAt"
@@ -3877,9 +3853,6 @@
       "UpdateWorkspaceRequest": {
         "type": "object",
         "properties": {
-          "expectedVersion": {
-            "type": "number"
-          },
           "name": {
             "type": "string"
           },
@@ -3889,17 +3862,7 @@
           "sourcePath": {
             "type": "string"
           }
-        },
-        "required": ["expectedVersion"]
-      },
-      "WorkspaceVersionRequest": {
-        "type": "object",
-        "properties": {
-          "expectedVersion": {
-            "type": "number"
-          }
-        },
-        "required": ["expectedVersion"]
+        }
       },
       "FileSystemRootType": {
         "type": "string",

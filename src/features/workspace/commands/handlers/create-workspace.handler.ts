@@ -39,12 +39,9 @@ export class CreateWorkspaceHandler implements ICommandHandler<
       sourcePath: workspacePath(data.sourcePath),
     };
 
-    await this.projects.assertAccessible(data.projectId, true);
-
-    const check = await this.source.check(input.sourcePath, input.type, context?.fileSystemAccess);
-
     return this.transactions.runSerializable(async (transaction) => {
       await this.projects.assertAccessible(data.projectId, true);
+      const check = await this.source.check(input.sourcePath, input.type);
 
       const record = await transaction.workspace.create({
         data: {

@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 import {
   WorkspaceType,
@@ -33,9 +33,6 @@ export class WorkspaceModel {
 
   @Field(() => String, { nullable: true })
   lastErrorCode: string | null;
-
-  @Field(() => Int)
-  version: number;
 
   @Field(() => String)
   createdAt: string;

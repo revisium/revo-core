@@ -33,11 +33,6 @@ export type Workspace = Prisma.WorkspaceModel
  */
 export type WorkspaceEvent = Prisma.WorkspaceEventModel
 /**
- * Model FileSystemPermissionPolicy
- * 
- */
-export type FileSystemPermissionPolicy = Prisma.FileSystemPermissionPolicyModel
-/**
  * Model ReviewThread
  * 
  */

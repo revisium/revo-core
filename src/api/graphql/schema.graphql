@@ -582,7 +582,7 @@ type MethodDocumentModel {
 type Mutation {
   archiveProject(data: ProjectInput!): Boolean!
   cancelDialogueTurn(dialogueId: ID!, turnId: ID!): DialogueTurnModel!
-  checkWorkspace(data: WorkspaceVersionInput!): Boolean!
+  checkWorkspace(data: WorkspaceInput!): Boolean!
   commitCatalog(message: String!): CatalogCommitResultModel!
   createAdr(data: AdrInput!): AdrModel!
   createDialogue(input: CreateDialogueInput!): DialogueSummaryModel!
@@ -617,7 +617,7 @@ type Mutation {
   deleteWorkItem(data: RecordDeleteInput!): Boolean!
   deleteWorkPlan(data: RecordDeleteInput!): Boolean!
   discardCatalog: CatalogMutationResultModel!
-  disconnectWorkspace(data: WorkspaceVersionInput!): Boolean!
+  disconnectWorkspace(data: WorkspaceInput!): Boolean!
   forkDialogue(input: ForkDialogueInput!): DialogueSummaryModel!
   importCatalog(data: JSON!): CatalogImportResultModel!
   markDialogueRead(dialogueId: ID!, through: String!): DialogueSummaryModel!
@@ -1081,7 +1081,6 @@ type SystemInfoModel {
 
 input UpdateWorkspaceInput {
   description: String
-  expectedVersion: Int!
   id: ID!
   name: String
   projectId: ID!
@@ -1213,16 +1212,9 @@ type WorkspaceModel {
   sourcePath: String!
   type: WorkspaceType!
   updatedAt: String!
-  version: Int!
 }
 
 enum WorkspaceType {
   folder
   repository
-}
-
-input WorkspaceVersionInput {
-  expectedVersion: Int!
-  id: ID!
-  projectId: ID!
 }

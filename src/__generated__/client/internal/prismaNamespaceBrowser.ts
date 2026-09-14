@@ -54,7 +54,6 @@ export const ModelName = {
   Project: 'Project',
   Workspace: 'Workspace',
   WorkspaceEvent: 'WorkspaceEvent',
-  FileSystemPermissionPolicy: 'FileSystemPermissionPolicy',
   ReviewThread: 'ReviewThread',
   ReviewMessage: 'ReviewMessage',
   Branch: 'Branch',
@@ -115,7 +114,6 @@ export const WorkspaceScalarFieldEnum = {
   availability: 'availability',
   lastCheckedAt: 'lastCheckedAt',
   lastErrorCode: 'lastErrorCode',
-  version: 'version',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   disconnectedAt: 'disconnectedAt'
@@ -134,19 +132,6 @@ export const WorkspaceEventScalarFieldEnum = {
 } as const
 
 export type WorkspaceEventScalarFieldEnum = (typeof WorkspaceEventScalarFieldEnum)[keyof typeof WorkspaceEventScalarFieldEnum]
-
-
-export const FileSystemPermissionPolicyScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  document: 'document',
-  version: 'version',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  revokedAt: 'revokedAt'
-} as const
-
-export type FileSystemPermissionPolicyScalarFieldEnum = (typeof FileSystemPermissionPolicyScalarFieldEnum)[keyof typeof FileSystemPermissionPolicyScalarFieldEnum]
 
 
 export const ReviewThreadScalarFieldEnum = {

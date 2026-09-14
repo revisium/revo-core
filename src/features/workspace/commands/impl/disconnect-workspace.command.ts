@@ -3,7 +3,6 @@ import type { WorkspaceActorContext } from '../../contracts/workspace.contracts.
 export type DisconnectWorkspaceCommandData = {
   projectId: string;
   id: string;
-  expectedVersion: number;
 };
 export type DisconnectWorkspaceCommandReturnType = boolean;
 

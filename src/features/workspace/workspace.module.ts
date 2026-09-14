@@ -12,7 +12,6 @@ import { DisconnectWorkspaceHandler } from './commands/handlers/disconnect-works
 import { UpdateWorkspaceHandler } from './commands/handlers/update-workspace.handler.js';
 import { GetWorkspaceHandler } from './queries/handlers/get-workspace.handler.js';
 import { ListWorkspacesHandler } from './queries/handlers/list-workspaces.handler.js';
-import { GitWorkspaceAccessService } from './source/git-workspace-access.service.js';
 import { GitWorkspaceProbe } from './source/git-workspace-probe.js';
 import { LocalWorkspaceSourceService } from './source/local-workspace-source.service.js';
 import { WorkspaceStoreService } from './storage/workspace-store.service.js';
@@ -21,7 +20,6 @@ import { WorkspaceApiService } from './workspace-api.service.js';
 @Module({
   imports: [CqrsModule, ConfigModule, DatabaseModule, ProjectModule, FileSystemModule],
   providers: [
-    GitWorkspaceAccessService,
     WorkspaceApiService,
     WorkspaceProjectService,
     WorkspaceStoreService,

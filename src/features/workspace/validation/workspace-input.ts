@@ -42,11 +42,3 @@ export function workspaceActor(context: WorkspaceActorContext | undefined): stri
 
   return context.actorId;
 }
-
-export function workspaceVersion(value: number): number {
-  if (!Number.isSafeInteger(value) || value < 1) {
-    throw new WorkspaceError('WORKSPACE_INVALID_INPUT');
-  }
-
-  return value;
-}

@@ -1,4 +1,4 @@
-import { Field, ID, Int, InputType } from '@nestjs/graphql';
+import { Field, ID, InputType } from '@nestjs/graphql';
 
 @InputType()
 export class UpdateWorkspaceInput {
@@ -7,9 +7,6 @@ export class UpdateWorkspaceInput {
 
   @Field(() => ID)
   id: string;
-
-  @Field(() => Int)
-  expectedVersion: number;
 
   @Field(() => String, { nullable: true })
   name?: string;

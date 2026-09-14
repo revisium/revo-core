@@ -1,5 +1,5 @@
 import { constants } from 'node:fs';
-import { lstat, stat, readdir, mkdir, realpath, readlink, open } from 'node:fs/promises';
+import { lstat, stat, readdir, mkdir, realpath, open } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 
@@ -16,10 +16,6 @@ import { FileSystemError, rethrowFileSystemError } from '../contracts/file-syste
 export class FileSystemService {
   async exists(location: string): Promise<boolean> {
     return (await this.metadataOrMissing(location)) !== undefined;
-  }
-
-  async isFile(location: string): Promise<boolean> {
-    return (await this.metadataOrMissing(location))?.type === FileSystemEntryType.FILE;
   }
 
   async isDirectory(location: string): Promise<boolean> {
@@ -68,14 +64,6 @@ export class FileSystemService {
   async canonicalize(location: string): Promise<string> {
     try {
       return await realpath(location);
-    } catch (error) {
-      return rethrowFileSystemError(error);
-    }
-  }
-
-  async readLink(location: string): Promise<string> {
-    try {
-      return await readlink(location);
     } catch (error) {
       return rethrowFileSystemError(error);
     }

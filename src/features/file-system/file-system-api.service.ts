@@ -6,7 +6,6 @@ import {
   type CreateDirectoryCommandData,
   type CreateDirectoryCommandReturnType,
 } from './commands/impl/create-directory.command.js';
-import type { FileSystemAccessContext } from './contracts/file-system.contracts.js';
 import {
   CanonicalizeQuery,
   type CanonicalizeQueryData,
@@ -40,55 +39,39 @@ export class FileSystemApiService {
     private readonly queries: QueryBus,
   ) {}
 
-  getRoots(
-    data: GetRootsQueryData,
-    context?: FileSystemAccessContext,
-  ): Promise<GetRootsQueryReturnType> {
-    return this.queries.execute<GetRootsQuery, GetRootsQueryReturnType>(
-      new GetRootsQuery(data, context),
-    );
+  getRoots(data: GetRootsQueryData): Promise<GetRootsQueryReturnType> {
+    return this.queries.execute<GetRootsQuery, GetRootsQueryReturnType>(new GetRootsQuery(data));
   }
 
-  getEntry(
-    data: GetEntryQueryData,
-    context?: FileSystemAccessContext,
-  ): Promise<GetEntryQueryReturnType> {
-    return this.queries.execute<GetEntryQuery, GetEntryQueryReturnType>(
-      new GetEntryQuery(data, context),
-    );
+  getEntry(data: GetEntryQueryData): Promise<GetEntryQueryReturnType> {
+    return this.queries.execute<GetEntryQuery, GetEntryQueryReturnType>(new GetEntryQuery(data));
   }
 
-  getDirectory(
-    data: GetDirectoryQueryData,
-    context?: FileSystemAccessContext,
-  ): Promise<GetDirectoryQueryReturnType> {
+  getDirectory(data: GetDirectoryQueryData): Promise<GetDirectoryQueryReturnType> {
     return this.queries.execute<GetDirectoryQuery, GetDirectoryQueryReturnType>(
-      new GetDirectoryQuery(data, context),
+      new GetDirectoryQuery(data),
     );
   }
 
-  exists(data: ExistsQueryData, context?: FileSystemAccessContext): Promise<boolean> {
-    return this.queries.execute<ExistsQuery, boolean>(new ExistsQuery(data, context));
+  exists(data: ExistsQueryData): Promise<boolean> {
+    return this.queries.execute<ExistsQuery, boolean>(new ExistsQuery(data));
   }
 
-  isDirectory(data: IsDirectoryQueryData, context?: FileSystemAccessContext): Promise<boolean> {
-    return this.queries.execute<IsDirectoryQuery, boolean>(new IsDirectoryQuery(data, context));
+  isDirectory(data: IsDirectoryQueryData): Promise<boolean> {
+    return this.queries.execute<IsDirectoryQuery, boolean>(new IsDirectoryQuery(data));
   }
 
-  canonicalize(data: CanonicalizeQueryData, context?: FileSystemAccessContext): Promise<string> {
-    return this.queries.execute<CanonicalizeQuery, string>(new CanonicalizeQuery(data, context));
+  canonicalize(data: CanonicalizeQueryData): Promise<string> {
+    return this.queries.execute<CanonicalizeQuery, string>(new CanonicalizeQuery(data));
   }
 
-  readTextFile(data: ReadTextFileQueryData, context?: FileSystemAccessContext): Promise<string> {
-    return this.queries.execute<ReadTextFileQuery, string>(new ReadTextFileQuery(data, context));
+  readTextFile(data: ReadTextFileQueryData): Promise<string> {
+    return this.queries.execute<ReadTextFileQuery, string>(new ReadTextFileQuery(data));
   }
 
-  createDirectory(
-    data: CreateDirectoryCommandData,
-    context?: FileSystemAccessContext,
-  ): Promise<CreateDirectoryCommandReturnType> {
+  createDirectory(data: CreateDirectoryCommandData): Promise<CreateDirectoryCommandReturnType> {
     return this.commands.execute<CreateDirectoryCommand, CreateDirectoryCommandReturnType>(
-      new CreateDirectoryCommand(data, context),
+      new CreateDirectoryCommand(data),
     );
   }
 }

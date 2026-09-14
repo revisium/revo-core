@@ -23,7 +23,6 @@ import { CreateWorkspaceResultResponse } from './model/create-workspace-result.r
 import { CreateWorkspaceRequest } from './model/create-workspace.request.js';
 import { UpdateWorkspaceRequest } from './model/update-workspace.request.js';
 import { WorkspaceConnectionResponse } from './model/workspace-connection.response.js';
-import { WorkspaceVersionRequest } from './model/workspace-version.request.js';
 import { WorkspaceResponse } from './model/workspace.response.js';
 
 @ApiTags('Workspace')
@@ -61,7 +60,7 @@ export class WorkspaceController {
   @Post()
   @ApiOperation({ operationId: 'createWorkspace' })
   @ApiCreatedResponse({ type: CreateWorkspaceResultResponse })
-  async create(@Param('projectId') projectId: string, @Body() data: CreateWorkspaceRequest) {
+  create(@Param('projectId') projectId: string, @Body() data: CreateWorkspaceRequest) {
     return this.api.createWorkspace(
       {
         projectId,
@@ -70,14 +69,14 @@ export class WorkspaceController {
         type: data?.type,
         sourcePath: data?.sourcePath,
       },
-      await this.context.getContext(true),
+      this.context.getContext(),
     );
   }
 
   @Patch(':id')
   @ApiOperation({ operationId: 'updateWorkspace' })
   @ApiOkResponse({ type: Boolean })
-  async update(
+  update(
     @Param('projectId') projectId: string,
     @Param('id') id: string,
     @Body() data: UpdateWorkspaceRequest,
@@ -86,12 +85,11 @@ export class WorkspaceController {
       {
         projectId,
         id,
-        expectedVersion: data?.expectedVersion,
         ...(data?.name === undefined ? {} : { name: data.name }),
         ...(data?.description === undefined ? {} : { description: data.description }),
         ...(data?.sourcePath === undefined ? {} : { sourcePath: data.sourcePath }),
       },
-      await this.context.getContext(data?.sourcePath !== undefined),
+      this.context.getContext(),
     );
   }
 
@@ -99,29 +97,15 @@ export class WorkspaceController {
   @HttpCode(200)
   @ApiOperation({ operationId: 'checkWorkspace' })
   @ApiOkResponse({ type: Boolean })
-  async check(
-    @Param('projectId') projectId: string,
-    @Param('id') id: string,
-    @Body() data: WorkspaceVersionRequest,
-  ) {
-    return this.api.checkWorkspace(
-      { projectId, id, expectedVersion: data?.expectedVersion },
-      await this.context.getContext(true),
-    );
+  check(@Param('projectId') projectId: string, @Param('id') id: string) {
+    return this.api.checkWorkspace({ projectId, id }, this.context.getContext());
   }
 
   @Post(':id/disconnect')
   @HttpCode(200)
   @ApiOperation({ operationId: 'disconnectWorkspace' })
   @ApiOkResponse({ type: Boolean })
-  async disconnect(
-    @Param('projectId') projectId: string,
-    @Param('id') id: string,
-    @Body() data: WorkspaceVersionRequest,
-  ) {
-    return this.api.disconnectWorkspace(
-      { projectId, id, expectedVersion: data?.expectedVersion },
-      await this.context.getContext(false),
-    );
+  disconnect(@Param('projectId') projectId: string, @Param('id') id: string) {
+    return this.api.disconnectWorkspace({ projectId, id }, this.context.getContext());
   }
 }

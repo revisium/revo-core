@@ -4,38 +4,13 @@ import { promisify } from 'node:util';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import type { FileSystemAccessContext } from '../../file-system/contracts/file-system.contracts.js';
-import { FileSystemError } from '../../file-system/contracts/file-system.error.js';
-import { GitWorkspaceAccessService } from './git-workspace-access.service.js';
-
 const execute = promisify(execFile);
 
 @Injectable()
 export class GitWorkspaceProbe {
-  constructor(
-    private readonly config: ConfigService,
-    private readonly access: GitWorkspaceAccessService,
-  ) {}
+  constructor(private readonly config: ConfigService) {}
 
-  async inspect(
-    rootPath: string,
-    context: FileSystemAccessContext | undefined,
-  ): Promise<{ rootPath: string; gitPath: string } | null> {
-    try {
-      if (!(await this.access.check(rootPath, context))) {
-        return null;
-      }
-    } catch (error) {
-      if (
-        error instanceof FileSystemError &&
-        ['FILE_SYSTEM_NOT_FOUND', 'FILE_SYSTEM_NOT_DIRECTORY'].includes(error.code)
-      ) {
-        return null;
-      }
-
-      throw error;
-    }
-
+  async inspect(rootPath: string): Promise<{ rootPath: string } | null> {
     const options = {
       cwd: rootPath,
       timeout: 5000,
@@ -53,11 +28,8 @@ export class GitWorkspaceProbe {
 
     try {
       const root = await execute('git', ['rev-parse', '--show-toplevel'], options);
-      const git = await execute('git', ['rev-parse', '--absolute-git-dir'], options);
-
       return {
         rootPath: root.stdout.replace(/\r?\n$/u, ''),
-        gitPath: git.stdout.replace(/\r?\n$/u, ''),
       };
     } catch (error) {
       if (

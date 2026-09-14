@@ -33,9 +33,6 @@ export class WorkspaceResponse {
   @ApiProperty({ type: String, nullable: true })
   lastErrorCode: string | null;
 
-  @ApiProperty({ type: Number })
-  version: number;
-
   @ApiProperty({ type: String })
   createdAt: string;
 

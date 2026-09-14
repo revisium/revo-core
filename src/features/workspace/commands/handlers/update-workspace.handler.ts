@@ -9,7 +9,6 @@ import {
   workspaceDescription,
   workspacePath,
   workspaceActor,
-  workspaceVersion,
 } from '../../validation/workspace-input.js';
 import {
   UpdateWorkspaceCommand,
@@ -33,7 +32,6 @@ export class UpdateWorkspaceHandler implements ICommandHandler<
     context,
   }: UpdateWorkspaceCommand): Promise<UpdateWorkspaceCommandReturnType> {
     const actorId = workspaceActor(context);
-    const expectedVersion = workspaceVersion(data.expectedVersion);
     const changes = {
       ...(data.name === undefined ? {} : { name: workspaceName(data.name) }),
       ...(data.description === undefined
@@ -41,25 +39,23 @@ export class UpdateWorkspaceHandler implements ICommandHandler<
         : { description: workspaceDescription(data.description) }),
       ...(data.sourcePath === undefined ? {} : { sourcePath: workspacePath(data.sourcePath) }),
     };
-    await this.projects.assertAccessible(data.projectId, true);
-    const current = await this.store.getConnected(data.projectId, data.id, expectedVersion);
-    const check =
-      changes.sourcePath === undefined
-        ? {}
-        : await this.source.check(changes.sourcePath, current.type, context?.fileSystemAccess);
 
     return this.transactions.runSerializable(async () => {
       await this.projects.assertAccessible(data.projectId, true);
-      await this.store.getConnected(data.projectId, data.id, expectedVersion);
+      const current = await this.store.getConnected(data.projectId, data.id);
 
       if (Object.keys(changes).length === 0) {
         return true;
       }
 
+      const check =
+        changes.sourcePath === undefined
+          ? {}
+          : await this.source.check(changes.sourcePath, current.type);
+
       return this.store.update(
         data.projectId,
         data.id,
-        expectedVersion,
         { ...changes, ...check },
         actorId,
         'update',

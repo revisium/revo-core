@@ -1,11 +1,10 @@
 import { execFile } from 'node:child_process';
-import { mkdtemp, mkdir, writeFile, readFile, rm, symlink } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
 import type { INestApplication } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { nanoid } from 'nanoid';
 import request from 'supertest';
@@ -13,11 +12,8 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi 
 
 import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
 import { AppModule } from '../src/app.module.js';
-import { FileSystemAccessApiService } from '../src/features/file-system-access/file-system-access-api.service.js';
-import { FileSystemPermission as P } from '../src/features/file-system/contracts/file-system.contracts.js';
 import { FileSystemError } from '../src/features/file-system/contracts/file-system.error.js';
 import { FileSystemApiService } from '../src/features/file-system/file-system-api.service.js';
-import { FileSystemAccessContext } from '../src/features/file-system/policy/file-system-access-context.js';
 import { ProjectApiService } from '../src/features/project/project-api.service.js';
 import type { WorkspaceActorContext } from '../src/features/workspace/contracts/workspace.contracts.js';
 import { WorkspaceStoreService } from '../src/features/workspace/storage/workspace-store.service.js';
@@ -32,12 +28,9 @@ describe('Workspace module and transports', () => {
   let api: WorkspaceApiService;
   let projects: ProjectApiService;
   let prisma: PrismaService;
-  let config: ConfigService;
-  let policies: FileSystemAccessApiService;
   let root: string;
   let source: string;
   let projectId: string;
-  let policyId: string;
   let context: WorkspaceActorContext;
   const projectIds: string[] = [];
 
@@ -48,8 +41,6 @@ describe('Workspace module and transports', () => {
     api = app.get(WorkspaceApiService);
     projects = app.get(ProjectApiService);
     prisma = app.get(PrismaService);
-    config = app.get(ConfigService);
-    policies = app.get(FileSystemAccessApiService);
   });
 
   beforeEach(async () => {
@@ -58,18 +49,7 @@ describe('Workspace module and transports', () => {
     await mkdir(source);
     await writeFile(path.join(source, 'keep.txt'), 'Keep external files');
     projectId = await seedProject();
-    context = {
-      actorId: 'test:workspace-operator',
-      fileSystemAccess: FileSystemAccessContext.create({
-        scopes: [{ rootPath: root, allow: [P.LIST, P.READ_METADATA, P.READ_FILE] }],
-      }),
-    };
-    policyId = await policies.createPolicy({
-      name: 'Workspace test',
-      document: { allow: [P.LIST, P.READ_METADATA, P.READ_FILE] },
-    });
-    config.set('REVO_FILE_SYSTEM_BROWSER_ROOTS', JSON.stringify([root]));
-    config.set('REVO_FILE_SYSTEM_BROWSER_POLICY_ID', policyId);
+    context = { actorId: 'test:workspace-operator' };
   });
 
   afterEach(async () => {
@@ -80,7 +60,6 @@ describe('Workspace module and transports', () => {
       prisma.workspace.deleteMany({ where: { projectId: { in: ids } } }),
       prisma.branch.deleteMany({ where: { projectId: { in: ids } } }),
       prisma.project.deleteMany({ where: { id: { in: ids } } }),
-      prisma.fileSystemPermissionPolicy.deleteMany({ where: { id: policyId } }),
     ]);
     await rm(root, { recursive: true, force: true });
   });
@@ -133,7 +112,6 @@ describe('Workspace module and transports', () => {
       sourcePath: source,
       availability: 'AVAILABLE',
       lastErrorCode: null,
-      version: 1,
       disconnectedAt: null,
     });
     expect(workspace.lastCheckedAt).not.toBeNull();
@@ -191,17 +169,14 @@ describe('Workspace module and transports', () => {
       code: 'WORKSPACE_NOT_FOUND',
     });
     await expect(
-      api.updateWorkspace(
-        { projectId: otherProject, id: a.id, expectedVersion: 1, name: 'wrong' },
-        context,
-      ),
+      api.updateWorkspace({ projectId: otherProject, id: a.id, name: 'wrong' }, context),
     ).rejects.toMatchObject({ code: 'WORKSPACE_NOT_FOUND' });
   });
 
   test('updates metadata and source with stable id, checking only source changes', async () => {
     const workspace = await connect();
     await api.updateWorkspace(
-      { projectId, id: workspace.id, expectedVersion: 1, name: 'Renamed', description: 'Details' },
+      { projectId, id: workspace.id, name: 'Renamed', description: 'Details' },
       { actorId: context.actorId },
     );
     const renamed = await api.getWorkspace({ projectId, id: workspace.id });
@@ -210,41 +185,34 @@ describe('Workspace module and transports', () => {
       name: 'Renamed',
       description: 'Details',
       sourcePath: source,
-      version: 2,
       lastCheckedAt: workspace.lastCheckedAt,
     });
     const missing = path.join(root, 'missing');
-    await api.updateWorkspace(
-      { projectId, id: workspace.id, expectedVersion: 2, sourcePath: missing },
-      context,
-    );
+    await api.updateWorkspace({ projectId, id: workspace.id, sourcePath: missing }, context);
     expect(await api.getWorkspace({ projectId, id: workspace.id })).toMatchObject({
       id: workspace.id,
       sourcePath: missing,
       availability: 'NOT_FOUND',
-      version: 3,
     });
   });
 
   test('manual availability check observes missing source and recovery', async () => {
     const workspace = await connect();
     await rm(source, { recursive: true });
-    await api.checkWorkspace({ projectId, id: workspace.id, expectedVersion: 1 }, context);
+    await api.checkWorkspace({ projectId, id: workspace.id }, context);
     expect(await api.getWorkspace({ projectId, id: workspace.id })).toMatchObject({
       availability: 'NOT_FOUND',
       lastErrorCode: 'FILE_SYSTEM_NOT_FOUND',
-      version: 2,
     });
     await mkdir(source);
-    await api.checkWorkspace({ projectId, id: workspace.id, expectedVersion: 2 }, context);
+    await api.checkWorkspace({ projectId, id: workspace.id }, context);
     expect(await api.getWorkspace({ projectId, id: workspace.id })).toMatchObject({
       availability: 'AVAILABLE',
       lastErrorCode: null,
-      version: 3,
     });
   });
 
-  test('records authorized unavailable sources without creating directories', async () => {
+  test('records unavailable sources without creating directories', async () => {
     expect(await connect('Missing', path.join(root, 'missing'))).toMatchObject({
       availability: 'NOT_FOUND',
     });
@@ -253,43 +221,21 @@ describe('Workspace module and transports', () => {
     });
   });
 
-  test('requires trusted context and denies out-of-scope and symlink sources without persistence', async () => {
+  test('requires an audit actor context before creating a Workspace', async () => {
     const data = { projectId, name: 'Denied', type: 'folder' as const, sourcePath: source };
     await expect(api.createWorkspace(data)).rejects.toMatchObject({
       code: 'WORKSPACE_ACTOR_REQUIRED',
     });
-    await expect(api.createWorkspace(data, { actorId: context.actorId })).rejects.toMatchObject({
-      code: 'FILE_SYSTEM_PERMISSION_DENIED',
-    });
-    const limited = {
-      actorId: context.actorId,
-      fileSystemAccess: FileSystemAccessContext.create({
-        scopes: [{ rootPath: source, allow: [P.READ_METADATA] }],
-      }),
-    };
-    await expect(api.createWorkspace({ ...data, sourcePath: root }, limited)).rejects.toMatchObject(
-      { code: 'FILE_SYSTEM_PERMISSION_DENIED' },
-    );
-    const outside = path.join(root, 'outside');
-    await mkdir(outside);
-    await symlink(outside, path.join(source, 'escape'), 'dir');
-    await expect(
-      api.createWorkspace({ ...data, sourcePath: path.join(source, 'escape') }, limited),
-    ).rejects.toMatchObject({ code: 'FILE_SYSTEM_PERMISSION_DENIED' });
     expect(await prisma.workspace.count({ where: { projectId } })).toBe(0);
   });
 
-  test('OS access failures become an observation, while policy denial rejects the operation', async () => {
+  test('OS access failures become an availability observation', async () => {
     const fs = app.get(FileSystemApiService);
-    const entry = vi
-      .spyOn(fs, 'getEntry')
-      .mockRejectedValue(new FileSystemError('FILE_SYSTEM_ACCESS_DENIED'));
+    vi.spyOn(fs, 'getEntry').mockRejectedValue(new FileSystemError('FILE_SYSTEM_ACCESS_DENIED'));
     expect(await connect()).toMatchObject({
       availability: 'ACCESS_DENIED',
       lastErrorCode: 'FILE_SYSTEM_ACCESS_DENIED',
     });
-    entry.mockRejectedValue(new FileSystemError('FILE_SYSTEM_PERMISSION_DENIED'));
-    await expect(connect()).rejects.toMatchObject({ code: 'FILE_SYSTEM_PERMISSION_DENIED' });
     expect(await prisma.workspace.count({ where: { projectId } })).toBe(1);
   });
 
@@ -324,7 +270,7 @@ describe('Workspace module and transports', () => {
     });
   });
 
-  test('supports a Git metadata pointer only within granted filesystem scopes', async () => {
+  test('supports a Git metadata pointer', async () => {
     await execute('git', [
       'init',
       '--quiet',
@@ -334,112 +280,39 @@ describe('Workspace module and transports', () => {
     expect(await connect('Separate metadata', source, 'repository')).toMatchObject({
       availability: 'AVAILABLE',
     });
-    const limited = {
-      actorId: context.actorId,
-      fileSystemAccess: FileSystemAccessContext.create({
-        scopes: [{ rootPath: source, allow: [P.READ_METADATA, P.READ_FILE] }],
-      }),
-    };
-    await expect(
-      api.createWorkspace(
-        { projectId, name: 'Denied metadata', sourcePath: source, type: 'repository' },
-        limited,
-      ),
-    ).rejects.toMatchObject({ code: 'FILE_SYSTEM_PERMISSION_DENIED' });
   });
 
-  test('Git metadata reads require READ_FILE and cannot follow config includes or symlink escapes', async () => {
-    await execute('git', ['init', '--quiet', source]);
-    const metadataOnly = {
-      actorId: context.actorId,
-      fileSystemAccess: FileSystemAccessContext.create({
-        scopes: [{ rootPath: root, allow: [P.READ_METADATA] }],
-      }),
-    };
-    await expect(
-      api.createWorkspace(
-        { projectId, name: 'Metadata only', sourcePath: source, type: 'repository' },
-        metadataOnly,
-      ),
-    ).rejects.toMatchObject({ code: 'FILE_SYSTEM_PERMISSION_DENIED' });
-    await writeFile(
-      path.join(source, '.git', 'config'),
-      '[includeIf "gitdir:/workspace/"]\n  path = /outside/secret\n',
-    );
-    expect(await connect('Includes', source, 'repository')).toMatchObject({
-      availability: 'CHECK_FAILED',
-      lastErrorCode: 'WORKSPACE_UNSUPPORTED_GIT_CONFIG',
-    });
-    await rm(path.join(source, '.git', 'config'));
-    await writeFile(path.join(root, 'external-config'), '[core]\n bare = false\n');
-    await symlink(path.join(root, 'external-config'), path.join(source, '.git', 'config'));
-    const limited = {
-      actorId: context.actorId,
-      fileSystemAccess: FileSystemAccessContext.create({
-        scopes: [{ rootPath: source, allow: [P.READ_METADATA, P.READ_FILE] }],
-      }),
-    };
-    await expect(
-      api.createWorkspace(
-        { projectId, name: 'Symlink config', sourcePath: source, type: 'repository' },
-        limited,
-      ),
-    ).rejects.toMatchObject({ code: 'FILE_SYSTEM_PERMISSION_DENIED' });
-  });
-
-  test('text reads require an explicit allowed context', async () => {
+  test('text reads do not require a permission context', async () => {
     const fs = app.get(FileSystemApiService);
     const textPath = path.join(source, 'keep.txt');
-    expect(await fs.readTextFile({ path: textPath }, context.fileSystemAccess)).toBe(
-      'Keep external files',
-    );
-    await expect(fs.readTextFile({ path: textPath })).rejects.toMatchObject({
-      code: 'FILE_SYSTEM_PERMISSION_DENIED',
-    });
-  });
-
-  test('text read deny rules override allowed scopes', async () => {
-    const fs = app.get(FileSystemApiService);
-    const textPath = path.join(source, 'keep.txt');
-    const denied = context.fileSystemAccess?.restrict({
-      scopes: [
-        {
-          rootPath: root,
-          allow: [P.READ_FILE],
-          rules: [{ path: 'source/keep.txt', match: 'EXACT', deny: [P.READ_FILE] }],
-        },
-      ],
-    });
-    await expect(fs.readTextFile({ path: textPath }, denied)).rejects.toMatchObject({
-      code: 'FILE_SYSTEM_PERMISSION_DENIED',
-    });
+    expect(await fs.readTextFile({ path: textPath })).toBe('Keep external files');
   });
 
   test('text reads reject directories', async () => {
     const fs = app.get(FileSystemApiService);
-    await expect(fs.readTextFile({ path: source }, context.fileSystemAccess)).rejects.toMatchObject(
-      { code: 'FILE_SYSTEM_INVALID_PATH' },
-    );
+    await expect(fs.readTextFile({ path: source })).rejects.toMatchObject({
+      code: 'FILE_SYSTEM_INVALID_PATH',
+    });
   });
 
   test('text reads enforce the maximum size', async () => {
     const fs = app.get(FileSystemApiService);
     const textPath = path.join(source, 'keep.txt');
     await writeFile(textPath, 'x'.repeat(65536));
-    expect(await fs.readTextFile({ path: textPath }, context.fileSystemAccess)).toHaveLength(65536);
+    expect(await fs.readTextFile({ path: textPath })).toHaveLength(65536);
     await writeFile(textPath, 'x'.repeat(65537));
-    await expect(
-      fs.readTextFile({ path: textPath }, context.fileSystemAccess),
-    ).rejects.toMatchObject({ code: 'FILE_SYSTEM_TOO_LARGE' });
+    await expect(fs.readTextFile({ path: textPath })).rejects.toMatchObject({
+      code: 'FILE_SYSTEM_TOO_LARGE',
+    });
   });
 
   test('text reads report missing files', async () => {
     const fs = app.get(FileSystemApiService);
     const textPath = path.join(source, 'keep.txt');
     await rm(textPath);
-    await expect(
-      fs.readTextFile({ path: textPath }, context.fileSystemAccess),
-    ).rejects.toMatchObject({ code: 'FILE_SYSTEM_NOT_FOUND' });
+    await expect(fs.readTextFile({ path: textPath })).rejects.toMatchObject({
+      code: 'FILE_SYSTEM_NOT_FOUND',
+    });
   });
 
   test('archived Project remains readable and rejects every Workspace mutation', async () => {
@@ -455,38 +328,27 @@ describe('Workspace module and transports', () => {
     await expect(connect()).rejects.toMatchObject({ code: 'WORKSPACE_PROJECT_ARCHIVED' });
     await Promise.all(
       [
-        () =>
-          api.updateWorkspace(
-            { projectId, id: workspace.id, expectedVersion: 1, name: 'No' },
-            context,
-          ),
-        () => api.checkWorkspace({ projectId, id: workspace.id, expectedVersion: 1 }, context),
-        () => api.disconnectWorkspace({ projectId, id: workspace.id, expectedVersion: 1 }, context),
+        () => api.updateWorkspace({ projectId, id: workspace.id, name: 'No' }, context),
+        () => api.checkWorkspace({ projectId, id: workspace.id }, context),
+        () => api.disconnectWorkspace({ projectId, id: workspace.id }, context),
       ].map((operation) =>
         expect(operation()).rejects.toMatchObject({ code: 'WORKSPACE_PROJECT_ARCHIVED' }),
       ),
     );
     expect(await prisma.workspaceEvent.count({ where: { workspaceId: workspace.id } })).toBe(1);
     await projects.restoreUserProject({ projectId });
-    await api.updateWorkspace(
-      { projectId, id: workspace.id, expectedVersion: 1, name: 'Restored' },
-      context,
-    );
+    await api.updateWorkspace({ projectId, id: workspace.id, name: 'Restored' }, context);
   });
 
   test('disconnect retains source, identity and audit history and rejects further changes', async () => {
     const workspace = await connect();
-    await api.disconnectWorkspace(
-      { projectId, id: workspace.id, expectedVersion: 1 },
-      { actorId: context.actorId },
-    );
+    await api.disconnectWorkspace({ projectId, id: workspace.id }, { actorId: context.actorId });
     expect((await api.listWorkspaces({ projectId })).totalCount).toBe(0);
     const disconnected = await api.getWorkspace({ projectId, id: workspace.id });
     expect(disconnected.disconnectedAt).not.toBeNull();
-    expect(disconnected.version).toBe(2);
     expect(await readFile(path.join(source, 'keep.txt'), 'utf8')).toBe('Keep external files');
     await expect(
-      api.updateWorkspace({ projectId, id: workspace.id, expectedVersion: 2, name: 'No' }, context),
+      api.updateWorkspace({ projectId, id: workspace.id, name: 'No' }, context),
     ).rejects.toMatchObject({ code: 'WORKSPACE_CONFLICT' });
     expect(
       await prisma.workspaceEvent.findMany({
@@ -496,19 +358,15 @@ describe('Workspace module and transports', () => {
     ).toMatchObject([{ operation: 'create' }, { operation: 'disconnect' }]);
   });
 
-  test('concurrent mutations have one winner and an atomic audit event', async () => {
+  test('concurrent mutations preserve their audit events', async () => {
     const workspace = await connect();
     const results = await Promise.allSettled(
       ['First', 'Second'].map((name) =>
-        api.updateWorkspace({ projectId, id: workspace.id, expectedVersion: 1, name }, context),
+        api.updateWorkspace({ projectId, id: workspace.id, name }, context),
       ),
     );
-    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
-    expect(results.find((result) => result.status === 'rejected')).toMatchObject({
-      reason: { code: 'WORKSPACE_CONFLICT' },
-    });
-    expect((await api.getWorkspace({ projectId, id: workspace.id })).version).toBe(2);
-    expect(await prisma.workspaceEvent.count({ where: { workspaceId: workspace.id } })).toBe(2);
+    expect(results.every((result) => result.status === 'fulfilled')).toBe(true);
+    expect(await prisma.workspaceEvent.count({ where: { workspaceId: workspace.id } })).toBe(3);
   });
 
   test('rolls back a Workspace update when its audit event cannot be written', async () => {
@@ -524,7 +382,6 @@ describe('Workspace module and transports', () => {
         return store.update(
           projectId,
           workspace.id,
-          1,
           { name: 'Must roll back' },
           context.actorId,
           'update',
@@ -535,7 +392,6 @@ describe('Workspace module and transports', () => {
 
     expect(await api.getWorkspace({ projectId, id: workspace.id })).toMatchObject({
       name: 'Before rollback',
-      version: 1,
     });
     expect(await prisma.workspaceEvent.count({ where: { workspaceId: workspace.id } })).toBe(1);
   });
@@ -563,10 +419,7 @@ describe('Workspace module and transports', () => {
       workspaces: ['Alpha', 'Bravo', 'Charlie'].map((name) => ({ name, type: 'folder' })),
       workspaceCount: 4,
     });
-    await api.disconnectWorkspace(
-      { projectId, id: records[2]?.id ?? '', expectedVersion: 1 },
-      context,
-    );
+    await api.disconnectWorkspace({ projectId, id: records[2]?.id ?? '' }, context);
     expect((await projects.listUserProjects({ query: projectId })).edges[0]?.node.summary).toEqual({
       workspaces: ['Bravo', 'Charlie', 'Delta'].map((name) => ({ name, type: 'folder' })),
       workspaceCount: 3,
@@ -606,7 +459,7 @@ describe('Workspace module and transports', () => {
     const base = `/api/projects/${projectId}/workspaces`;
     const id = await createThroughRest();
     const got = await request(app.getHttpServer()).get(`${base}/${id}`).expect(200);
-    expect(got.body).toMatchObject({ id, projectId, version: 1, availability: 'AVAILABLE' });
+    expect(got.body).toMatchObject({ id, projectId, availability: 'AVAILABLE' });
   });
 
   test('GraphQL updates and lists Workspaces', async () => {
@@ -615,7 +468,7 @@ describe('Workspace module and transports', () => {
       .post('/graphql')
       .send({
         query: 'mutation($data: UpdateWorkspaceInput!) { updateWorkspace(data: $data) }',
-        variables: { data: { projectId, id, expectedVersion: 1, name: 'GraphQL folder' } },
+        variables: { data: { projectId, id, name: 'GraphQL folder' } },
       })
       .expect(200);
     expect(changed.body).toEqual({ data: { updateWorkspace: true } });
@@ -623,13 +476,13 @@ describe('Workspace module and transports', () => {
       .post('/graphql')
       .send({
         query:
-          'query($data: WorkspaceListInput!) { workspaces(data: $data) { totalCount edges { node { id name type version } } } }',
+          'query($data: WorkspaceListInput!) { workspaces(data: $data) { totalCount edges { node { id name type } } } }',
         variables: { data: { projectId } },
       })
       .expect(200);
     expect(listed.body.data.workspaces).toMatchObject({
       totalCount: 1,
-      edges: [{ node: { id, name: 'GraphQL folder', type: 'folder', version: 2 } }],
+      edges: [{ node: { id, name: 'GraphQL folder', type: 'folder' } }],
     });
   });
 
@@ -645,20 +498,17 @@ describe('Workspace module and transports', () => {
     });
   });
 
-  test('REST checks and disconnects Workspaces with version validation', async () => {
+  test('REST checks and disconnects Workspaces', async () => {
     const base = `/api/projects/${projectId}/workspaces`;
     const id = await createThroughRest();
-    await request(app.getHttpServer())
-      .post(`${base}/${id}/check`)
-      .send({ expectedVersion: 1 })
-      .expect(200, 'true');
+    await request(app.getHttpServer()).post(`${base}/${id}/check`).send({}).expect(200, 'true');
     await request(app.getHttpServer())
       .patch(`${base}/${id}`)
-      .send({ expectedVersion: 1, name: 'Stale' })
-      .expect(409);
+      .send({ name: 'Updated' })
+      .expect(200, 'true');
     await request(app.getHttpServer())
       .post(`${base}/${id}/disconnect`)
-      .send({ expectedVersion: 2 })
+      .send({})
       .expect(200, 'true');
     const page = await request(app.getHttpServer()).get(base).expect(200);
     expect(page.body.totalCount).toBe(0);
@@ -668,73 +518,36 @@ describe('Workspace module and transports', () => {
     const id = await createThroughRest();
     await request(app.getHttpServer())
       .post(`/api/projects/${projectId}/workspaces/${id}/disconnect`)
-      .send({ expectedVersion: 1 })
+      .send({})
       .expect(200, 'true');
     const events = await prisma.workspaceEvent.findMany({ where: { workspaceId: id } });
     expect(events.every((event) => event.actorId === 'system:local-api')).toBe(true);
   });
 
-  test('transport permissions come from server configuration, never client fields', async () => {
-    config.set('REVO_FILE_SYSTEM_BROWSER_ROOTS', '[]');
-    const denied = await request(app.getHttpServer())
-      .post(`/api/projects/${projectId}/workspaces`)
-      .send({
-        name: 'Forged',
-        type: 'folder',
-        sourcePath: source,
-        permissions: ['READ_METADATA'],
-        context,
-        policyId,
-      })
-      .expect(403);
-    expect(denied.body.code).toBe('FILE_SYSTEM_PERMISSION_DENIED');
-    const graphql = await request(app.getHttpServer())
-      .post('/graphql')
-      .send({
-        query:
-          'mutation($data: CreateWorkspaceInput!) { createWorkspace(data: $data) { workspaceId } }',
-        variables: { data: { projectId, name: 'Denied', type: 'folder', sourcePath: source } },
-      })
-      .expect(200);
-    expect(graphql.body.errors[0].extensions.code).toBe('FILE_SYSTEM_PERMISSION_DENIED');
-    const forged = await request(app.getHttpServer())
-      .post('/graphql')
-      .send({
-        query:
-          'mutation($data: CreateWorkspaceInput!) { createWorkspace(data: $data) { workspaceId } }',
-        variables: {
-          data: {
-            projectId,
-            name: 'Forged',
-            type: 'folder',
-            sourcePath: source,
-            permissions: ['READ_METADATA'],
-          },
-        },
-      });
-    expect(forged.body.errors[0].message).toContain('permissions');
-    expect(await prisma.workspace.count({ where: { projectId } })).toBe(0);
-  });
-
-  test('REST validates optional values and GraphQL exposes stable Workspace error codes', async () => {
-    const workspace = await connect();
+  test('REST rejects a null description on create', async () => {
     const base = `/api/projects/${projectId}/workspaces`;
-    await request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .post(base)
       .send({ name: 'Name', description: null, type: 'folder', sourcePath: source })
       .expect(400);
-    await request(app.getHttpServer())
+    expect(response.body.code).toBe('WORKSPACE_INVALID_INPUT');
+  });
+
+  test('REST rejects a null name on update', async () => {
+    const workspace = await connect();
+    const base = `/api/projects/${projectId}/workspaces`;
+    const response = await request(app.getHttpServer())
       .patch(`${base}/${workspace.id}`)
-      .send({ expectedVersion: 1, name: null })
+      .send({ name: null })
       .expect(400);
-    await request(app.getHttpServer()).get(base).query({ first: 'bad' }).expect(400);
-    const stale = await request(app.getHttpServer())
-      .post('/graphql')
-      .send({
-        query: 'mutation($data: WorkspaceVersionInput!) { disconnectWorkspace(data: $data) }',
-        variables: { data: { projectId, id: workspace.id, expectedVersion: 5 } },
-      })
-      .expect(200);
-    expect(stale.body.errors[0].extensions.code).toBe('WORKSPACE_CONFLICT');
+    expect(response.body.code).toBe('WORKSPACE_INVALID_INPUT');
+  });
+
+  test('REST rejects a nonnumeric page size', async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/api/projects/${projectId}/workspaces`)
+      .query({ first: 'bad' })
+      .expect(400);
+    expect(response.body.message).toBe('Validation failed (numeric string is expected)');
   });
 });
