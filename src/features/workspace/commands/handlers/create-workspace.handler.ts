@@ -27,7 +27,7 @@ export class CreateWorkspaceHandler implements ICommandHandler<
     const input = {
       projectId: data.projectId,
       name: workspaceName(data.name),
-      description: workspaceDescription(data.description === undefined ? '' : data.description),
+      description: workspaceDescription(data.description),
       type: workspaceType(data.type),
       sourcePath: workspacePath(data.sourcePath),
     };

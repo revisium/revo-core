@@ -5,10 +5,10 @@ import path from 'node:path';
 
 import { Injectable } from '@nestjs/common';
 
-import type { FileSystemEntry } from '../contracts/file-system.contracts.js';
 import {
   FileSystemEntryType,
   FileSystemRootType,
+  type FileSystemEntry,
   type FileSystemRoot,
 } from '../contracts/file-system.contracts.js';
 import { FileSystemError, rethrowFileSystemError } from '../contracts/file-system.error.js';

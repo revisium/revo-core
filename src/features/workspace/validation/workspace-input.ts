@@ -11,7 +11,7 @@ export function workspaceName(value: unknown): string {
   return value.trim();
 }
 
-export function workspaceDescription(value: unknown): string {
+export function workspaceDescription(value: unknown = ''): string {
   if (typeof value !== 'string') {
     throw new WorkspaceError('WORKSPACE_INVALID_INPUT', 'description');
   }
