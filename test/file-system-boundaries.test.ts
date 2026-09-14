@@ -47,14 +47,15 @@ describe('Filesystem permission boundaries', () => {
     const context = authority
       .restrict({ scopes: [{ rootPath: workspace, allow: [P.LIST, P.READ_METADATA] }] })
       .restrict({ scopes: [{ rootPath: root, allow: capabilities }] });
-    const client = filesystem.withAccess(context);
-    expect((await client.getRoots({})).edges.map((edge) => edge.node.path)).toEqual([workspace]);
-    expect((await client.getDirectory({ path: workspace })).parentPath).toBeNull();
-    await expect(client.getEntry({ path: root })).rejects.toMatchObject({
+    expect((await filesystem.getRoots({}, context)).edges.map((edge) => edge.node.path)).toEqual([
+      workspace,
+    ]);
+    expect((await filesystem.getDirectory({ path: workspace }, context)).parentPath).toBeNull();
+    await expect(filesystem.getEntry({ path: root }, context)).rejects.toMatchObject({
       code: 'FILE_SYSTEM_PERMISSION_DENIED',
     });
     await expect(
-      client.createDirectory({ parentPath: workspace, name: 'forbidden' }),
+      filesystem.createDirectory({ parentPath: workspace, name: 'forbidden' }, context),
     ).rejects.toMatchObject({ code: 'FILE_SYSTEM_PERMISSION_DENIED' });
   });
 
@@ -62,12 +63,11 @@ describe('Filesystem permission boundaries', () => {
     const context = authority
       .restrict({ scopes: [{ rootPath: workspace, allow: capabilities }] })
       .restrict({ scopes: [{ rootPath: workspace, allow: [P.READ_METADATA] }] });
-    const client = filesystem.withAccess(context);
-    expect(await client.isDirectory({ path: workspace })).toBe(true);
-    await expect(client.getDirectory({ path: workspace })).rejects.toMatchObject({
+    expect(await filesystem.isDirectory({ path: workspace }, context)).toBe(true);
+    await expect(filesystem.getDirectory({ path: workspace }, context)).rejects.toMatchObject({
       code: 'FILE_SYSTEM_PERMISSION_DENIED',
     });
-    expect((await client.getRoots({})).totalCount).toBe(0);
+    expect((await filesystem.getRoots({}, context)).totalCount).toBe(0);
   });
 
   test('host limits remain effective when Workspace and agent claim wider roots', async () => {
@@ -103,16 +103,24 @@ describe('Filesystem permission boundaries', () => {
         },
       ],
     };
-    const client = filesystem.withAccess(authority.restrict(boundary).restrict(step));
-    await client.createDirectory({ parentPath: path.join(workspace, 'docs'), name: 'allowed' });
+    const context = authority.restrict(boundary).restrict(step);
+    await filesystem.createDirectory(
+      { parentPath: path.join(workspace, 'docs'), name: 'allowed' },
+      context,
+    );
     await expect(
-      client.createDirectory({ parentPath: workspace, name: 'forbidden' }),
+      filesystem.createDirectory({ parentPath: workspace, name: 'forbidden' }, context),
     ).rejects.toMatchObject({ code: 'FILE_SYSTEM_PERMISSION_DENIED' });
-    await expect(client.getEntry({ path: path.join(workspace, '.env') })).rejects.toMatchObject({
+    await expect(
+      filesystem.getEntry({ path: path.join(workspace, '.env') }, context),
+    ).rejects.toMatchObject({
       code: 'FILE_SYSTEM_PERMISSION_DENIED',
     });
     await expect(
-      client.createDirectory({ parentPath: path.join(workspace, '.git'), name: 'forbidden' }),
+      filesystem.createDirectory(
+        { parentPath: path.join(workspace, '.git'), name: 'forbidden' },
+        context,
+      ),
     ).rejects.toMatchObject({ code: 'FILE_SYSTEM_PERMISSION_DENIED' });
   });
 
@@ -172,17 +180,16 @@ describe('Filesystem permission boundaries', () => {
     ).rejects.toMatchObject({ code: 'FILE_SYSTEM_PERMISSION_DENIED' });
   });
 
-  test('caller mutation cannot change issued grants or bound tool permissions', async () => {
+  test('caller mutation cannot change issued grants', async () => {
     const allow = [P.READ_METADATA];
     const policy = { scopes: [{ rootPath: workspace, allow }] };
     const context = FileSystemAccessContext.create(policy);
-    const client = filesystem.withAccess(context);
     allow.push(P.CREATE_DIRECTORY);
     policy.scopes[0] = { rootPath: root, allow: capabilities };
     await expect(
-      client.createDirectory({ parentPath: workspace, name: 'forbidden' }),
+      filesystem.createDirectory({ parentPath: workspace, name: 'forbidden' }, context),
     ).rejects.toMatchObject({ code: 'FILE_SYSTEM_PERMISSION_DENIED' });
-    await expect(client.getEntry({ path: root })).rejects.toMatchObject({
+    await expect(filesystem.getEntry({ path: root }, context)).rejects.toMatchObject({
       code: 'FILE_SYSTEM_PERMISSION_DENIED',
     });
     expect(Object.isFrozen(context.policies[0]?.scopes[0]?.allow)).toBe(true);

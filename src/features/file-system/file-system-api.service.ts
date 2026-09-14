@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
-import { BoundFileSystemClient } from './binding/bound-file-system-client.js';
 import {
   CreateDirectoryCommand,
   type CreateDirectoryCommandData,
   type CreateDirectoryCommandReturnType,
 } from './commands/impl/create-directory.command.js';
-import type { FileSystemClient, FileSystemAccessSource } from './contracts/file-system-client.js';
 import type { FileSystemAccessContext } from './contracts/file-system.contracts.js';
 import {
   CanonicalizeQuery,
@@ -51,10 +49,6 @@ export class FileSystemApiService {
     private readonly commands: CommandBus,
     private readonly queries: QueryBus,
   ) {}
-
-  withAccess(source: FileSystemAccessSource): FileSystemClient {
-    return new BoundFileSystemClient(this, source);
-  }
 
   getRoots(
     data: GetRootsQueryData,
