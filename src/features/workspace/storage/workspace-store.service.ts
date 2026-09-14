@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 
-import type { Prisma } from '../../../__generated__/client/client.js';
 import { TransactionPrismaService } from '../../../infrastructure/database/transaction-prisma.service.js';
 import { WorkspaceError } from '../contracts/workspace.errors.js';
 
@@ -20,11 +19,11 @@ export class WorkspaceStoreService {
     return record;
   }
 
-  async getConnected(projectId: string, id: string) {
+  async getActive(projectId: string, id: string) {
     const record = await this.get(projectId, id);
 
-    if (record.disconnectedAt !== null) {
-      throw new WorkspaceError('WORKSPACE_CONFLICT');
+    if (record.isArchived) {
+      throw new WorkspaceError('WORKSPACE_ARCHIVED');
     }
 
     return record;
@@ -33,24 +32,23 @@ export class WorkspaceStoreService {
   async update(
     projectId: string,
     id: string,
-    changes: Prisma.WorkspaceUpdateManyMutationInput,
-    actorId: string,
-    operation: string,
-    details: Prisma.InputJsonObject,
+    changes: {
+      name?: string;
+      description?: string;
+      sourcePath?: string;
+      isArchived?: boolean;
+      archivedAt?: Date;
+    },
   ): Promise<boolean> {
     const transaction = this.transactions.getTransaction();
     const result = await transaction.workspace.updateMany({
-      where: { id, projectId, disconnectedAt: null },
+      where: { id, projectId, isArchived: false },
       data: changes,
     });
 
     if (result.count !== 1) {
-      throw new WorkspaceError('WORKSPACE_CONFLICT');
+      throw new WorkspaceError('WORKSPACE_ARCHIVED');
     }
-
-    await transaction.workspaceEvent.create({
-      data: { workspaceId: id, actorId, operation, details },
-    });
 
     return true;
   }

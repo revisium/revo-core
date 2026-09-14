@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { WorkspaceType, type WorkspaceActorContext } from '../contracts/workspace.contracts.js';
+import { WorkspaceType } from '../contracts/workspace.contracts.js';
 import { WorkspaceError } from '../contracts/workspace.errors.js';
 
 export function workspaceName(value: string): string {
@@ -33,12 +33,4 @@ export function workspacePath(value: string): string {
   }
 
   return path.resolve(value);
-}
-
-export function workspaceActor(context: WorkspaceActorContext | undefined): string {
-  if (typeof context?.actorId !== 'string' || !context.actorId.trim()) {
-    throw new WorkspaceError('WORKSPACE_ACTOR_REQUIRED');
-  }
-
-  return context.actorId;
 }

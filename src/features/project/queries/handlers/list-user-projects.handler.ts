@@ -32,12 +32,12 @@ export class ListUserProjectsHandler implements IQueryHandler<
           select: {
             ...USER_PROJECT_SELECT,
             workspaces: {
-              where: { disconnectedAt: null },
+              where: { isArchived: false },
               orderBy: [{ name: 'asc' }, { id: 'asc' }],
               take: 3,
               select: { name: true, type: true },
             },
-            _count: { select: { workspaces: { where: { disconnectedAt: null } } } },
+            _count: { select: { workspaces: { where: { isArchived: false } } } },
           },
         });
 

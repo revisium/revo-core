@@ -2,10 +2,10 @@ import { UseFilters } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { WorkspaceApiService } from '../../../features/workspace/workspace-api.service.js';
-import { WorkspaceRequestContextService } from '../../workspace/workspace-request-context.service.js';
 import { CreateWorkspaceResultModel } from './model/create-workspace-result.model.js';
 import { CreateWorkspaceInput } from './model/create-workspace.input.js';
 import { UpdateWorkspaceInput } from './model/update-workspace.input.js';
+import { WorkspaceCheckModel } from './model/workspace-check.model.js';
 import { WorkspaceConnectionModel } from './model/workspace-connection.model.js';
 import { WorkspaceListInput } from './model/workspace-list.input.js';
 import { WorkspaceInput } from './model/workspace.input.js';
@@ -18,10 +18,7 @@ registerWorkspaceEnums();
 @Resolver()
 @UseFilters(WorkspaceGraphqlExceptionFilter)
 export class WorkspaceResolver {
-  constructor(
-    private readonly api: WorkspaceApiService,
-    private readonly context: WorkspaceRequestContextService,
-  ) {}
+  constructor(private readonly api: WorkspaceApiService) {}
 
   @Query(() => WorkspaceModel)
   workspace(@Args('data') data: WorkspaceInput) {
@@ -35,21 +32,21 @@ export class WorkspaceResolver {
 
   @Mutation(() => CreateWorkspaceResultModel)
   createWorkspace(@Args('data') data: CreateWorkspaceInput) {
-    return this.api.createWorkspace(data, this.context.getContext());
+    return this.api.createWorkspace(data);
   }
 
   @Mutation(() => Boolean)
   updateWorkspace(@Args('data') data: UpdateWorkspaceInput) {
-    return this.api.updateWorkspace(data, this.context.getContext());
+    return this.api.updateWorkspace(data);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => WorkspaceCheckModel)
   checkWorkspace(@Args('data') data: WorkspaceInput) {
-    return this.api.checkWorkspace(data, this.context.getContext());
+    return this.api.checkWorkspace(data);
   }
 
   @Mutation(() => Boolean)
-  disconnectWorkspace(@Args('data') data: WorkspaceInput) {
-    return this.api.disconnectWorkspace(data, this.context.getContext());
+  archiveWorkspace(@Args('data') data: WorkspaceInput) {
+    return this.api.archiveWorkspace(data);
   }
 }

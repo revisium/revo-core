@@ -1,5 +1,14 @@
-export { WorkspaceType, WorkspaceAvailability } from '../../../__generated__/client/enums.js';
-import type { WorkspaceType, WorkspaceAvailability } from '../../../__generated__/client/enums.js';
+export { WorkspaceType } from '../../../__generated__/client/enums.js';
+import type { WorkspaceType } from '../../../__generated__/client/enums.js';
+
+export enum WorkspaceAvailability {
+  AVAILABLE = 'AVAILABLE',
+  NOT_FOUND = 'NOT_FOUND',
+  NOT_DIRECTORY = 'NOT_DIRECTORY',
+  ACCESS_DENIED = 'ACCESS_DENIED',
+  INVALID_REPOSITORY = 'INVALID_REPOSITORY',
+  CHECK_FAILED = 'CHECK_FAILED',
+}
 
 export type WorkspaceRecord = {
   id: string;
@@ -8,22 +17,15 @@ export type WorkspaceRecord = {
   description: string;
   type: WorkspaceType;
   sourcePath: string;
-  availability: WorkspaceAvailability;
-  lastCheckedAt: string | null;
-  lastErrorCode: string | null;
   createdAt: string;
   updatedAt: string;
-  disconnectedAt: string | null;
-};
-
-export type WorkspaceActorContext = {
-  readonly actorId: string;
+  isArchived: boolean;
+  archivedAt: string | null;
 };
 
 export type WorkspaceCheck = {
   availability: WorkspaceAvailability;
-  lastCheckedAt: Date;
-  lastErrorCode: string | null;
+  errorCode: string | null;
 };
 
 export type WorkspacePage = {

@@ -31,12 +31,10 @@ export type WorkspaceMinAggregateOutputType = {
   description: string | null
   type: $Enums.WorkspaceType | null
   sourcePath: string | null
-  availability: $Enums.WorkspaceAvailability | null
-  lastCheckedAt: Date | null
-  lastErrorCode: string | null
   createdAt: Date | null
   updatedAt: Date | null
-  disconnectedAt: Date | null
+  isArchived: boolean | null
+  archivedAt: Date | null
 }
 
 export type WorkspaceMaxAggregateOutputType = {
@@ -46,12 +44,10 @@ export type WorkspaceMaxAggregateOutputType = {
   description: string | null
   type: $Enums.WorkspaceType | null
   sourcePath: string | null
-  availability: $Enums.WorkspaceAvailability | null
-  lastCheckedAt: Date | null
-  lastErrorCode: string | null
   createdAt: Date | null
   updatedAt: Date | null
-  disconnectedAt: Date | null
+  isArchived: boolean | null
+  archivedAt: Date | null
 }
 
 export type WorkspaceCountAggregateOutputType = {
@@ -61,12 +57,10 @@ export type WorkspaceCountAggregateOutputType = {
   description: number
   type: number
   sourcePath: number
-  availability: number
-  lastCheckedAt: number
-  lastErrorCode: number
   createdAt: number
   updatedAt: number
-  disconnectedAt: number
+  isArchived: number
+  archivedAt: number
   _all: number
 }
 
@@ -78,12 +72,10 @@ export type WorkspaceMinAggregateInputType = {
   description?: true
   type?: true
   sourcePath?: true
-  availability?: true
-  lastCheckedAt?: true
-  lastErrorCode?: true
   createdAt?: true
   updatedAt?: true
-  disconnectedAt?: true
+  isArchived?: true
+  archivedAt?: true
 }
 
 export type WorkspaceMaxAggregateInputType = {
@@ -93,12 +85,10 @@ export type WorkspaceMaxAggregateInputType = {
   description?: true
   type?: true
   sourcePath?: true
-  availability?: true
-  lastCheckedAt?: true
-  lastErrorCode?: true
   createdAt?: true
   updatedAt?: true
-  disconnectedAt?: true
+  isArchived?: true
+  archivedAt?: true
 }
 
 export type WorkspaceCountAggregateInputType = {
@@ -108,12 +98,10 @@ export type WorkspaceCountAggregateInputType = {
   description?: true
   type?: true
   sourcePath?: true
-  availability?: true
-  lastCheckedAt?: true
-  lastErrorCode?: true
   createdAt?: true
   updatedAt?: true
-  disconnectedAt?: true
+  isArchived?: true
+  archivedAt?: true
   _all?: true
 }
 
@@ -196,12 +184,10 @@ export type WorkspaceGroupByOutputType = {
   description: string
   type: $Enums.WorkspaceType
   sourcePath: string
-  availability: $Enums.WorkspaceAvailability
-  lastCheckedAt: Date | null
-  lastErrorCode: string | null
   createdAt: Date
   updatedAt: Date
-  disconnectedAt: Date | null
+  isArchived: boolean
+  archivedAt: Date | null
   _count: WorkspaceCountAggregateOutputType | null
   _min: WorkspaceMinAggregateOutputType | null
   _max: WorkspaceMaxAggregateOutputType | null
@@ -232,14 +218,11 @@ export type WorkspaceWhereInput = {
   description?: Prisma.StringFilter<"Workspace"> | string
   type?: Prisma.EnumWorkspaceTypeFilter<"Workspace"> | $Enums.WorkspaceType
   sourcePath?: Prisma.StringFilter<"Workspace"> | string
-  availability?: Prisma.EnumWorkspaceAvailabilityFilter<"Workspace"> | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
-  lastErrorCode?: Prisma.StringNullableFilter<"Workspace"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
-  disconnectedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
+  isArchived?: Prisma.BoolFilter<"Workspace"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
-  events?: Prisma.WorkspaceEventListRelationFilter
 }
 
 export type WorkspaceOrderByWithRelationInput = {
@@ -249,14 +232,11 @@ export type WorkspaceOrderByWithRelationInput = {
   description?: Prisma.SortOrder
   type?: Prisma.SortOrder
   sourcePath?: Prisma.SortOrder
-  availability?: Prisma.SortOrder
-  lastCheckedAt?: Prisma.SortOrderInput | Prisma.SortOrder
-  lastErrorCode?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  disconnectedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   project?: Prisma.ProjectOrderByWithRelationInput
-  events?: Prisma.WorkspaceEventOrderByRelationAggregateInput
 }
 
 export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
@@ -269,14 +249,11 @@ export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringFilter<"Workspace"> | string
   type?: Prisma.EnumWorkspaceTypeFilter<"Workspace"> | $Enums.WorkspaceType
   sourcePath?: Prisma.StringFilter<"Workspace"> | string
-  availability?: Prisma.EnumWorkspaceAvailabilityFilter<"Workspace"> | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
-  lastErrorCode?: Prisma.StringNullableFilter<"Workspace"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
-  disconnectedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
+  isArchived?: Prisma.BoolFilter<"Workspace"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
-  events?: Prisma.WorkspaceEventListRelationFilter
 }, "id">
 
 export type WorkspaceOrderByWithAggregationInput = {
@@ -286,12 +263,10 @@ export type WorkspaceOrderByWithAggregationInput = {
   description?: Prisma.SortOrder
   type?: Prisma.SortOrder
   sourcePath?: Prisma.SortOrder
-  availability?: Prisma.SortOrder
-  lastCheckedAt?: Prisma.SortOrderInput | Prisma.SortOrder
-  lastErrorCode?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  disconnectedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.WorkspaceCountOrderByAggregateInput
   _max?: Prisma.WorkspaceMaxOrderByAggregateInput
   _min?: Prisma.WorkspaceMinOrderByAggregateInput
@@ -307,12 +282,10 @@ export type WorkspaceScalarWhereWithAggregatesInput = {
   description?: Prisma.StringWithAggregatesFilter<"Workspace"> | string
   type?: Prisma.EnumWorkspaceTypeWithAggregatesFilter<"Workspace"> | $Enums.WorkspaceType
   sourcePath?: Prisma.StringWithAggregatesFilter<"Workspace"> | string
-  availability?: Prisma.EnumWorkspaceAvailabilityWithAggregatesFilter<"Workspace"> | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Workspace"> | Date | string | null
-  lastErrorCode?: Prisma.StringNullableWithAggregatesFilter<"Workspace"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Workspace"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Workspace"> | Date | string
-  disconnectedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Workspace"> | Date | string | null
+  isArchived?: Prisma.BoolWithAggregatesFilter<"Workspace"> | boolean
+  archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Workspace"> | Date | string | null
 }
 
 export type WorkspaceCreateInput = {
@@ -321,14 +294,11 @@ export type WorkspaceCreateInput = {
   description?: string
   type: $Enums.WorkspaceType
   sourcePath: string
-  availability?: $Enums.WorkspaceAvailability
-  lastCheckedAt?: Date | string | null
-  lastErrorCode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  disconnectedAt?: Date | string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
   project: Prisma.ProjectCreateNestedOneWithoutWorkspacesInput
-  events?: Prisma.WorkspaceEventCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateInput = {
@@ -338,13 +308,10 @@ export type WorkspaceUncheckedCreateInput = {
   description?: string
   type: $Enums.WorkspaceType
   sourcePath: string
-  availability?: $Enums.WorkspaceAvailability
-  lastCheckedAt?: Date | string | null
-  lastErrorCode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  disconnectedAt?: Date | string | null
-  events?: Prisma.WorkspaceEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  isArchived?: boolean
+  archivedAt?: Date | string | null
 }
 
 export type WorkspaceUpdateInput = {
@@ -353,14 +320,11 @@ export type WorkspaceUpdateInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumWorkspaceTypeFieldUpdateOperationsInput | $Enums.WorkspaceType
   sourcePath?: Prisma.StringFieldUpdateOperationsInput | string
-  availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   project?: Prisma.ProjectUpdateOneRequiredWithoutWorkspacesNestedInput
-  events?: Prisma.WorkspaceEventUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateInput = {
@@ -370,13 +334,10 @@ export type WorkspaceUncheckedUpdateInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumWorkspaceTypeFieldUpdateOperationsInput | $Enums.WorkspaceType
   sourcePath?: Prisma.StringFieldUpdateOperationsInput | string
-  availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  events?: Prisma.WorkspaceEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type WorkspaceCreateManyInput = {
@@ -386,12 +347,10 @@ export type WorkspaceCreateManyInput = {
   description?: string
   type: $Enums.WorkspaceType
   sourcePath: string
-  availability?: $Enums.WorkspaceAvailability
-  lastCheckedAt?: Date | string | null
-  lastErrorCode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  disconnectedAt?: Date | string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
 }
 
 export type WorkspaceUpdateManyMutationInput = {
@@ -400,12 +359,10 @@ export type WorkspaceUpdateManyMutationInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumWorkspaceTypeFieldUpdateOperationsInput | $Enums.WorkspaceType
   sourcePath?: Prisma.StringFieldUpdateOperationsInput | string
-  availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type WorkspaceUncheckedUpdateManyInput = {
@@ -415,12 +372,10 @@ export type WorkspaceUncheckedUpdateManyInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumWorkspaceTypeFieldUpdateOperationsInput | $Enums.WorkspaceType
   sourcePath?: Prisma.StringFieldUpdateOperationsInput | string
-  availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type WorkspaceListRelationFilter = {
@@ -440,12 +395,10 @@ export type WorkspaceCountOrderByAggregateInput = {
   description?: Prisma.SortOrder
   type?: Prisma.SortOrder
   sourcePath?: Prisma.SortOrder
-  availability?: Prisma.SortOrder
-  lastCheckedAt?: Prisma.SortOrder
-  lastErrorCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  disconnectedAt?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
 }
 
 export type WorkspaceMaxOrderByAggregateInput = {
@@ -455,12 +408,10 @@ export type WorkspaceMaxOrderByAggregateInput = {
   description?: Prisma.SortOrder
   type?: Prisma.SortOrder
   sourcePath?: Prisma.SortOrder
-  availability?: Prisma.SortOrder
-  lastCheckedAt?: Prisma.SortOrder
-  lastErrorCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  disconnectedAt?: Prisma.SortOrder
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
 }
 
 export type WorkspaceMinOrderByAggregateInput = {
@@ -470,17 +421,10 @@ export type WorkspaceMinOrderByAggregateInput = {
   description?: Prisma.SortOrder
   type?: Prisma.SortOrder
   sourcePath?: Prisma.SortOrder
-  availability?: Prisma.SortOrder
-  lastCheckedAt?: Prisma.SortOrder
-  lastErrorCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  disconnectedAt?: Prisma.SortOrder
-}
-
-export type WorkspaceScalarRelationFilter = {
-  is?: Prisma.WorkspaceWhereInput
-  isNot?: Prisma.WorkspaceWhereInput
+  isArchived?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
 }
 
 export type WorkspaceCreateNestedManyWithoutProjectInput = {
@@ -529,30 +473,12 @@ export type EnumWorkspaceTypeFieldUpdateOperationsInput = {
   set?: $Enums.WorkspaceType
 }
 
-export type EnumWorkspaceAvailabilityFieldUpdateOperationsInput = {
-  set?: $Enums.WorkspaceAvailability
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
-}
-
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
-export type WorkspaceCreateNestedOneWithoutEventsInput = {
-  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutEventsInput, Prisma.WorkspaceUncheckedCreateWithoutEventsInput>
-  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutEventsInput
-  connect?: Prisma.WorkspaceWhereUniqueInput
-}
-
-export type WorkspaceUpdateOneRequiredWithoutEventsNestedInput = {
-  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutEventsInput, Prisma.WorkspaceUncheckedCreateWithoutEventsInput>
-  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutEventsInput
-  upsert?: Prisma.WorkspaceUpsertWithoutEventsInput
-  connect?: Prisma.WorkspaceWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutEventsInput, Prisma.WorkspaceUpdateWithoutEventsInput>, Prisma.WorkspaceUncheckedUpdateWithoutEventsInput>
 }
 
 export type WorkspaceCreateWithoutProjectInput = {
@@ -561,13 +487,10 @@ export type WorkspaceCreateWithoutProjectInput = {
   description?: string
   type: $Enums.WorkspaceType
   sourcePath: string
-  availability?: $Enums.WorkspaceAvailability
-  lastCheckedAt?: Date | string | null
-  lastErrorCode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  disconnectedAt?: Date | string | null
-  events?: Prisma.WorkspaceEventCreateNestedManyWithoutWorkspaceInput
+  isArchived?: boolean
+  archivedAt?: Date | string | null
 }
 
 export type WorkspaceUncheckedCreateWithoutProjectInput = {
@@ -576,13 +499,10 @@ export type WorkspaceUncheckedCreateWithoutProjectInput = {
   description?: string
   type: $Enums.WorkspaceType
   sourcePath: string
-  availability?: $Enums.WorkspaceAvailability
-  lastCheckedAt?: Date | string | null
-  lastErrorCode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  disconnectedAt?: Date | string | null
-  events?: Prisma.WorkspaceEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  isArchived?: boolean
+  archivedAt?: Date | string | null
 }
 
 export type WorkspaceCreateOrConnectWithoutProjectInput = {
@@ -621,88 +541,10 @@ export type WorkspaceScalarWhereInput = {
   description?: Prisma.StringFilter<"Workspace"> | string
   type?: Prisma.EnumWorkspaceTypeFilter<"Workspace"> | $Enums.WorkspaceType
   sourcePath?: Prisma.StringFilter<"Workspace"> | string
-  availability?: Prisma.EnumWorkspaceAvailabilityFilter<"Workspace"> | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
-  lastErrorCode?: Prisma.StringNullableFilter<"Workspace"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
-  disconnectedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
-}
-
-export type WorkspaceCreateWithoutEventsInput = {
-  id?: string
-  name: string
-  description?: string
-  type: $Enums.WorkspaceType
-  sourcePath: string
-  availability?: $Enums.WorkspaceAvailability
-  lastCheckedAt?: Date | string | null
-  lastErrorCode?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  disconnectedAt?: Date | string | null
-  project: Prisma.ProjectCreateNestedOneWithoutWorkspacesInput
-}
-
-export type WorkspaceUncheckedCreateWithoutEventsInput = {
-  id?: string
-  projectId: string
-  name: string
-  description?: string
-  type: $Enums.WorkspaceType
-  sourcePath: string
-  availability?: $Enums.WorkspaceAvailability
-  lastCheckedAt?: Date | string | null
-  lastErrorCode?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  disconnectedAt?: Date | string | null
-}
-
-export type WorkspaceCreateOrConnectWithoutEventsInput = {
-  where: Prisma.WorkspaceWhereUniqueInput
-  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutEventsInput, Prisma.WorkspaceUncheckedCreateWithoutEventsInput>
-}
-
-export type WorkspaceUpsertWithoutEventsInput = {
-  update: Prisma.XOR<Prisma.WorkspaceUpdateWithoutEventsInput, Prisma.WorkspaceUncheckedUpdateWithoutEventsInput>
-  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutEventsInput, Prisma.WorkspaceUncheckedCreateWithoutEventsInput>
-  where?: Prisma.WorkspaceWhereInput
-}
-
-export type WorkspaceUpdateToOneWithWhereWithoutEventsInput = {
-  where?: Prisma.WorkspaceWhereInput
-  data: Prisma.XOR<Prisma.WorkspaceUpdateWithoutEventsInput, Prisma.WorkspaceUncheckedUpdateWithoutEventsInput>
-}
-
-export type WorkspaceUpdateWithoutEventsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumWorkspaceTypeFieldUpdateOperationsInput | $Enums.WorkspaceType
-  sourcePath?: Prisma.StringFieldUpdateOperationsInput | string
-  availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  project?: Prisma.ProjectUpdateOneRequiredWithoutWorkspacesNestedInput
-}
-
-export type WorkspaceUncheckedUpdateWithoutEventsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  projectId?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.EnumWorkspaceTypeFieldUpdateOperationsInput | $Enums.WorkspaceType
-  sourcePath?: Prisma.StringFieldUpdateOperationsInput | string
-  availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFilter<"Workspace"> | boolean
+  archivedAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
 }
 
 export type WorkspaceCreateManyProjectInput = {
@@ -711,12 +553,10 @@ export type WorkspaceCreateManyProjectInput = {
   description?: string
   type: $Enums.WorkspaceType
   sourcePath: string
-  availability?: $Enums.WorkspaceAvailability
-  lastCheckedAt?: Date | string | null
-  lastErrorCode?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  disconnectedAt?: Date | string | null
+  isArchived?: boolean
+  archivedAt?: Date | string | null
 }
 
 export type WorkspaceUpdateWithoutProjectInput = {
@@ -725,13 +565,10 @@ export type WorkspaceUpdateWithoutProjectInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumWorkspaceTypeFieldUpdateOperationsInput | $Enums.WorkspaceType
   sourcePath?: Prisma.StringFieldUpdateOperationsInput | string
-  availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  events?: Prisma.WorkspaceEventUpdateManyWithoutWorkspaceNestedInput
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type WorkspaceUncheckedUpdateWithoutProjectInput = {
@@ -740,13 +577,10 @@ export type WorkspaceUncheckedUpdateWithoutProjectInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumWorkspaceTypeFieldUpdateOperationsInput | $Enums.WorkspaceType
   sourcePath?: Prisma.StringFieldUpdateOperationsInput | string
-  availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  events?: Prisma.WorkspaceEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type WorkspaceUncheckedUpdateManyWithoutProjectInput = {
@@ -755,43 +589,12 @@ export type WorkspaceUncheckedUpdateManyWithoutProjectInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumWorkspaceTypeFieldUpdateOperationsInput | $Enums.WorkspaceType
   sourcePath?: Prisma.StringFieldUpdateOperationsInput | string
-  availability?: Prisma.EnumWorkspaceAvailabilityFieldUpdateOperationsInput | $Enums.WorkspaceAvailability
-  lastCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  disconnectedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
-
-/**
- * Count Type WorkspaceCountOutputType
- */
-
-export type WorkspaceCountOutputType = {
-  events: number
-}
-
-export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  events?: boolean | WorkspaceCountOutputTypeCountEventsArgs
-}
-
-/**
- * WorkspaceCountOutputType without action
- */
-export type WorkspaceCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the WorkspaceCountOutputType
-   */
-  select?: Prisma.WorkspaceCountOutputTypeSelect<ExtArgs> | null
-}
-
-/**
- * WorkspaceCountOutputType without action
- */
-export type WorkspaceCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.WorkspaceEventWhereInput
-}
 
 
 export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -801,15 +604,11 @@ export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   description?: boolean
   type?: boolean
   sourcePath?: boolean
-  availability?: boolean
-  lastCheckedAt?: boolean
-  lastErrorCode?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  disconnectedAt?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
-  events?: boolean | Prisma.Workspace$eventsArgs<ExtArgs>
-  _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workspace"]>
 
 export type WorkspaceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -819,12 +618,10 @@ export type WorkspaceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   description?: boolean
   type?: boolean
   sourcePath?: boolean
-  availability?: boolean
-  lastCheckedAt?: boolean
-  lastErrorCode?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  disconnectedAt?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workspace"]>
 
@@ -835,12 +632,10 @@ export type WorkspaceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   description?: boolean
   type?: boolean
   sourcePath?: boolean
-  availability?: boolean
-  lastCheckedAt?: boolean
-  lastErrorCode?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  disconnectedAt?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workspace"]>
 
@@ -851,19 +646,15 @@ export type WorkspaceSelectScalar = {
   description?: boolean
   type?: boolean
   sourcePath?: boolean
-  availability?: boolean
-  lastCheckedAt?: boolean
-  lastErrorCode?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  disconnectedAt?: boolean
+  isArchived?: boolean
+  archivedAt?: boolean
 }
 
-export type WorkspaceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "name" | "description" | "type" | "sourcePath" | "availability" | "lastCheckedAt" | "lastErrorCode" | "createdAt" | "updatedAt" | "disconnectedAt", ExtArgs["result"]["workspace"]>
+export type WorkspaceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "name" | "description" | "type" | "sourcePath" | "createdAt" | "updatedAt" | "isArchived" | "archivedAt", ExtArgs["result"]["workspace"]>
 export type WorkspaceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
-  events?: boolean | Prisma.Workspace$eventsArgs<ExtArgs>
-  _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type WorkspaceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -876,7 +667,6 @@ export type $WorkspacePayload<ExtArgs extends runtime.Types.Extensions.InternalA
   name: "Workspace"
   objects: {
     project: Prisma.$ProjectPayload<ExtArgs>
-    events: Prisma.$WorkspaceEventPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -885,12 +675,10 @@ export type $WorkspacePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     description: string
     type: $Enums.WorkspaceType
     sourcePath: string
-    availability: $Enums.WorkspaceAvailability
-    lastCheckedAt: Date | null
-    lastErrorCode: string | null
     createdAt: Date
     updatedAt: Date
-    disconnectedAt: Date | null
+    isArchived: boolean
+    archivedAt: Date | null
   }, ExtArgs["result"]["workspace"]>
   composites: {}
 }
@@ -1286,7 +1074,6 @@ readonly fields: WorkspaceFieldRefs;
 export interface Prisma__WorkspaceClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   project<T extends Prisma.ProjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectDefaultArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  events<T extends Prisma.Workspace$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkspaceEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1322,12 +1109,10 @@ export interface WorkspaceFieldRefs {
   readonly description: Prisma.FieldRef<"Workspace", 'String'>
   readonly type: Prisma.FieldRef<"Workspace", 'WorkspaceType'>
   readonly sourcePath: Prisma.FieldRef<"Workspace", 'String'>
-  readonly availability: Prisma.FieldRef<"Workspace", 'WorkspaceAvailability'>
-  readonly lastCheckedAt: Prisma.FieldRef<"Workspace", 'DateTime'>
-  readonly lastErrorCode: Prisma.FieldRef<"Workspace", 'String'>
   readonly createdAt: Prisma.FieldRef<"Workspace", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Workspace", 'DateTime'>
-  readonly disconnectedAt: Prisma.FieldRef<"Workspace", 'DateTime'>
+  readonly isArchived: Prisma.FieldRef<"Workspace", 'Boolean'>
+  readonly archivedAt: Prisma.FieldRef<"Workspace", 'DateTime'>
 }
     
 
@@ -1726,30 +1511,6 @@ export type WorkspaceDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Limit how many Workspaces to delete.
    */
   limit?: number
-}
-
-/**
- * Workspace.events
- */
-export type Workspace$eventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the WorkspaceEvent
-   */
-  select?: Prisma.WorkspaceEventSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the WorkspaceEvent
-   */
-  omit?: Prisma.WorkspaceEventOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.WorkspaceEventInclude<ExtArgs> | null
-  where?: Prisma.WorkspaceEventWhereInput
-  orderBy?: Prisma.WorkspaceEventOrderByWithRelationInput | Prisma.WorkspaceEventOrderByWithRelationInput[]
-  cursor?: Prisma.WorkspaceEventWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.WorkspaceEventScalarFieldEnum | Prisma.WorkspaceEventScalarFieldEnum[]
 }
 
 /**

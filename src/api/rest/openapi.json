@@ -192,7 +192,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/WorkspaceCheckResponse"
                 }
               }
             }
@@ -202,9 +202,9 @@
         "tags": ["Workspace"]
       }
     },
-    "/api/projects/{projectId}/workspaces/{id}/disconnect": {
+    "/api/projects/{projectId}/workspaces/{id}/archive": {
       "post": {
-        "operationId": "disconnectWorkspace",
+        "operationId": "archiveWorkspace",
         "parameters": [
           {
             "name": "projectId",
@@ -3728,33 +3728,16 @@
           "sourcePath": {
             "type": "string"
           },
-          "availability": {
-            "type": "string",
-            "enum": [
-              "UNKNOWN",
-              "AVAILABLE",
-              "NOT_FOUND",
-              "NOT_DIRECTORY",
-              "ACCESS_DENIED",
-              "INVALID_REPOSITORY",
-              "CHECK_FAILED"
-            ]
-          },
-          "lastCheckedAt": {
-            "type": "string",
-            "nullable": true
-          },
-          "lastErrorCode": {
-            "type": "string",
-            "nullable": true
-          },
           "createdAt": {
             "type": "string"
           },
           "updatedAt": {
             "type": "string"
           },
-          "disconnectedAt": {
+          "isArchived": {
+            "type": "boolean"
+          },
+          "archivedAt": {
             "type": "string",
             "nullable": true
           }
@@ -3766,12 +3749,10 @@
           "description",
           "type",
           "sourcePath",
-          "availability",
-          "lastCheckedAt",
-          "lastErrorCode",
           "createdAt",
           "updatedAt",
-          "disconnectedAt"
+          "isArchived",
+          "archivedAt"
         ]
       },
       "WorkspaceEdgeResponse": {
@@ -3863,6 +3844,27 @@
             "type": "string"
           }
         }
+      },
+      "WorkspaceCheckResponse": {
+        "type": "object",
+        "properties": {
+          "availability": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "NOT_FOUND",
+              "NOT_DIRECTORY",
+              "ACCESS_DENIED",
+              "INVALID_REPOSITORY",
+              "CHECK_FAILED"
+            ]
+          },
+          "errorCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["availability", "errorCode"]
       },
       "FileSystemRootType": {
         "type": "string",

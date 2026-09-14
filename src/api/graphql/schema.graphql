@@ -581,8 +581,9 @@ type MethodDocumentModel {
 
 type Mutation {
   archiveProject(data: ProjectInput!): Boolean!
+  archiveWorkspace(data: WorkspaceInput!): Boolean!
   cancelDialogueTurn(dialogueId: ID!, turnId: ID!): DialogueTurnModel!
-  checkWorkspace(data: WorkspaceInput!): Boolean!
+  checkWorkspace(data: WorkspaceInput!): WorkspaceCheckModel!
   commitCatalog(message: String!): CatalogCommitResultModel!
   createAdr(data: AdrInput!): AdrModel!
   createDialogue(input: CreateDialogueInput!): DialogueSummaryModel!
@@ -617,7 +618,6 @@ type Mutation {
   deleteWorkItem(data: RecordDeleteInput!): Boolean!
   deleteWorkPlan(data: RecordDeleteInput!): Boolean!
   discardCatalog: CatalogMutationResultModel!
-  disconnectWorkspace(data: WorkspaceInput!): Boolean!
   forkDialogue(input: ForkDialogueInput!): DialogueSummaryModel!
   importCatalog(data: JSON!): CatalogImportResultModel!
   markDialogueRead(dialogueId: ID!, through: String!): DialogueSummaryModel!
@@ -1174,7 +1174,11 @@ enum WorkspaceAvailability {
   INVALID_REPOSITORY
   NOT_DIRECTORY
   NOT_FOUND
-  UNKNOWN
+}
+
+type WorkspaceCheckModel {
+  availability: WorkspaceAvailability!
+  errorCode: String
 }
 
 type WorkspaceConnectionModel {
@@ -1200,13 +1204,11 @@ input WorkspaceListInput {
 }
 
 type WorkspaceModel {
-  availability: WorkspaceAvailability!
+  archivedAt: String
   createdAt: String!
   description: String!
-  disconnectedAt: String
   id: ID!
-  lastCheckedAt: String
-  lastErrorCode: String
+  isArchived: Boolean!
   name: String!
   projectId: ID!
   sourcePath: String!

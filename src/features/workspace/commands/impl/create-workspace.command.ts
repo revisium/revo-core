@@ -1,4 +1,4 @@
-import type { WorkspaceType, WorkspaceActorContext } from '../../contracts/workspace.contracts.js';
+import type { WorkspaceType } from '../../contracts/workspace.contracts.js';
 
 export type CreateWorkspaceCommandData = {
   projectId: string;
@@ -10,8 +10,5 @@ export type CreateWorkspaceCommandData = {
 export type CreateWorkspaceCommandReturnType = { workspaceId: string };
 
 export class CreateWorkspaceCommand {
-  constructor(
-    readonly data: CreateWorkspaceCommandData,
-    readonly context: WorkspaceActorContext | undefined,
-  ) {}
+  constructor(readonly data: CreateWorkspaceCommandData) {}
 }

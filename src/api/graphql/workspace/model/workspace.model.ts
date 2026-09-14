@@ -1,9 +1,6 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 
-import {
-  WorkspaceType,
-  WorkspaceAvailability,
-} from '../../../../features/workspace/contracts/workspace.contracts.js';
+import { WorkspaceType } from '../../../../features/workspace/contracts/workspace.contracts.js';
 
 @ObjectType()
 export class WorkspaceModel {
@@ -25,21 +22,15 @@ export class WorkspaceModel {
   @Field(() => String)
   sourcePath: string;
 
-  @Field(() => WorkspaceAvailability)
-  availability: WorkspaceAvailability;
-
-  @Field(() => String, { nullable: true })
-  lastCheckedAt: string | null;
-
-  @Field(() => String, { nullable: true })
-  lastErrorCode: string | null;
-
   @Field(() => String)
   createdAt: string;
 
   @Field(() => String)
   updatedAt: string;
 
+  @Field(() => Boolean)
+  isArchived: boolean;
+
   @Field(() => String, { nullable: true })
-  disconnectedAt: string | null;
+  archivedAt: string | null;
 }

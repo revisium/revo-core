@@ -6,9 +6,9 @@ import { DatabaseModule } from '../../infrastructure/database/database.module.js
 import { FileSystemModule } from '../file-system/file-system.module.js';
 import { ProjectModule } from '../project/project.module.js';
 import { WorkspaceProjectService } from './application/workspace-project.service.js';
+import { ArchiveWorkspaceHandler } from './commands/handlers/archive-workspace.handler.js';
 import { CheckWorkspaceHandler } from './commands/handlers/check-workspace.handler.js';
 import { CreateWorkspaceHandler } from './commands/handlers/create-workspace.handler.js';
-import { DisconnectWorkspaceHandler } from './commands/handlers/disconnect-workspace.handler.js';
 import { UpdateWorkspaceHandler } from './commands/handlers/update-workspace.handler.js';
 import { GetWorkspaceHandler } from './queries/handlers/get-workspace.handler.js';
 import { ListWorkspacesHandler } from './queries/handlers/list-workspaces.handler.js';
@@ -27,7 +27,7 @@ import { WorkspaceApiService } from './workspace-api.service.js';
     GitWorkspaceProbe,
     CreateWorkspaceHandler,
     UpdateWorkspaceHandler,
-    DisconnectWorkspaceHandler,
+    ArchiveWorkspaceHandler,
     CheckWorkspaceHandler,
     GetWorkspaceHandler,
     ListWorkspacesHandler,

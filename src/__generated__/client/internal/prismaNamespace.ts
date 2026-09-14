@@ -399,7 +399,6 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Project: 'Project',
   Workspace: 'Workspace',
-  WorkspaceEvent: 'WorkspaceEvent',
   ReviewThread: 'ReviewThread',
   ReviewMessage: 'ReviewMessage',
   Branch: 'Branch',
@@ -434,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "project" | "workspace" | "workspaceEvent" | "reviewThread" | "reviewMessage" | "branch" | "revision" | "table" | "row" | "fileBlob" | "projectFileUsage" | "tableMigration" | "dbosWorkflowStatus" | "dbosOperationOutput" | "dialogue" | "dialogueTurn" | "dialogueHistoryItem" | "dialogueInteraction" | "agentSessionEventStream" | "agentSessionEvent" | "dialogueChange" | "dialogueFeedPosition"
+    modelProps: "project" | "workspace" | "reviewThread" | "reviewMessage" | "branch" | "revision" | "table" | "row" | "fileBlob" | "projectFileUsage" | "tableMigration" | "dbosWorkflowStatus" | "dbosOperationOutput" | "dialogue" | "dialogueTurn" | "dialogueHistoryItem" | "dialogueInteraction" | "agentSessionEventStream" | "agentSessionEvent" | "dialogueChange" | "dialogueFeedPosition"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -583,80 +582,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.WorkspaceCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.WorkspaceCountAggregateOutputType> | number
-        }
-      }
-    }
-    WorkspaceEvent: {
-      payload: Prisma.$WorkspaceEventPayload<ExtArgs>
-      fields: Prisma.WorkspaceEventFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.WorkspaceEventFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceEventPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.WorkspaceEventFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceEventPayload>
-        }
-        findFirst: {
-          args: Prisma.WorkspaceEventFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceEventPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.WorkspaceEventFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceEventPayload>
-        }
-        findMany: {
-          args: Prisma.WorkspaceEventFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceEventPayload>[]
-        }
-        create: {
-          args: Prisma.WorkspaceEventCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceEventPayload>
-        }
-        createMany: {
-          args: Prisma.WorkspaceEventCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.WorkspaceEventCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceEventPayload>[]
-        }
-        delete: {
-          args: Prisma.WorkspaceEventDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceEventPayload>
-        }
-        update: {
-          args: Prisma.WorkspaceEventUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceEventPayload>
-        }
-        deleteMany: {
-          args: Prisma.WorkspaceEventDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.WorkspaceEventUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.WorkspaceEventUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceEventPayload>[]
-        }
-        upsert: {
-          args: Prisma.WorkspaceEventUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspaceEventPayload>
-        }
-        aggregate: {
-          args: Prisma.WorkspaceEventAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateWorkspaceEvent>
-        }
-        groupBy: {
-          args: Prisma.WorkspaceEventGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.WorkspaceEventGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.WorkspaceEventCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.WorkspaceEventCountAggregateOutputType> | number
         }
       }
     }
@@ -2125,27 +2050,13 @@ export const WorkspaceScalarFieldEnum = {
   description: 'description',
   type: 'type',
   sourcePath: 'sourcePath',
-  availability: 'availability',
-  lastCheckedAt: 'lastCheckedAt',
-  lastErrorCode: 'lastErrorCode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  disconnectedAt: 'disconnectedAt'
+  isArchived: 'isArchived',
+  archivedAt: 'archivedAt'
 } as const
 
 export type WorkspaceScalarFieldEnum = (typeof WorkspaceScalarFieldEnum)[keyof typeof WorkspaceScalarFieldEnum]
-
-
-export const WorkspaceEventScalarFieldEnum = {
-  id: 'id',
-  workspaceId: 'workspaceId',
-  actorId: 'actorId',
-  operation: 'operation',
-  details: 'details',
-  createdAt: 'createdAt'
-} as const
-
-export type WorkspaceEventScalarFieldEnum = (typeof WorkspaceEventScalarFieldEnum)[keyof typeof WorkspaceEventScalarFieldEnum]
 
 
 export const ReviewThreadScalarFieldEnum = {
@@ -2570,16 +2481,9 @@ export type ListEnumWorkspaceTypeFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
- * Reference to a field of type 'WorkspaceAvailability'
+ * Reference to a field of type 'Boolean'
  */
-export type EnumWorkspaceAvailabilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkspaceAvailability'>
-    
-
-
-/**
- * Reference to a field of type 'WorkspaceAvailability[]'
- */
-export type ListEnumWorkspaceAvailabilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkspaceAvailability[]'>
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -2608,13 +2512,6 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -2938,7 +2835,6 @@ export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaC
 export type GlobalOmitConfig = {
   project?: Prisma.ProjectOmit
   workspace?: Prisma.WorkspaceOmit
-  workspaceEvent?: Prisma.WorkspaceEventOmit
   reviewThread?: Prisma.ReviewThreadOmit
   reviewMessage?: Prisma.ReviewMessageOmit
   branch?: Prisma.BranchOmit

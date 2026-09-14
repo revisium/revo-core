@@ -20,10 +20,8 @@ export class LocalWorkspaceSourceService {
   ) {}
 
   async check(sourcePath: string, type: WorkspaceType): Promise<WorkspaceCheck> {
-    const lastCheckedAt = new Date();
-
     try {
-      return await this.inspect(sourcePath, type, lastCheckedAt);
+      return await this.inspect(sourcePath, type);
     } catch (error) {
       if (error instanceof FileSystemError) {
         switch (error.code) {
@@ -31,20 +29,17 @@ export class LocalWorkspaceSourceService {
           case 'FILE_SYSTEM_NOT_FOUND':
             return {
               availability: WorkspaceAvailability.NOT_FOUND,
-              lastCheckedAt,
-              lastErrorCode: error.code,
+              errorCode: error.code,
             };
           case 'FILE_SYSTEM_NOT_DIRECTORY':
             return {
               availability: WorkspaceAvailability.NOT_DIRECTORY,
-              lastCheckedAt,
-              lastErrorCode: error.code,
+              errorCode: error.code,
             };
           case 'FILE_SYSTEM_ACCESS_DENIED':
             return {
               availability: WorkspaceAvailability.ACCESS_DENIED,
-              lastCheckedAt,
-              lastErrorCode: error.code,
+              errorCode: error.code,
             };
           case 'FILE_SYSTEM_ALREADY_EXISTS':
           case 'FILE_SYSTEM_INVALID_NAME':
@@ -52,44 +47,36 @@ export class LocalWorkspaceSourceService {
           case 'FILE_SYSTEM_TOO_LARGE':
             return {
               availability: WorkspaceAvailability.CHECK_FAILED,
-              lastCheckedAt,
-              lastErrorCode: error.code,
+              errorCode: error.code,
             };
         }
       }
 
       return {
         availability: WorkspaceAvailability.CHECK_FAILED,
-        lastCheckedAt,
-        lastErrorCode: 'WORKSPACE_CHECK_FAILED',
+        errorCode: 'WORKSPACE_CHECK_FAILED',
       };
     }
   }
 
-  private async inspect(
-    sourcePath: string,
-    type: WorkspaceType,
-    lastCheckedAt: Date,
-  ): Promise<WorkspaceCheck> {
+  private async inspect(sourcePath: string, type: WorkspaceType): Promise<WorkspaceCheck> {
     const entry = await this.filesystem.getEntry({ path: sourcePath });
 
     if (entry.type !== FileSystemEntryType.DIRECTORY) {
       return {
         availability: WorkspaceAvailability.NOT_DIRECTORY,
-        lastCheckedAt,
-        lastErrorCode: 'FILE_SYSTEM_NOT_DIRECTORY',
+        errorCode: 'FILE_SYSTEM_NOT_DIRECTORY',
       };
     }
 
     if (type === WorkspaceType.repository && !(await this.isRepository(sourcePath))) {
       return {
         availability: WorkspaceAvailability.INVALID_REPOSITORY,
-        lastCheckedAt,
-        lastErrorCode: 'WORKSPACE_INVALID_REPOSITORY',
+        errorCode: 'WORKSPACE_INVALID_REPOSITORY',
       };
     }
 
-    return { availability: WorkspaceAvailability.AVAILABLE, lastCheckedAt, lastErrorCode: null };
+    return { availability: WorkspaceAvailability.AVAILABLE, errorCode: null };
   }
 
   private async isRepository(sourcePath: string): Promise<boolean> {

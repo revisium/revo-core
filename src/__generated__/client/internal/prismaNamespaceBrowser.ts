@@ -53,7 +53,6 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Project: 'Project',
   Workspace: 'Workspace',
-  WorkspaceEvent: 'WorkspaceEvent',
   ReviewThread: 'ReviewThread',
   ReviewMessage: 'ReviewMessage',
   Branch: 'Branch',
@@ -111,27 +110,13 @@ export const WorkspaceScalarFieldEnum = {
   description: 'description',
   type: 'type',
   sourcePath: 'sourcePath',
-  availability: 'availability',
-  lastCheckedAt: 'lastCheckedAt',
-  lastErrorCode: 'lastErrorCode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  disconnectedAt: 'disconnectedAt'
+  isArchived: 'isArchived',
+  archivedAt: 'archivedAt'
 } as const
 
 export type WorkspaceScalarFieldEnum = (typeof WorkspaceScalarFieldEnum)[keyof typeof WorkspaceScalarFieldEnum]
-
-
-export const WorkspaceEventScalarFieldEnum = {
-  id: 'id',
-  workspaceId: 'workspaceId',
-  actorId: 'actorId',
-  operation: 'operation',
-  details: 'details',
-  createdAt: 'createdAt'
-} as const
-
-export type WorkspaceEventScalarFieldEnum = (typeof WorkspaceEventScalarFieldEnum)[keyof typeof WorkspaceEventScalarFieldEnum]
 
 
 export const ReviewThreadScalarFieldEnum = {

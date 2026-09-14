@@ -2,6 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 
 import {
+  ArchiveWorkspaceCommand,
+  type ArchiveWorkspaceCommandData,
+  type ArchiveWorkspaceCommandReturnType,
+} from './commands/impl/archive-workspace.command.js';
+import {
   CheckWorkspaceCommand,
   type CheckWorkspaceCommandData,
   type CheckWorkspaceCommandReturnType,
@@ -12,16 +17,10 @@ import {
   type CreateWorkspaceCommandReturnType,
 } from './commands/impl/create-workspace.command.js';
 import {
-  DisconnectWorkspaceCommand,
-  type DisconnectWorkspaceCommandData,
-  type DisconnectWorkspaceCommandReturnType,
-} from './commands/impl/disconnect-workspace.command.js';
-import {
   UpdateWorkspaceCommand,
   type UpdateWorkspaceCommandData,
   type UpdateWorkspaceCommandReturnType,
 } from './commands/impl/update-workspace.command.js';
-import type { WorkspaceActorContext } from './contracts/workspace.contracts.js';
 import {
   GetWorkspaceQuery,
   type GetWorkspaceQueryData,
@@ -40,39 +39,27 @@ export class WorkspaceApiService {
     private readonly queries: QueryBus,
   ) {}
 
-  createWorkspace(
-    data: CreateWorkspaceCommandData,
-    context?: WorkspaceActorContext,
-  ): Promise<CreateWorkspaceCommandReturnType> {
+  createWorkspace(data: CreateWorkspaceCommandData): Promise<CreateWorkspaceCommandReturnType> {
     return this.commands.execute<CreateWorkspaceCommand, CreateWorkspaceCommandReturnType>(
-      new CreateWorkspaceCommand(data, context),
+      new CreateWorkspaceCommand(data),
     );
   }
 
-  updateWorkspace(
-    data: UpdateWorkspaceCommandData,
-    context?: WorkspaceActorContext,
-  ): Promise<UpdateWorkspaceCommandReturnType> {
+  updateWorkspace(data: UpdateWorkspaceCommandData): Promise<UpdateWorkspaceCommandReturnType> {
     return this.commands.execute<UpdateWorkspaceCommand, UpdateWorkspaceCommandReturnType>(
-      new UpdateWorkspaceCommand(data, context),
+      new UpdateWorkspaceCommand(data),
     );
   }
 
-  disconnectWorkspace(
-    data: DisconnectWorkspaceCommandData,
-    context?: WorkspaceActorContext,
-  ): Promise<DisconnectWorkspaceCommandReturnType> {
-    return this.commands.execute<DisconnectWorkspaceCommand, DisconnectWorkspaceCommandReturnType>(
-      new DisconnectWorkspaceCommand(data, context),
+  archiveWorkspace(data: ArchiveWorkspaceCommandData): Promise<ArchiveWorkspaceCommandReturnType> {
+    return this.commands.execute<ArchiveWorkspaceCommand, ArchiveWorkspaceCommandReturnType>(
+      new ArchiveWorkspaceCommand(data),
     );
   }
 
-  checkWorkspace(
-    data: CheckWorkspaceCommandData,
-    context?: WorkspaceActorContext,
-  ): Promise<CheckWorkspaceCommandReturnType> {
+  checkWorkspace(data: CheckWorkspaceCommandData): Promise<CheckWorkspaceCommandReturnType> {
     return this.commands.execute<CheckWorkspaceCommand, CheckWorkspaceCommandReturnType>(
-      new CheckWorkspaceCommand(data, context),
+      new CheckWorkspaceCommand(data),
     );
   }
 

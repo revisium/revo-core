@@ -1,5 +1,3 @@
-import type { WorkspaceActorContext } from '../../contracts/workspace.contracts.js';
-
 export type UpdateWorkspaceCommandData = {
   projectId: string;
   id: string;
@@ -10,8 +8,5 @@ export type UpdateWorkspaceCommandData = {
 export type UpdateWorkspaceCommandReturnType = boolean;
 
 export class UpdateWorkspaceCommand {
-  constructor(
-    readonly data: UpdateWorkspaceCommandData,
-    readonly context: WorkspaceActorContext | undefined,
-  ) {}
+  constructor(readonly data: UpdateWorkspaceCommandData) {}
 }

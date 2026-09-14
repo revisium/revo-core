@@ -1,11 +1,8 @@
-import type { WorkspaceActorContext } from '../../contracts/workspace.contracts.js';
+import type { WorkspaceCheck } from '../../contracts/workspace.contracts.js';
 
 export type CheckWorkspaceCommandData = { projectId: string; id: string };
-export type CheckWorkspaceCommandReturnType = boolean;
+export type CheckWorkspaceCommandReturnType = WorkspaceCheck;
 
 export class CheckWorkspaceCommand {
-  constructor(
-    readonly data: CheckWorkspaceCommandData,
-    readonly context: WorkspaceActorContext | undefined,
-  ) {}
+  constructor(readonly data: CheckWorkspaceCommandData) {}
 }

@@ -47,15 +47,12 @@ model Workspace {
   description    String                @default("")
   type           WorkspaceType
   sourcePath     String
-  availability   WorkspaceAvailability @default(UNKNOWN)
-  lastCheckedAt  DateTime?             @db.Timestamptz(3)
-  lastErrorCode  String?
   createdAt      DateTime              @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime              @updatedAt @db.Timestamptz(3)
-  disconnectedAt DateTime?             @db.Timestamptz(3)
-  events         WorkspaceEvent[]
+  isArchived     Boolean               @default(false)
+  archivedAt     DateTime?             @db.Timestamptz(3)
 
-  @@index([projectId, disconnectedAt, name, id])
+  @@index([projectId, isArchived, name, id])
   @@map("workspaces")
   @@schema("public")
 }
@@ -64,32 +61,6 @@ enum WorkspaceType {
   folder
   repository
 
-  @@schema("public")
-}
-
-enum WorkspaceAvailability {
-  UNKNOWN
-  AVAILABLE
-  NOT_FOUND
-  NOT_DIRECTORY
-  ACCESS_DENIED
-  INVALID_REPOSITORY
-  CHECK_FAILED
-
-  @@schema("public")
-}
-
-model WorkspaceEvent {
-  id          String    @id @default(nanoid())
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
-  actorId     String
-  operation   String
-  details     Json
-  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
-
-  @@index([workspaceId, createdAt, id])
-  @@map("workspace_events")
   @@schema("public")
 }
 

@@ -443,6 +443,10 @@ export type ReviewThreadScalarRelationFilter = {
   isNot?: Prisma.ReviewThreadWhereInput
 }
 
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
 export type IntFieldUpdateOperationsInput = {
   set?: number
   increment?: number

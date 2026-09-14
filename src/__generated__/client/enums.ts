@@ -34,19 +34,6 @@ export const WorkspaceType = {
 export type WorkspaceType = (typeof WorkspaceType)[keyof typeof WorkspaceType]
 
 
-export const WorkspaceAvailability = {
-  UNKNOWN: 'UNKNOWN',
-  AVAILABLE: 'AVAILABLE',
-  NOT_FOUND: 'NOT_FOUND',
-  NOT_DIRECTORY: 'NOT_DIRECTORY',
-  ACCESS_DENIED: 'ACCESS_DENIED',
-  INVALID_REPOSITORY: 'INVALID_REPOSITORY',
-  CHECK_FAILED: 'CHECK_FAILED'
-} as const
-
-export type WorkspaceAvailability = (typeof WorkspaceAvailability)[keyof typeof WorkspaceAvailability]
-
-
 export const DialogueStatus = {
   READY: 'READY',
   QUEUED: 'QUEUED',

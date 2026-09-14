@@ -6,7 +6,6 @@ export function toWorkspace(workspace: Workspace): WorkspaceRecord {
     ...workspace,
     createdAt: workspace.createdAt.toISOString(),
     updatedAt: workspace.updatedAt.toISOString(),
-    lastCheckedAt: workspace.lastCheckedAt?.toISOString() ?? null,
-    disconnectedAt: workspace.disconnectedAt?.toISOString() ?? null,
+    archivedAt: workspace.archivedAt?.toISOString() ?? null,
   };
 }

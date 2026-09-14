@@ -28,11 +28,6 @@ export type Project = Prisma.ProjectModel
  */
 export type Workspace = Prisma.WorkspaceModel
 /**
- * Model WorkspaceEvent
- * 
- */
-export type WorkspaceEvent = Prisma.WorkspaceEventModel
-/**
  * Model ReviewThread
  * 
  */

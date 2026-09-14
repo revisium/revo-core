@@ -1,9 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import {
-  WorkspaceType,
-  WorkspaceAvailability,
-} from '../../../../features/workspace/contracts/workspace.contracts.js';
+import { WorkspaceType } from '../../../../features/workspace/contracts/workspace.contracts.js';
 
 export class WorkspaceResponse {
   @ApiProperty({ type: String })
@@ -24,21 +21,15 @@ export class WorkspaceResponse {
   @ApiProperty({ type: String })
   sourcePath: string;
 
-  @ApiProperty({ enum: WorkspaceAvailability })
-  availability: WorkspaceAvailability;
-
-  @ApiProperty({ type: String, nullable: true })
-  lastCheckedAt: string | null;
-
-  @ApiProperty({ type: String, nullable: true })
-  lastErrorCode: string | null;
-
   @ApiProperty({ type: String })
   createdAt: string;
 
   @ApiProperty({ type: String })
   updatedAt: string;
 
+  @ApiProperty({ type: Boolean })
+  isArchived: boolean;
+
   @ApiProperty({ type: String, nullable: true })
-  disconnectedAt: string | null;
+  archivedAt: string | null;
 }

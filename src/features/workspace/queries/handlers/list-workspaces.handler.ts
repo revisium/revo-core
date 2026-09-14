@@ -21,7 +21,7 @@ export class ListWorkspacesHandler implements IQueryHandler<
 
   async execute({ data }: ListWorkspacesQuery): Promise<ListWorkspacesQueryReturnType> {
     await this.projects.assertAccessible(data.projectId);
-    const where = { projectId: data.projectId, disconnectedAt: null };
+    const where = { projectId: data.projectId, isArchived: false };
 
     return getOffsetPagination({
       pageData: data,
