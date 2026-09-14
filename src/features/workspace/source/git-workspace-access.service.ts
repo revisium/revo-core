@@ -81,13 +81,16 @@ function isIncludeSection(line: string): boolean {
   }
 
   const section = line.slice(1).trimStart().toLowerCase();
-  const suffix = section.startsWith('includeif')
-    ? section.slice('includeif'.length)
-    : section.startsWith('include')
-      ? section.slice('include'.length)
-      : undefined;
 
-  return suffix !== undefined && isIncludeSectionSuffix(suffix);
+  if (section.startsWith('includeif')) {
+    return isIncludeSectionSuffix(section.slice('includeif'.length));
+  }
+
+  if (section.startsWith('include')) {
+    return isIncludeSectionSuffix(section.slice('include'.length));
+  }
+
+  return false;
 }
 
 function isIncludeSectionSuffix(suffix: string): boolean {
