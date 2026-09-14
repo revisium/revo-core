@@ -57,8 +57,6 @@ function hasErrorCode(value: unknown): value is ErrorResponse {
 function isJsonParserError(value: unknown): value is SyntaxError {
   return (
     value instanceof SyntaxError &&
-    typeof value === 'object' &&
-    value !== null &&
     'status' in value &&
     value.status === 400 &&
     'type' in value &&

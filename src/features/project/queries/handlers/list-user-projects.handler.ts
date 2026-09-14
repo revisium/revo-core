@@ -30,9 +30,7 @@ export class ListUserProjectsHandler implements IQueryHandler<
             orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
             take,
             skip,
-            select: {
-              ...USER_PROJECT_SELECT,
-            },
+            select: USER_PROJECT_SELECT,
           });
 
           return projects.map(toUserProject);
