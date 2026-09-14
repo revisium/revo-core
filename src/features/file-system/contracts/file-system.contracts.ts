@@ -78,4 +78,4 @@ export type FileSystemDirectory = {
   entries: FileSystemPage<FileSystemEntry>;
 };
 
-export { FileSystemAccessContext } from './file-system-access-context.js';
+export type { FileSystemAccessContext } from './file-system-access-context.js';

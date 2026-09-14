@@ -5,14 +5,14 @@ import path from 'node:path';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { beforeEach, afterEach, describe, test, expect } from 'vitest';
 
-import { parseFileSystemPermissionSet } from '../src/features/file-system/contracts/file-system-access-context.js';
 import {
-  FileSystemAccessContext,
   FileSystemPermission as P,
   type FileSystemAccessPolicy,
 } from '../src/features/file-system/contracts/file-system.contracts.js';
+import { FileSystemAccessContext } from '../src/features/file-system/file-system-access-context.js';
 import { FileSystemApiService } from '../src/features/file-system/file-system-api.service.js';
 import { FileSystemModule } from '../src/features/file-system/file-system.module.js';
+import { parseFileSystemPermissionSet } from '../src/features/file-system/policy/file-system-access-context.js';
 
 const capabilities = Object.values(P);
 

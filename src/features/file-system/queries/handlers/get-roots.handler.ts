@@ -4,13 +4,13 @@ import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
 import { getOffsetPagination } from '../../../../infrastructure/pagination/get-offset-pagination.js';
 import {
-  FileSystemAccessContext,
   FileSystemPermission,
   FileSystemRootType,
   type FileSystemRoot,
 } from '../../contracts/file-system.contracts.js';
 import { FileSystemService } from '../../filesystem/file-system.service.js';
 import { FileSystemListingService } from '../../listing/file-system-listing.service.js';
+import { FileSystemAccessContext as FileSystemAccessContextImplementation } from '../../policy/file-system-access-context.js';
 import { absolutePath } from '../../policy/file-system-path.js';
 import { GetRootsQuery, type GetRootsQueryReturnType } from '../impl/get-roots.query.js';
 
@@ -23,7 +23,7 @@ export class GetRootsHandler implements IQueryHandler<GetRootsQuery, GetRootsQue
 
   async execute(query: GetRootsQuery): Promise<GetRootsQueryReturnType> {
     const scopes =
-      query.context instanceof FileSystemAccessContext
+      query.context instanceof FileSystemAccessContextImplementation
         ? query.context.policies.flatMap((policy) => policy.scopes)
         : [];
     const candidates = scopes.length ? await this.filesystem.getRoots() : [];

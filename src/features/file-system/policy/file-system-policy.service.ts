@@ -3,7 +3,7 @@ import path from 'node:path';
 import { Injectable } from '@nestjs/common';
 
 import {
-  FileSystemAccessContext,
+  type FileSystemAccessContext,
   type FileSystemAccessPolicy,
   type FileSystemPathRule,
   type FileSystemPermission,
@@ -11,6 +11,7 @@ import {
 } from '../contracts/file-system.contracts.js';
 import { FileSystemError } from '../contracts/file-system.error.js';
 import { FileSystemService } from '../filesystem/file-system.service.js';
+import { FileSystemAccessContext as FileSystemAccessContextImplementation } from './file-system-access-context.js';
 import { absolutePath, containsPath } from './file-system-path.js';
 
 @Injectable()
@@ -61,7 +62,7 @@ export class FileSystemPolicyService {
     location: string,
   ): boolean {
     return (
-      context instanceof FileSystemAccessContext &&
+      context instanceof FileSystemAccessContextImplementation &&
       context.policies.length > 0 &&
       context.policies.every((policy) => this.evaluatePolicy(policy, permission, location))
     );

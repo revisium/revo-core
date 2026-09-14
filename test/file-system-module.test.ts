@@ -5,11 +5,9 @@ import path from 'node:path';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { beforeEach, afterEach, describe, test, expect } from 'vitest';
 
-import {
-  FileSystemPermission as P,
-  FileSystemAccessContext,
-} from '../src/features/file-system/contracts/file-system.contracts.js';
+import { FileSystemPermission as P } from '../src/features/file-system/contracts/file-system.contracts.js';
 import { rethrowFileSystemError } from '../src/features/file-system/contracts/file-system.error.js';
+import { FileSystemAccessContext } from '../src/features/file-system/file-system-access-context.js';
 import { FileSystemApiService } from '../src/features/file-system/file-system-api.service.js';
 import { FileSystemModule } from '../src/features/file-system/file-system.module.js';
 import { FileSystemService } from '../src/features/file-system/filesystem/file-system.service.js';
