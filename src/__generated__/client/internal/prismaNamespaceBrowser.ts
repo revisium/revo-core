@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Project: 'Project',
   Repository: 'Repository',
+  FileSystemPermissionPolicy: 'FileSystemPermissionPolicy',
   ReviewThread: 'ReviewThread',
   ReviewMessage: 'ReviewMessage',
   Branch: 'Branch',
@@ -114,6 +115,19 @@ export const RepositoryScalarFieldEnum = {
 } as const
 
 export type RepositoryScalarFieldEnum = (typeof RepositoryScalarFieldEnum)[keyof typeof RepositoryScalarFieldEnum]
+
+
+export const FileSystemPermissionPolicyScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  document: 'document',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type FileSystemPermissionPolicyScalarFieldEnum = (typeof FileSystemPermissionPolicyScalarFieldEnum)[keyof typeof FileSystemPermissionPolicyScalarFieldEnum]
 
 
 export const ReviewThreadScalarFieldEnum = {

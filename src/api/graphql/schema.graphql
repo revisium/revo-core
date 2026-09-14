@@ -276,6 +276,11 @@ input CreateDialogueInput {
   title: String!
 }
 
+input CreateFileSystemDirectoryInput {
+  name: String!
+  parentPath: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -413,6 +418,78 @@ type DialogueTurnModel {
   userItemId: ID!
 }
 
+input FileSystemDirectoryInput {
+  after: String
+  directoriesOnly: Boolean
+  first: Int
+  includeHidden: Boolean
+  path: String!
+}
+
+type FileSystemDirectoryModel {
+  entries: FileSystemEntryConnectionModel!
+  parentPath: String
+  path: String!
+}
+
+type FileSystemEntryConnectionModel {
+  edges: [FileSystemEntryEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type FileSystemEntryEdge {
+  cursor: String!
+  node: FileSystemEntryModel!
+}
+
+input FileSystemEntryInput {
+  path: String!
+}
+
+type FileSystemEntryModel {
+  isSymlink: Boolean!
+  name: String!
+  path: String!
+  type: FileSystemEntryType!
+}
+
+enum FileSystemEntryType {
+  DIRECTORY
+  FILE
+  OTHER
+  SYMLINK
+}
+
+input FileSystemPageInput {
+  after: String
+  first: Int
+}
+
+type FileSystemRootConnectionModel {
+  edges: [FileSystemRootEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type FileSystemRootEdge {
+  cursor: String!
+  node: FileSystemRootModel!
+}
+
+type FileSystemRootModel {
+  name: String!
+  path: String!
+  type: FileSystemRootType!
+}
+
+enum FileSystemRootType {
+  HOME
+  ROOT
+  SCOPE
+  VOLUME
+}
+
 input ForkDialogueInput {
   dialogueId: ID!
   title: String!
@@ -496,6 +573,7 @@ type Mutation {
   commitCatalog(message: String!): CatalogCommitResultModel!
   createAdr(data: AdrInput!): AdrModel!
   createDialogue(input: CreateDialogueInput!): DialogueSummaryModel!
+  createFileSystemDirectory(data: CreateFileSystemDirectoryInput!): FileSystemEntryModel!
   createLaunchProfile(data: LaunchProfileInput!): LaunchProfileModel!
   createMethodDocument(data: MethodDocumentInput!): MethodDocumentModel!
   createPipeline(data: PipelineInput!): PipelineModel!
@@ -709,6 +787,9 @@ type Query {
   dialogueInteractions(after: String, dialogueId: ID!, first: Int): DialogueInteractionConnectionModel!
   dialogueTurns(after: String, dialogueId: ID!, first: Int): DialogueTurnConnectionModel!
   dialogues(after: String, first: Int): DialogueSummaryConnectionModel!
+  fileSystemDirectory(data: FileSystemDirectoryInput!): FileSystemDirectoryModel!
+  fileSystemEntry(data: FileSystemEntryInput!): FileSystemEntryModel!
+  fileSystemRoots(data: FileSystemPageInput): FileSystemRootConnectionModel!
   launchProfile(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): LaunchProfileModel!
   launchProfiles(after: String, first: Int!, pipelineId: ID, revisionId: ID, scope: CatalogScope! = HEAD): LaunchProfileConnection!
   methodDocument(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): MethodDocumentModel!
