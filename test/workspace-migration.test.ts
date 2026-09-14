@@ -5,16 +5,12 @@ import { afterEach, beforeEach, expect, test } from 'vitest';
 
 import { databaseConfig } from '../src/config/database.config.js';
 
-const migration = await readFile(
-  'prisma/migrations/20260913133859_unify_project_workspaces/migration.sql',
+const workspaceMigration = await readFile(
+  'prisma/migrations/20260913130000_project_workspaces/migration.sql',
   'utf8',
 );
-const simplificationMigration = await readFile(
-  'prisma/migrations/20260914130000_remove_file_system_permissions_and_workspace_version/migration.sql',
-  'utf8',
-);
-const archiveMigration = await readFile(
-  'prisma/migrations/20260914140000_archive_workspaces/migration.sql',
+const permissionsMigration = await readFile(
+  'prisma/migrations/20260914130000_remove_file_system_permissions/migration.sql',
   'utf8',
 );
 let client: Client;
@@ -28,21 +24,25 @@ beforeEach(async () => {
     CREATE TEMP TABLE repositories (
       id TEXT PRIMARY KEY,
       "projectId" TEXT NOT NULL,
+      name TEXT NOT NULL,
       "remoteUrl" TEXT,
       "localPath" TEXT,
+      "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMPTZ(3) NOT NULL,
       CONSTRAINT "repositories_projectId_fkey"
         FOREIGN KEY ("projectId") REFERENCES projects(id)
         ON DELETE RESTRICT ON UPDATE RESTRICT
     );
-    CREATE TEMP TABLE workspaces (
+    CREATE TEMP TABLE file_system_permission_policies (
       id TEXT PRIMARY KEY,
-      "projectId" TEXT NOT NULL,
-      CONSTRAINT "workspaces_projectId_fkey"
-        FOREIGN KEY ("projectId") REFERENCES projects(id)
-        ON DELETE RESTRICT ON UPDATE CASCADE
+      name TEXT NOT NULL,
+      document JSONB NOT NULL,
+      version INTEGER NOT NULL DEFAULT 1,
+      "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMPTZ(3) NOT NULL,
+      "revokedAt" TIMESTAMPTZ(3)
     );
     INSERT INTO projects VALUES ('project');
-    INSERT INTO workspaces VALUES ('workspace', 'project');
   `);
 });
 
@@ -50,115 +50,101 @@ afterEach(async () => {
   await client.end();
 });
 
-test('removes an empty legacy table, preserves Workspaces and restricts Project identity changes', async () => {
-  await client.query(migration);
-  expect((await client.query("SELECT to_regclass('repositories') AS legacy")).rows).toEqual([
-    { legacy: null },
-  ]);
-  expect((await client.query('SELECT * FROM workspaces')).rows).toEqual([
-    { id: 'workspace', projectId: 'project' },
-  ]);
+test('replaces an empty legacy table with final Workspaces that persist defaults and restrict Project changes', async () => {
+  await client.query(workspaceMigration);
+  await client.query(`
+    INSERT INTO workspaces (id, "projectId", name, type, "sourcePath", "updatedAt")
+    VALUES ('workspace', 'project', 'Folder', 'folder', '/local/folder', '2026-09-14T10:00:00Z')
+  `);
+
+  const workspace = (await client.query('SELECT * FROM workspaces')).rows[0];
+  expect(workspace).toEqual({
+    archivedAt: null,
+    createdAt: expect.any(Date),
+    description: '',
+    id: 'workspace',
+    isArchived: false,
+    projectId: 'project',
+    name: 'Folder',
+    sourcePath: '/local/folder',
+    type: 'folder',
+    updatedAt: new Date('2026-09-14T10:00:00Z'),
+  });
+  expect((await client.query("SELECT to_regclass('pg_temp.repositories') AS legacy")).rows).toEqual(
+    [{ legacy: null }],
+  );
   await expect(client.query("UPDATE projects SET id = 'renamed'")).rejects.toMatchObject({
     code: '23503',
   });
   await expect(client.query('DELETE FROM projects')).rejects.toMatchObject({ code: '23503' });
 });
 
-test('rejects a populated legacy table without losing source metadata or changing constraints', async () => {
-  const legacy = {
+test('rejects populated legacy repositories without destructive partial schema changes', async () => {
+  const repository = {
     id: 'repository',
     projectId: 'project',
+    name: 'Repository',
     remoteUrl: 'https://example.com/repository.git',
-    localPath: null,
+    localPath: '/local/repository',
+    createdAt: new Date('2026-09-14T09:00:00Z'),
+    updatedAt: new Date('2026-09-14T09:00:00Z'),
   };
-  await client.query('INSERT INTO repositories VALUES ($1, $2, $3, $4)', Object.values(legacy));
+  const policy = {
+    id: 'policy',
+    name: 'Policy',
+    document: { allow: ['/local/repository'] },
+    version: 1,
+    createdAt: new Date('2026-09-14T09:00:00Z'),
+    updatedAt: new Date('2026-09-14T09:00:00Z'),
+    revokedAt: null,
+  };
+  await client.query(
+    'INSERT INTO repositories VALUES ($1, $2, $3, $4, $5, $6, $7)',
+    Object.values(repository),
+  );
+  await client.query(
+    'INSERT INTO file_system_permission_policies VALUES ($1, $2, $3, $4, $5, $6, $7)',
+    Object.values(policy),
+  );
 
-  await expect(client.query(migration)).rejects.toThrow(
+  await expect(client.query(workspaceMigration)).rejects.toThrow(
     'Cannot remove repositories while legacy records exist.',
   );
   await client.query('ROLLBACK');
-  expect((await client.query('SELECT * FROM repositories')).rows).toEqual([legacy]);
-  expect((await client.query('SELECT * FROM workspaces')).rows).toEqual([
-    { id: 'workspace', projectId: 'project' },
+
+  expect((await client.query('SELECT * FROM repositories')).rows).toEqual([repository]);
+  expect((await client.query('SELECT * FROM file_system_permission_policies')).rows).toEqual([
+    policy,
   ]);
-  await expect(client.query("UPDATE projects SET id = 'renamed'")).rejects.toMatchObject({
-    code: '23503',
-  });
-  await client.query('DELETE FROM repositories');
-  await client.query("UPDATE projects SET id = 'renamed'");
-  expect((await client.query('SELECT "projectId" FROM workspaces')).rows).toEqual([
-    { projectId: 'renamed' },
-  ]);
+  expect(
+    (await client.query("SELECT to_regclass('pg_temp.workspaces') AS workspace")).rows,
+  ).toEqual([{ workspace: null }]);
 });
 
-test('removes permissions and technical versions while preserving Workspaces and their history', async () => {
+test('removes permissions without changing final Workspaces', async () => {
+  await client.query(workspaceMigration);
   await client.query(`
-    ALTER TABLE workspaces ADD COLUMN version INTEGER NOT NULL DEFAULT 1;
-    CREATE TEMP TABLE file_system_permission_policies (id TEXT PRIMARY KEY);
-    CREATE TEMP TABLE workspace_events (
-      id TEXT PRIMARY KEY,
-      "workspaceId" TEXT REFERENCES workspaces(id) ON DELETE RESTRICT
-    );
-    INSERT INTO file_system_permission_policies VALUES ('policy');
-    INSERT INTO workspace_events VALUES ('event', 'workspace');
+    INSERT INTO workspaces (id, "projectId", name, type, "sourcePath", "updatedAt")
+    VALUES ('workspace', 'project', 'Folder', 'folder', '/local/folder', '2026-09-14T10:00:00Z');
+    INSERT INTO file_system_permission_policies (id, name, document, "updatedAt")
+    VALUES ('policy', 'Policy', '{"allow":[]}', '2026-09-14T10:00:00Z');
   `);
 
-  await client.query(simplificationMigration.replaceAll('"public".', 'pg_temp.'));
+  await client.query(permissionsMigration);
 
-  expect((await client.query('SELECT * FROM workspaces')).rows).toEqual([
-    { id: 'workspace', projectId: 'project' },
-  ]);
-  expect((await client.query('SELECT * FROM workspace_events')).rows).toEqual([
-    { id: 'event', workspaceId: 'workspace' },
-  ]);
   expect(
     (await client.query("SELECT to_regclass('pg_temp.file_system_permission_policies') AS policy"))
       .rows,
   ).toEqual([{ policy: null }]);
-});
-
-test('migrates disconnected Workspaces to the archive without losing their source or timestamp', async () => {
-  await client.query(`
-    CREATE TYPE pg_temp."WorkspaceAvailability" AS ENUM ('UNKNOWN');
-    ALTER TABLE workspaces
-      ADD COLUMN name TEXT NOT NULL DEFAULT 'Folder',
-      ADD COLUMN "sourcePath" TEXT NOT NULL DEFAULT '/local/folder',
-      ADD COLUMN "availability" pg_temp."WorkspaceAvailability" NOT NULL DEFAULT 'UNKNOWN',
-      ADD COLUMN "lastCheckedAt" TIMESTAMPTZ(3),
-      ADD COLUMN "lastErrorCode" TEXT,
-      ADD COLUMN "disconnectedAt" TIMESTAMPTZ(3);
-    CREATE INDEX "workspaces_projectId_disconnectedAt_name_id_idx"
-      ON workspaces("projectId", "disconnectedAt", name, id);
-    CREATE TEMP TABLE workspace_events (
-      id TEXT PRIMARY KEY,
-      "workspaceId" TEXT REFERENCES workspaces(id)
-    );
-    INSERT INTO workspace_events VALUES ('event', 'workspace');
-    INSERT INTO workspaces (id, "projectId", "disconnectedAt")
-      VALUES ('archived', 'project', '2026-09-14T10:00:00Z');
-  `);
-
-  await client.query(archiveMigration.replaceAll('"public".', 'pg_temp.'));
-
-  expect((await client.query('SELECT * FROM workspaces ORDER BY id')).rows).toEqual([
-    {
-      id: 'archived',
-      projectId: 'project',
-      name: 'Folder',
-      sourcePath: '/local/folder',
-      isArchived: true,
-      archivedAt: new Date('2026-09-14T10:00:00Z'),
-    },
+  expect(
+    (await client.query('SELECT id, "projectId", name, type, "sourcePath" FROM workspaces')).rows,
+  ).toEqual([
     {
       id: 'workspace',
       projectId: 'project',
       name: 'Folder',
+      type: 'folder',
       sourcePath: '/local/folder',
-      isArchived: false,
-      archivedAt: null,
     },
   ]);
-  expect(
-    (await client.query("SELECT to_regclass('pg_temp.workspace_events') AS history")).rows,
-  ).toEqual([{ history: null }]);
 });
