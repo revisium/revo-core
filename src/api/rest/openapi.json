@@ -1,6 +1,519 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/projects/{projectId}/workspaces": {
+      "get": {
+        "operationId": "listWorkspaces",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeArchived",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceConnectionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      },
+      "post": {
+        "operationId": "createWorkspace",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkspaceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Project or Workspace archive state prevents this operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      }
+    },
+    "/api/projects/{projectId}/workspaces/{id}": {
+      "get": {
+        "operationId": "getWorkspace",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      },
+      "patch": {
+        "operationId": "updateWorkspace",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkspaceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Project or Workspace archive state prevents this operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      }
+    },
+    "/api/projects/{projectId}/workspaces/{id}/check": {
+      "post": {
+        "operationId": "checkWorkspace",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceCheckResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Project or Workspace archive state prevents this operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      }
+    },
+    "/api/projects/{projectId}/workspaces/{id}/archive": {
+      "post": {
+        "operationId": "archiveWorkspace",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Project or Workspace archive state prevents this operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      }
+    },
+    "/api/projects/{projectId}/workspaces/{id}/restore": {
+      "post": {
+        "operationId": "restoreWorkspace",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or Workspace was not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Project or Workspace archive state prevents this operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      }
+    },
+    "/api/workspaces/check-source": {
+      "post": {
+        "operationId": "checkWorkspaceSource",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceCheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceCheckResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid source input or malformed request (INVALID_REQUEST).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": ["Workspace"]
+      }
+    },
     "/api/file-system/roots": {
       "get": {
         "operationId": "getFileSystemRoots",
@@ -2266,7 +2779,7 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "number"
+              "type": "integer"
             }
           },
           {
@@ -3468,6 +3981,201 @@
   "servers": [],
   "components": {
     "schemas": {
+      "WorkspaceErrorResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "integer"
+          },
+          "message": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "field": {
+            "type": "string"
+          }
+        },
+        "required": ["code", "statusCode", "message"]
+      },
+      "WorkspaceResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["folder", "repository"]
+          },
+          "sourcePath": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isArchived": {
+            "type": "boolean"
+          },
+          "archivedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "name",
+          "description",
+          "type",
+          "sourcePath",
+          "createdAt",
+          "updatedAt",
+          "isArchived",
+          "archivedAt"
+        ]
+      },
+      "WorkspaceEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/WorkspaceResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "PageInfoResponse": {
+        "type": "object",
+        "properties": {
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "startCursor": {
+            "type": "string"
+          },
+          "endCursor": {
+            "type": "string"
+          }
+        },
+        "required": ["hasNextPage", "hasPreviousPage"]
+      },
+      "WorkspaceConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
+      },
+      "CreateWorkspaceRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["folder", "repository"]
+          },
+          "sourcePath": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "type", "sourcePath"]
+      },
+      "UpdateWorkspaceRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "sourcePath": {
+            "type": "string"
+          }
+        }
+      },
+      "WorkspaceCheckResponse": {
+        "type": "object",
+        "properties": {
+          "availability": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "NOT_FOUND",
+              "NOT_DIRECTORY",
+              "ACCESS_DENIED",
+              "INVALID_REPOSITORY",
+              "CHECK_FAILED"
+            ]
+          },
+          "errorCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["availability", "errorCode"]
+      },
+      "WorkspaceCheckRequest": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["folder", "repository"]
+          },
+          "sourcePath": {
+            "type": "string"
+          }
+        },
+        "required": ["type", "sourcePath"]
+      },
       "FileSystemRootType": {
         "type": "string",
         "enum": ["HOME", "ROOT", "VOLUME", "SCOPE"]
@@ -3502,24 +4210,6 @@
           }
         },
         "required": ["cursor", "node"]
-      },
-      "PageInfoResponse": {
-        "type": "object",
-        "properties": {
-          "hasNextPage": {
-            "type": "boolean"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "startCursor": {
-            "type": "string"
-          },
-          "endCursor": {
-            "type": "string"
-          }
-        },
-        "required": ["hasNextPage", "hasPreviousPage"]
       },
       "FileSystemRootConnectionResponse": {
         "type": "object",

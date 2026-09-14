@@ -17,7 +17,7 @@ model Project {
   kind         ProjectKind   @default(USER)
   createdAt    DateTime      @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime      @updatedAt @db.Timestamptz(3)
-  repositories Repository[]
+  workspaces  Workspace[]
   branches     Branch[]
 
   @@map("projects")
@@ -39,32 +39,28 @@ enum ProjectKind {
   @@schema("public")
 }
 
-model Repository {
-  id        String   @id @default(nanoid())
-  projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  name      String
-  remoteUrl String?
-  localPath String?
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+model Workspace {
+  id             String                @id @default(nanoid())
+  projectId      String
+  project        Project               @relation(fields: [projectId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  name           String
+  description    String                @default("")
+  type           WorkspaceType
+  sourcePath     String
+  createdAt      DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime              @updatedAt @db.Timestamptz(3)
+  isArchived     Boolean               @default(false)
+  archivedAt     DateTime?             @db.Timestamptz(3)
 
-  @@unique([projectId, name])
-  @@index([projectId])
-  @@map("repositories")
+  @@index([projectId, isArchived, name, id])
+  @@map("workspaces")
   @@schema("public")
 }
 
-model FileSystemPermissionPolicy {
-  id        String    @id @default(nanoid())
-  name      String
-  document  Json
-  version   Int       @default(1)
-  createdAt DateTime  @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
-  revokedAt DateTime? @db.Timestamptz(3)
+enum WorkspaceType {
+  folder
+  repository
 
-  @@map("file_system_permission_policies")
   @@schema("public")
 }
 

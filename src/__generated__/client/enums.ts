@@ -26,6 +26,14 @@ export const ProjectKind = {
 export type ProjectKind = (typeof ProjectKind)[keyof typeof ProjectKind]
 
 
+export const WorkspaceType = {
+  folder: 'folder',
+  repository: 'repository'
+} as const
+
+export type WorkspaceType = (typeof WorkspaceType)[keyof typeof WorkspaceType]
+
+
 export const DialogueStatus = {
   READY: 'READY',
   QUEUED: 'QUEUED',

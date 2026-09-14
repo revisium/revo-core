@@ -1,5 +1,5 @@
 import { constants } from 'node:fs';
-import { lstat, stat, readdir, mkdir, realpath, readlink, open } from 'node:fs/promises';
+import { lstat, stat, readdir, mkdir, realpath, open } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 
@@ -8,18 +8,26 @@ import { Injectable } from '@nestjs/common';
 import {
   FileSystemEntryType,
   FileSystemRootType,
+  type FileSystemEntry,
   type FileSystemRoot,
 } from '../contracts/file-system.contracts.js';
 import { FileSystemError, rethrowFileSystemError } from '../contracts/file-system.error.js';
 
 @Injectable()
 export class FileSystemService {
-  async exists(location: string): Promise<boolean> {
-    return (await this.metadataOrMissing(location)) !== undefined;
+  async entry(location: string): Promise<FileSystemEntry> {
+    const metadata = await this.metadata(location);
+
+    return {
+      name: path.basename(location) || location,
+      path: location,
+      type: metadata.type,
+      isSymlink: metadata.isSymlink,
+    };
   }
 
-  async isFile(location: string): Promise<boolean> {
-    return (await this.metadataOrMissing(location))?.type === FileSystemEntryType.FILE;
+  async exists(location: string): Promise<boolean> {
+    return (await this.metadataOrMissing(location)) !== undefined;
   }
 
   async isDirectory(location: string): Promise<boolean> {
@@ -68,14 +76,6 @@ export class FileSystemService {
   async canonicalize(location: string): Promise<string> {
     try {
       return await realpath(location);
-    } catch (error) {
-      return rethrowFileSystemError(error);
-    }
-  }
-
-  async readLink(location: string): Promise<string> {
-    try {
-      return await readlink(location);
     } catch (error) {
       return rethrowFileSystemError(error);
     }

@@ -1,12 +1,9 @@
 import { HttpException } from '@nestjs/common';
 
 const errors = {
-  FILE_SYSTEM_POLICY_UNAVAILABLE: [503, 'Filesystem access policy is unavailable.'],
-  FILE_SYSTEM_INVALID_POLICY: [400, 'Filesystem access policy is invalid.'],
   FILE_SYSTEM_NOT_FOUND: [404, 'Filesystem entry was not found.'],
   FILE_SYSTEM_NOT_DIRECTORY: [400, 'Filesystem entry is not a directory.'],
   FILE_SYSTEM_ACCESS_DENIED: [403, 'The operating system denied filesystem access.'],
-  FILE_SYSTEM_PERMISSION_DENIED: [403, 'Filesystem policy denied access.'],
   FILE_SYSTEM_ALREADY_EXISTS: [409, 'Filesystem entry already exists.'],
   FILE_SYSTEM_INVALID_PATH: [400, 'Filesystem path is invalid.'],
   FILE_SYSTEM_INVALID_NAME: [400, 'Directory name is invalid.'],

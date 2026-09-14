@@ -2,7 +2,7 @@ import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
-import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
+import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import { getOffsetPagination } from '../../../../infrastructure/pagination/get-offset-pagination.js';
 import {
   ListUserProjectsQuery,
@@ -16,26 +16,28 @@ export class ListUserProjectsHandler implements IQueryHandler<
   ListUserProjectsQuery,
   ListUserProjectsQueryReturnType
 > {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly transactions: TransactionPrismaService) {}
 
   execute({ data }: ListUserProjectsQuery): Promise<ListUserProjectsQueryReturnType> {
     const where = this.buildWhere(data);
 
-    return getOffsetPagination({
-      pageData: data,
-      findMany: async ({ take, skip }) => {
-        const projects = await this.prisma.project.findMany({
-          where,
-          orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
-          take,
-          skip,
-          select: USER_PROJECT_SELECT,
-        });
+    return this.transactions.runRepeatableRead((prisma) =>
+      getOffsetPagination({
+        pageData: data,
+        findMany: async ({ take, skip }) => {
+          const projects = await prisma.project.findMany({
+            where,
+            orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+            take,
+            skip,
+            select: USER_PROJECT_SELECT,
+          });
 
-        return projects.map(toUserProject);
-      },
-      count: () => this.prisma.project.count({ where }),
-    });
+          return projects.map(toUserProject);
+        },
+        count: () => prisma.project.count({ where }),
+      }),
+    );
   }
 
   private buildWhere(data: ListUserProjectsQueryData): Prisma.ProjectWhereInput {

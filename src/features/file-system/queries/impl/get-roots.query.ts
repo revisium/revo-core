@@ -1,5 +1,4 @@
 import type {
-  FileSystemAccessContext,
   FileSystemPage,
   FileSystemRoot,
   FileSystemPageOptions,
@@ -9,8 +8,5 @@ export type GetRootsQueryData = FileSystemPageOptions;
 export type GetRootsQueryReturnType = FileSystemPage<FileSystemRoot>;
 
 export class GetRootsQuery {
-  constructor(
-    readonly data: GetRootsQueryData,
-    readonly context: FileSystemAccessContext | undefined,
-  ) {}
+  constructor(readonly data: GetRootsQueryData) {}
 }

@@ -398,8 +398,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Project: 'Project',
-  Repository: 'Repository',
-  FileSystemPermissionPolicy: 'FileSystemPermissionPolicy',
+  Workspace: 'Workspace',
   ReviewThread: 'ReviewThread',
   ReviewMessage: 'ReviewMessage',
   Branch: 'Branch',
@@ -434,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "project" | "repository" | "fileSystemPermissionPolicy" | "reviewThread" | "reviewMessage" | "branch" | "revision" | "table" | "row" | "fileBlob" | "projectFileUsage" | "tableMigration" | "dbosWorkflowStatus" | "dbosOperationOutput" | "dialogue" | "dialogueTurn" | "dialogueHistoryItem" | "dialogueInteraction" | "agentSessionEventStream" | "agentSessionEvent" | "dialogueChange" | "dialogueFeedPosition"
+    modelProps: "project" | "workspace" | "reviewThread" | "reviewMessage" | "branch" | "revision" | "table" | "row" | "fileBlob" | "projectFileUsage" | "tableMigration" | "dbosWorkflowStatus" | "dbosOperationOutput" | "dialogue" | "dialogueTurn" | "dialogueHistoryItem" | "dialogueInteraction" | "agentSessionEventStream" | "agentSessionEvent" | "dialogueChange" | "dialogueFeedPosition"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -512,151 +511,77 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Repository: {
-      payload: Prisma.$RepositoryPayload<ExtArgs>
-      fields: Prisma.RepositoryFieldRefs
+    Workspace: {
+      payload: Prisma.$WorkspacePayload<ExtArgs>
+      fields: Prisma.WorkspaceFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.RepositoryFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RepositoryPayload> | null
+          args: Prisma.WorkspaceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspacePayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.RepositoryFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RepositoryPayload>
+          args: Prisma.WorkspaceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspacePayload>
         }
         findFirst: {
-          args: Prisma.RepositoryFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RepositoryPayload> | null
+          args: Prisma.WorkspaceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspacePayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.RepositoryFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RepositoryPayload>
+          args: Prisma.WorkspaceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspacePayload>
         }
         findMany: {
-          args: Prisma.RepositoryFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RepositoryPayload>[]
+          args: Prisma.WorkspaceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspacePayload>[]
         }
         create: {
-          args: Prisma.RepositoryCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RepositoryPayload>
+          args: Prisma.WorkspaceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspacePayload>
         }
         createMany: {
-          args: Prisma.RepositoryCreateManyArgs<ExtArgs>
+          args: Prisma.WorkspaceCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.RepositoryCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RepositoryPayload>[]
+          args: Prisma.WorkspaceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspacePayload>[]
         }
         delete: {
-          args: Prisma.RepositoryDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RepositoryPayload>
+          args: Prisma.WorkspaceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspacePayload>
         }
         update: {
-          args: Prisma.RepositoryUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RepositoryPayload>
+          args: Prisma.WorkspaceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspacePayload>
         }
         deleteMany: {
-          args: Prisma.RepositoryDeleteManyArgs<ExtArgs>
+          args: Prisma.WorkspaceDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.RepositoryUpdateManyArgs<ExtArgs>
+          args: Prisma.WorkspaceUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.RepositoryUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RepositoryPayload>[]
+          args: Prisma.WorkspaceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspacePayload>[]
         }
         upsert: {
-          args: Prisma.RepositoryUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$RepositoryPayload>
+          args: Prisma.WorkspaceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkspacePayload>
         }
         aggregate: {
-          args: Prisma.RepositoryAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateRepository>
+          args: Prisma.WorkspaceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWorkspace>
         }
         groupBy: {
-          args: Prisma.RepositoryGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.RepositoryGroupByOutputType>[]
+          args: Prisma.WorkspaceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkspaceGroupByOutputType>[]
         }
         count: {
-          args: Prisma.RepositoryCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.RepositoryCountAggregateOutputType> | number
-        }
-      }
-    }
-    FileSystemPermissionPolicy: {
-      payload: Prisma.$FileSystemPermissionPolicyPayload<ExtArgs>
-      fields: Prisma.FileSystemPermissionPolicyFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.FileSystemPermissionPolicyFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.FileSystemPermissionPolicyFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>
-        }
-        findFirst: {
-          args: Prisma.FileSystemPermissionPolicyFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.FileSystemPermissionPolicyFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>
-        }
-        findMany: {
-          args: Prisma.FileSystemPermissionPolicyFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>[]
-        }
-        create: {
-          args: Prisma.FileSystemPermissionPolicyCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>
-        }
-        createMany: {
-          args: Prisma.FileSystemPermissionPolicyCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.FileSystemPermissionPolicyCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>[]
-        }
-        delete: {
-          args: Prisma.FileSystemPermissionPolicyDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>
-        }
-        update: {
-          args: Prisma.FileSystemPermissionPolicyUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>
-        }
-        deleteMany: {
-          args: Prisma.FileSystemPermissionPolicyDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.FileSystemPermissionPolicyUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.FileSystemPermissionPolicyUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>[]
-        }
-        upsert: {
-          args: Prisma.FileSystemPermissionPolicyUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$FileSystemPermissionPolicyPayload>
-        }
-        aggregate: {
-          args: Prisma.FileSystemPermissionPolicyAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateFileSystemPermissionPolicy>
-        }
-        groupBy: {
-          args: Prisma.FileSystemPermissionPolicyGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.FileSystemPermissionPolicyGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.FileSystemPermissionPolicyCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.FileSystemPermissionPolicyCountAggregateOutputType> | number
+          args: Prisma.WorkspaceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkspaceCountAggregateOutputType> | number
         }
       }
     }
@@ -2118,30 +2043,20 @@ export const ProjectScalarFieldEnum = {
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
 
 
-export const RepositoryScalarFieldEnum = {
+export const WorkspaceScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
   name: 'name',
-  remoteUrl: 'remoteUrl',
-  localPath: 'localPath',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type RepositoryScalarFieldEnum = (typeof RepositoryScalarFieldEnum)[keyof typeof RepositoryScalarFieldEnum]
-
-
-export const FileSystemPermissionPolicyScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  document: 'document',
-  version: 'version',
+  description: 'description',
+  type: 'type',
+  sourcePath: 'sourcePath',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  revokedAt: 'revokedAt'
+  isArchived: 'isArchived',
+  archivedAt: 'archivedAt'
 } as const
 
-export type FileSystemPermissionPolicyScalarFieldEnum = (typeof FileSystemPermissionPolicyScalarFieldEnum)[keyof typeof FileSystemPermissionPolicyScalarFieldEnum]
+export type WorkspaceScalarFieldEnum = (typeof WorkspaceScalarFieldEnum)[keyof typeof WorkspaceScalarFieldEnum]
 
 
 export const ReviewThreadScalarFieldEnum = {
@@ -2552,6 +2467,27 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
+ * Reference to a field of type 'WorkspaceType'
+ */
+export type EnumWorkspaceTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkspaceType'>
+    
+
+
+/**
+ * Reference to a field of type 'WorkspaceType[]'
+ */
+export type ListEnumWorkspaceTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkspaceType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -2576,13 +2512,6 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -2905,8 +2834,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
   project?: Prisma.ProjectOmit
-  repository?: Prisma.RepositoryOmit
-  fileSystemPermissionPolicy?: Prisma.FileSystemPermissionPolicyOmit
+  workspace?: Prisma.WorkspaceOmit
   reviewThread?: Prisma.ReviewThreadOmit
   reviewMessage?: Prisma.ReviewMessageOmit
   branch?: Prisma.BranchOmit

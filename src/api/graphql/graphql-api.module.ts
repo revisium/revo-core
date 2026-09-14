@@ -4,13 +4,12 @@ import { GraphQLModule } from '@nestjs/graphql';
 
 import { AgentDefinitionsModule } from '../../features/agent-definitions/agent-definitions.module.js';
 import { DialogueManagementModule } from '../../features/dialogues/management/dialogue-management.module.js';
-import { FileSystemAccessModule } from '../../features/file-system-access/file-system-access.module.js';
 import { FileSystemModule } from '../../features/file-system/file-system.module.js';
 import { PlaybookCatalogModule } from '../../features/playbook-catalog/playbook-catalog.module.js';
 import { ProjectModule } from '../../features/project/project.module.js';
 import { RunModule } from '../../features/run/run.module.js';
 import { SystemModule } from '../../features/system/system.module.js';
-import { FileSystemBrowserAccessService } from '../file-system/file-system-browser-access.service.js';
+import { WorkspaceModule } from '../../features/workspace/workspace.module.js';
 import { AgentDefinitionsGraphqlExceptionFilter } from './agent-definitions/agent-definitions-graphql-exception.filter.js';
 import { AgentDefinitionsResolver } from './agent-definitions/agent-definitions.resolver.js';
 import { DialogueResolver } from './dialogue/dialogue.resolver.js';
@@ -23,6 +22,7 @@ import { RunResolver } from './run/run.resolver.js';
 import { GraphqlSubscriptionTransport } from './subscriptions/graphql-subscription-transport.js';
 import { GraphqlSubscriptionsModule } from './subscriptions/graphql-subscriptions.module.js';
 import { SystemResolver } from './system/system.resolver.js';
+import { WorkspaceResolver } from './workspace/workspace.resolver.js';
 
 initRegisterEnumTypes();
 
@@ -30,7 +30,7 @@ initRegisterEnumTypes();
   imports: [
     AgentDefinitionsModule,
     DialogueManagementModule,
-    FileSystemAccessModule,
+    WorkspaceModule,
     FileSystemModule,
     ProjectModule,
     PlaybookCatalogModule,
@@ -52,7 +52,7 @@ initRegisterEnumTypes();
     AgentDefinitionsResolver,
     DialogueResolver,
     AgentDefinitionsGraphqlExceptionFilter,
-    FileSystemBrowserAccessService,
+    WorkspaceResolver,
     FileSystemResolver,
     ProjectResolver,
     ProjectRecordsResolver,

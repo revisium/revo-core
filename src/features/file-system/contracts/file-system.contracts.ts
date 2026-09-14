@@ -1,34 +1,3 @@
-export enum FileSystemPermission {
-  LIST = 'LIST',
-  READ_METADATA = 'READ_METADATA',
-  READ_FILE = 'READ_FILE',
-  CREATE_FILE = 'CREATE_FILE',
-  CREATE_DIRECTORY = 'CREATE_DIRECTORY',
-  WRITE_FILE = 'WRITE_FILE',
-  COPY = 'COPY',
-  MOVE = 'MOVE',
-  DELETE = 'DELETE',
-}
-
-export type FileSystemPathRule = {
-  readonly path: string;
-  readonly match: 'EXACT' | 'SUBTREE';
-  readonly allow?: readonly FileSystemPermission[];
-  readonly deny?: readonly FileSystemPermission[];
-};
-
-export type FileSystemPermissionSet = {
-  readonly allow: readonly FileSystemPermission[];
-  readonly deny?: readonly FileSystemPermission[];
-  readonly rules?: readonly FileSystemPathRule[];
-};
-
-export type FileSystemScope = FileSystemPermissionSet & { readonly rootPath: string };
-
-export type FileSystemAccessPolicy = {
-  readonly scopes: readonly FileSystemScope[];
-};
-
 export enum FileSystemEntryType {
   FILE = 'FILE',
   DIRECTORY = 'DIRECTORY',
@@ -77,5 +46,3 @@ export type FileSystemDirectory = {
   parentPath: string | null;
   entries: FileSystemPage<FileSystemEntry>;
 };
-
-export type { FileSystemAccessContext } from './file-system-access-context.js';

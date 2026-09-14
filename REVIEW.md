@@ -24,6 +24,7 @@
 - Feature dependencies are acyclic. An API facade is bus-only and dispatches only its feature's commands and queries; it contains no business or persistence behavior.
 - A handler owns one use case. It does not call another handler, recursively call its own API, or dispatch another command or query. It may synchronously call another feature's exported API when its result and error semantics fit the use case.
 - Use events for fan-out or eventual work. A use case that requires one transaction or snapshot has one explicit owner and boundary.
+- Use database transactions for related reads and writes. Do not introduce technical `version` fields or `expectedVersion` inputs for optimistic concurrency checks.
 - Keep the feature root limited to its module, API facade, and optional explicitly public entrypoint. Put implementation in truthful responsibility directories; do not create `utils`, `helpers`, `common`, `shared`, `constants`, or `types` dumping grounds.
 - Domain code imports only feature contracts or domain code. It does not import Nest, HTTP, Engine, Prisma, DBOS, or transport code.
 - Trust TypeScript inside typed boundaries. Validate and narrow values at untrusted transport, persistence, library, file, and JSON boundaries, before mutation. Each invariant has one validation owner.

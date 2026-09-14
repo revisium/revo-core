@@ -42,6 +42,10 @@ feature's exported API when it needs that result and accepts its consistency and
 Events are the default for fan-out and eventual work. Work that requires one transaction or one
 snapshot stays behind a single explicit owning boundary.
 
+Project responses contain only Project data. Clients obtain Workspace previews and counts from
+Workspace pagination, for example with `first: 3`. Project does not depend on Workspace;
+the existing Workspace-to-Project dependency remains one-way.
+
 Storage representations are private to their owning adapter. Public APIs expose typed application
 contracts instead. Runtime validation belongs at untrusted transport, persistence, library, file,
 and JSON boundaries and runs before mutation; typed internal calls do not repeat validation owned

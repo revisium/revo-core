@@ -47,15 +47,10 @@ export { Prisma }
  */
 export type Project = Prisma.ProjectModel
 /**
- * Model Repository
+ * Model Workspace
  * 
  */
-export type Repository = Prisma.RepositoryModel
-/**
- * Model FileSystemPermissionPolicy
- * 
- */
-export type FileSystemPermissionPolicy = Prisma.FileSystemPermissionPolicyModel
+export type Workspace = Prisma.WorkspaceModel
 /**
  * Model ReviewThread
  * 

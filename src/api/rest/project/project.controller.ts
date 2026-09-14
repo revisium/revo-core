@@ -52,7 +52,7 @@ export class ProjectController {
 
   @Get()
   @ApiOperation({ operationId: 'listProjects', summary: 'List projects' })
-  @ApiQuery({ name: 'first', type: Number, required: false })
+  @ApiQuery({ name: 'first', schema: { type: 'integer' }, required: false })
   @ApiQuery({ name: 'after', type: String, required: false })
   @ApiQuery({ name: 'includeArchived', type: Boolean, required: false })
   @ApiQuery({ name: 'query', type: String, required: false })
