@@ -746,7 +746,7 @@ type ProjectCreatedModel {
 
 type ProjectEdgeModel {
   cursor: String!
-  node: ProjectListItemModel!
+  node: ProjectModel!
 }
 
 input ProjectInput {
@@ -760,24 +760,6 @@ input ProjectListInput {
   query: String
 }
 
-type ProjectListItemModel {
-  adr(id: ID!): AdrModel
-  adrs(data: RecordListInput!): AdrConnectionModel!
-  createdAt: String!
-  description: String!
-  id: ID!
-  name: String!
-  requirement(id: ID!): RequirementModel
-  requirements(data: RecordListInput!): RequirementConnectionModel!
-  status: ProjectStatus!
-  summary: ProjectSummaryModel!
-  updatedAt: String!
-  workItem(id: ID!): WorkItemModel
-  workItems(data: RecordListInput!): WorkItemConnectionModel!
-  workPlan(id: ID!): WorkPlanModel
-  workPlans(data: RecordListInput!): WorkPlanConnectionModel!
-}
-
 type ProjectModel {
   adr(id: ID!): AdrModel
   adrs(data: RecordListInput!): AdrConnectionModel!
@@ -788,6 +770,7 @@ type ProjectModel {
   requirement(id: ID!): RequirementModel
   requirements(data: RecordListInput!): RequirementConnectionModel!
   status: ProjectStatus!
+  summary: ProjectSummaryModel!
   updatedAt: String!
   workItem(id: ID!): WorkItemModel
   workItems(data: RecordListInput!): WorkItemConnectionModel!

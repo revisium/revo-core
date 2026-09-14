@@ -135,6 +135,28 @@ describe('Workspace module and transports', () => {
     });
   });
 
+  test('single Project exposes the same summary and nested fields as a list item', async () => {
+    const createdProject = await projects.createUserProject({ name: 'Unified Project model' });
+    projectId = createdProject.projectId;
+    projectIds.push(projectId);
+    await connect();
+    const response = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query:
+          'query($id: ID!, $query: String!) { project(data: { id: $id }) { __typename summary { workspaceCount workspaces { name type } } adrs(data: { first: 1 }) { totalCount } } projects(data: { query: $query }) { edges { node { __typename summary { workspaceCount workspaces { name type } } adrs(data: { first: 1 }) { totalCount } } } } }',
+        variables: { id: projectId, query: projectId },
+      });
+    expect(response.status).toBe(200);
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.project).toEqual(response.body.data.projects.edges[0].node);
+    expect(response.body.data.project).toMatchObject({
+      __typename: 'ProjectModel',
+      summary: { workspaceCount: 1 },
+      adrs: { totalCount: 0 },
+    });
+  });
+
   test('same external source can be connected to different Projects with independent ids', async () => {
     const a = await connect();
     const otherProject = await seedProject();

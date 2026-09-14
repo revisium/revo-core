@@ -16,7 +16,6 @@ import { DialogueResolver } from './dialogue/dialogue.resolver.js';
 import { FileSystemResolver } from './file-system/file-system.resolver.js';
 import { initRegisterEnumTypes } from './init-register-enum-types.js';
 import { PlaybookCatalogResolver } from './playbook-catalog/playbook-catalog.resolver.js';
-import { ProjectListItemResolver } from './project/project-list-item.resolver.js';
 import { ProjectRecordsResolver } from './project/project-records.resolver.js';
 import { ProjectResolver } from './project/project.resolver.js';
 import { RunResolver } from './run/run.resolver.js';
@@ -56,7 +55,6 @@ initRegisterEnumTypes();
     WorkspaceResolver,
     FileSystemResolver,
     ProjectResolver,
-    ProjectListItemResolver,
     ProjectRecordsResolver,
     PlaybookCatalogResolver,
     RunResolver,
