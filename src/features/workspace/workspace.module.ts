@@ -12,7 +12,6 @@ import { CreateWorkspaceHandler } from './commands/handlers/create-workspace.han
 import { RestoreWorkspaceHandler } from './commands/handlers/restore-workspace.handler.js';
 import { UpdateWorkspaceHandler } from './commands/handlers/update-workspace.handler.js';
 import { CheckWorkspaceSourceHandler } from './queries/handlers/check-workspace-source.handler.js';
-import { GetProjectWorkspaceSummariesHandler } from './queries/handlers/get-project-workspace-summaries.handler.js';
 import { GetWorkspaceHandler } from './queries/handlers/get-workspace.handler.js';
 import { ListWorkspacesHandler } from './queries/handlers/list-workspaces.handler.js';
 import { GitWorkspaceProbe } from './source/git-workspace-probe.js';
@@ -36,7 +35,6 @@ import { WorkspaceApiService } from './workspace-api.service.js';
     CheckWorkspaceSourceHandler,
     GetWorkspaceHandler,
     ListWorkspacesHandler,
-    GetProjectWorkspaceSummariesHandler,
   ],
   exports: [WorkspaceApiService],
 })

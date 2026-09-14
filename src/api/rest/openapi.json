@@ -5471,97 +5471,6 @@
         "type": "string",
         "enum": ["active", "archived"]
       },
-      "ProjectWorkspaceSummaryResponse": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": ["folder", "repository"]
-          }
-        },
-        "required": ["name", "type"]
-      },
-      "ProjectSummaryResponse": {
-        "type": "object",
-        "properties": {
-          "workspaces": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProjectWorkspaceSummaryResponse"
-            }
-          },
-          "workspaceCount": {
-            "type": "number"
-          }
-        },
-        "required": ["workspaces", "workspaceCount"]
-      },
-      "ProjectListItemResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "status": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ProjectStatus"
-              }
-            ]
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "summary": {
-            "$ref": "#/components/schemas/ProjectSummaryResponse"
-          }
-        },
-        "required": ["id", "name", "description", "status", "createdAt", "updatedAt", "summary"]
-      },
-      "ProjectEdgeResponse": {
-        "type": "object",
-        "properties": {
-          "cursor": {
-            "type": "string"
-          },
-          "node": {
-            "$ref": "#/components/schemas/ProjectListItemResponse"
-          }
-        },
-        "required": ["cursor", "node"]
-      },
-      "ProjectConnectionResponse": {
-        "type": "object",
-        "properties": {
-          "edges": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProjectEdgeResponse"
-            }
-          },
-          "pageInfo": {
-            "$ref": "#/components/schemas/PageInfoResponse"
-          },
-          "totalCount": {
-            "type": "number"
-          }
-        },
-        "required": ["edges", "pageInfo", "totalCount"]
-      },
       "ProjectResponse": {
         "type": "object",
         "properties": {
@@ -5591,6 +5500,36 @@
           }
         },
         "required": ["id", "name", "description", "status", "createdAt", "updatedAt"]
+      },
+      "ProjectEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/ProjectResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "ProjectConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectEdgeResponse"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfoResponse"
+          },
+          "totalCount": {
+            "type": "number"
+          }
+        },
+        "required": ["edges", "pageInfo", "totalCount"]
       },
       "ProjectUpdateRequest": {
         "type": "object",

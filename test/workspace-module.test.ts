@@ -117,26 +117,7 @@ describe('Workspace module and transports', () => {
     expect(await readFile(path.join(source, 'keep.txt'), 'utf8')).toBe('Keep external files');
   });
 
-  test('projects expose connected Workspace summaries', async () => {
-    const createdProject = await projects.createUserProject({ name: 'Workspace summary baseline' });
-    projectIds.push(createdProject.projectId);
-    await connect('Local files', source, 'folder', createdProject.projectId);
-    const nested = await request(app.getHttpServer())
-      .post('/graphql')
-      .send({
-        query:
-          'query($query: String!) { projects(data: { query: $query }) { edges { node { summary { workspaceCount workspaces { name type } } adrs(data: { first: 1 }) { totalCount } } } } }',
-        variables: { query: createdProject.projectId },
-      })
-      .expect(200);
-    expect(nested.body.errors).toBeUndefined();
-    expect(nested.body.data.projects.edges[0].node).toMatchObject({
-      summary: { workspaceCount: 1 },
-      adrs: { totalCount: 0 },
-    });
-  });
-
-  test('single Project exposes the same summary and nested fields as a list item', async () => {
+  test('single Project exposes the same nested fields as a list item', async () => {
     const createdProject = await projects.createUserProject({ name: 'Unified Project model' });
     projectId = createdProject.projectId;
     projectIds.push(projectId);
@@ -145,7 +126,7 @@ describe('Workspace module and transports', () => {
       .post('/graphql')
       .send({
         query:
-          'query($id: ID!, $query: String!) { project(data: { id: $id }) { __typename summary { workspaceCount workspaces { name type } } adrs(data: { first: 1 }) { totalCount } } projects(data: { query: $query }) { edges { node { __typename summary { workspaceCount workspaces { name type } } adrs(data: { first: 1 }) { totalCount } } } } }',
+          'query($id: ID!, $query: String!) { project(data: { id: $id }) { __typename adrs(data: { first: 1 }) { totalCount } } projects(data: { query: $query }) { edges { node { __typename adrs(data: { first: 1 }) { totalCount } } } } }',
         variables: { id: projectId, query: projectId },
       });
     expect(response.status).toBe(200);
@@ -153,7 +134,6 @@ describe('Workspace module and transports', () => {
     expect(response.body.data.project).toEqual(response.body.data.projects.edges[0].node);
     expect(response.body.data.project).toMatchObject({
       __typename: 'ProjectModel',
-      summary: { workspaceCount: 1 },
       adrs: { totalCount: 0 },
     });
   });
@@ -429,9 +409,10 @@ describe('Workspace module and transports', () => {
     });
   });
 
-  test('lists connected Workspaces by name then id and projects the first three plus total count', async () => {
-    const empty = await api.getProjectWorkspaceSummaries({ projectIds: [projectId] });
-    expect(empty[projectId]).toEqual({ workspaces: [], workspaceCount: 0 });
+  test('lists connected Workspaces by name then id with archived pagination', async () => {
+    const empty = await api.listWorkspaces({ projectId, first: 3 });
+    expect(empty.edges).toEqual([]);
+    expect(empty.totalCount).toBe(0);
     await connect('Delta');
     await connect('Bravo');
     const alpha = await connect('Alpha');
@@ -445,19 +426,7 @@ describe('Workspace module and transports', () => {
     });
     expect(next.edges.map((edge) => edge.node.name)).toEqual(['Charlie', 'Delta']);
     expect(next.totalCount).toBe(4);
-    expect(
-      (await api.getProjectWorkspaceSummaries({ projectIds: [projectId] }))[projectId],
-    ).toEqual({
-      workspaces: ['Alpha', 'Bravo', 'Charlie'].map((name) => ({ name, type: 'folder' })),
-      workspaceCount: 4,
-    });
     const archived = await api.archiveWorkspace({ projectId, id: alpha.id });
-    expect(
-      (await api.getProjectWorkspaceSummaries({ projectIds: [projectId] }))[projectId],
-    ).toEqual({
-      workspaces: ['Bravo', 'Charlie', 'Delta'].map((name) => ({ name, type: 'folder' })),
-      workspaceCount: 3,
-    });
     const includingArchived = await api.listWorkspaces({
       projectId,
       first: 2,
@@ -465,36 +434,6 @@ describe('Workspace module and transports', () => {
     });
     expect(includingArchived.totalCount).toBe(4);
     expect(includingArchived.edges.map((edge) => edge.node.id)).toContain(archived.id);
-  });
-
-  test('batch summaries keep projects isolated and count beyond the preview limit', async () => {
-    const other = await seedProject();
-    const empty = await seedProject();
-    await Promise.all(['Delta', 'Charlie', 'Bravo', 'Alpha'].map((name) => connect(name)));
-    const first = await connect('Same', source, 'folder', other);
-    const second = await connect('Same', source, 'repository', other);
-    const archived = await connect('Archived', source, 'folder', other);
-    await api.archiveWorkspace({ projectId: other, id: archived.id });
-    const missing = "missing' OR true --";
-    const summaries = await api.getProjectWorkspaceSummaries({
-      projectIds: [projectId, other, empty, missing],
-    });
-    expect(summaries[projectId]).toEqual({
-      workspaceCount: 4,
-      workspaces: ['Alpha', 'Bravo', 'Charlie'].map((name) => ({ name, type: 'folder' })),
-    });
-    expect(summaries[other]).toEqual({
-      workspaceCount: 2,
-      workspaces: [first, second]
-        .sort((a, b) => (a.id < b.id ? -1 : 1))
-        .map(({ name, type }) => ({ name, type })),
-    });
-    expect(summaries[empty]).toEqual({ workspaceCount: 0, workspaces: [] });
-    expect(summaries[missing]).toEqual({ workspaceCount: 0, workspaces: [] });
-    expect(await api.getProjectWorkspaceSummaries({ projectIds: [] })).toEqual({});
-    expect(
-      (await projects.listUserProjects({ query: projectId })).edges[0]?.node,
-    ).not.toHaveProperty('summary');
   });
 
   test('OpenAPI exposes Workspace errors and integer/date-time representations', () => {
@@ -662,15 +601,39 @@ describe('Workspace module and transports', () => {
     expect((await api.listWorkspaces({ projectId })).totalCount).toBe(1);
   });
 
-  test('REST Project lists include Workspace summaries', async () => {
-    await createThroughRest('GraphQL folder');
+  test('REST and GraphQL provide card previews through Workspace pagination', async () => {
+    await Promise.all(['Delta', 'Charlie', 'Bravo', 'Alpha'].map((name) => connect(name)));
+    const hidden = await connect('Archived');
+    await api.archiveWorkspace({ projectId, id: hidden.id });
     const projectList = await request(app.getHttpServer())
       .get('/api/projects')
-      .query({ query: projectId })
-      .expect(200);
-    expect(projectList.body.edges[0].node.summary).toEqual({
-      workspaces: [{ name: 'GraphQL folder', type: 'folder' }],
-      workspaceCount: 1,
+      .query({ query: projectId });
+    expect(projectList.status).toBe(200);
+    expect(projectList.body.edges[0].node).not.toHaveProperty('summary');
+    const preview = await request(app.getHttpServer())
+      .get(`/api/projects/${projectId}/workspaces`)
+      .query({ first: 3 });
+    expect(preview.status).toBe(200);
+    expect(preview.body.totalCount).toBe(4);
+    expect(preview.body.edges.map(({ node }: { node: { name: string } }) => node.name)).toEqual([
+      'Alpha',
+      'Bravo',
+      'Charlie',
+    ]);
+    expect(preview.body.pageInfo.hasNextPage).toBe(true);
+    const graphql = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query:
+          'query($data: WorkspaceListInput!) { workspaces(data: $data) { totalCount edges { node { name type } } pageInfo { hasNextPage } } }',
+        variables: { data: { projectId, first: 3 } },
+      });
+    expect(graphql.status).toBe(200);
+    expect(graphql.body.errors).toBeUndefined();
+    expect(graphql.body.data.workspaces).toEqual({
+      totalCount: 4,
+      edges: ['Alpha', 'Bravo', 'Charlie'].map((name) => ({ node: { name, type: 'folder' } })),
+      pageInfo: { hasNextPage: true },
     });
   });
 

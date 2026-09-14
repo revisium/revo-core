@@ -31,16 +31,21 @@ and `archivedAt`. Updates through `PATCH` or `updateWorkspace` return the same
 model. The client can use the returned model immediately instead of issuing a
 second get request.
 
-After a mutation, refresh affected lists and Project summaries. Their ordering,
-counts, and first-three previews can change even when the returned Workspace is
-already present in the client cache. Start pagination again after changing its
-filter or invalidating a list following a mutation.
+Project responses do not contain a Workspace summary. For a card preview, request
+`GET /api/projects/:projectId/workspaces?first=3`, or GraphQL
+`workspaces(data: { projectId, first: 3 })`. Both return `edges`, `pageInfo`, and
+`totalCount`; no separate count parameter is needed. Show the returned names and
+types, and calculate `+N` as `totalCount` minus the number of displayed entries.
+On narrow screens the client may display one entry instead of three.
+
+After a Workspace mutation, refresh its affected lists and previews. Start
+pagination again after changing its filter or invalidating a list.
 
 ## Archive and recovery
 
 Normal Workspace lists include active rows only. Set `includeArchived=true` in
 REST or the GraphQL list input to include archived rows in the same paginated
-connection. Project summaries always count and preview active Workspaces only.
+connection. The preview and total count use the same active-row filter as the list.
 An archived Workspace remains available by ID.
 
 Archive through `POST /api/projects/:projectId/workspaces/:id/archive` or

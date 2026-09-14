@@ -770,7 +770,6 @@ type ProjectModel {
   requirement(id: ID!): RequirementModel
   requirements(data: RecordListInput!): RequirementConnectionModel!
   status: ProjectStatus!
-  summary: ProjectSummaryModel!
   updatedAt: String!
   workItem(id: ID!): WorkItemModel
   workItems(data: RecordListInput!): WorkItemConnectionModel!
@@ -783,20 +782,10 @@ enum ProjectStatus {
   archived
 }
 
-type ProjectSummaryModel {
-  workspaceCount: Int!
-  workspaces: [ProjectWorkspaceSummaryModel!]!
-}
-
 input ProjectUpdateInput {
   description: String
   id: ID!
   name: String
-}
-
-type ProjectWorkspaceSummaryModel {
-  name: String!
-  type: WorkspaceType!
 }
 
 type Query {

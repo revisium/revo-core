@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { ProjectListItemResponse } from './project-list-item.response.js';
+import { ProjectResponse } from './project.response.js';
 
 export class ProjectEdgeResponse {
   @ApiProperty()
   cursor: string;
 
-  @ApiProperty({ type: ProjectListItemResponse })
-  node: ProjectListItemResponse;
+  @ApiProperty({ type: ProjectResponse })
+  node: ProjectResponse;
 }

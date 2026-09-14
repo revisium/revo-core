@@ -1,7 +1,6 @@
 import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
-import { WorkspaceApiService } from '../../../features/workspace/workspace-api.service.js';
 import { ProjectCreateInput } from './input/project-create.input.js';
 import { ProjectListInput } from './input/project-list.input.js';
 import { ProjectUpdateInput } from './input/project-update.input.js';
@@ -12,7 +11,6 @@ import { AdrConnectionModel } from './model/adr-connection.model.js';
 import { AdrModel } from './model/adr.model.js';
 import { ProjectConnectionModel } from './model/project-connection.model.js';
 import { ProjectCreatedModel } from './model/project-created.model.js';
-import { ProjectSummaryModel } from './model/project-summary.model.js';
 import { ProjectModel } from './model/project.model.js';
 import { RequirementConnectionModel } from './model/requirement-connection.model.js';
 import { RequirementModel } from './model/requirement.model.js';
@@ -23,22 +21,7 @@ import { WorkPlanModel } from './model/work-plan.model.js';
 
 @Resolver(() => ProjectModel)
 export class ProjectResolver {
-  constructor(
-    private readonly projectApi: ProjectApiService,
-    private readonly workspaceApi: WorkspaceApiService,
-  ) {}
-
-  @ResolveField(() => ProjectSummaryModel)
-  async summary(@Parent() project: ProjectModel): Promise<ProjectSummaryModel> {
-    if (project.summary !== undefined) {
-      return project.summary;
-    }
-
-    const summaries = await this.workspaceApi.getProjectWorkspaceSummaries({
-      projectIds: [project.id],
-    });
-    return summaries[project.id] ?? { workspaces: [], workspaceCount: 0 };
-  }
+  constructor(private readonly projectApi: ProjectApiService) {}
 
   @Query(() => ProjectModel, { nullable: true })
   project(@Args('data', { type: () => ProjectInput }) data: ProjectInput) {
@@ -46,18 +29,8 @@ export class ProjectResolver {
   }
 
   @Query(() => ProjectConnectionModel)
-  async projects(@Args('data', { type: () => ProjectListInput }) data: ProjectListInput) {
-    const page = await this.projectApi.listUserProjects(data);
-    const summaries = await this.workspaceApi.getProjectWorkspaceSummaries({
-      projectIds: page.edges.map(({ node }) => node.id),
-    });
-    return {
-      ...page,
-      edges: page.edges.map((edge) => ({
-        ...edge,
-        node: { ...edge.node, summary: summaries[edge.node.id] },
-      })),
-    };
+  projects(@Args('data', { type: () => ProjectListInput }) data: ProjectListInput) {
+    return this.projectApi.listUserProjects(data);
   }
 
   @Mutation(() => ProjectCreatedModel)

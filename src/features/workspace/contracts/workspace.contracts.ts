@@ -38,8 +38,3 @@ export type WorkspacePage = {
     endCursor?: string;
   };
 };
-
-export type ProjectWorkspaceSummary = {
-  workspaces: { name: string; type: WorkspaceType }[];
-  workspaceCount: number;
-};

@@ -29,7 +29,6 @@ import {
 
 import { ProjectError } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
-import { WorkspaceApiService } from '../../../features/workspace/workspace-api.service.js';
 import { ProjectCreateRequest } from './dto/project-create.request.js';
 import { ProjectUpdateRequest } from './dto/project-update.request.js';
 import { ProjectConnectionResponse } from './model/project-connection.response.js';
@@ -42,10 +41,7 @@ import { projectUpdateBody } from './project-update.body.js';
 @Controller('projects')
 @UsePipes(new ValidationPipe())
 export class ProjectController {
-  constructor(
-    private readonly projects: ProjectApiService,
-    private readonly workspaces: WorkspaceApiService,
-  ) {}
+  constructor(private readonly projects: ProjectApiService) {}
 
   @Post()
   @ApiOperation({ operationId: 'createProject', summary: 'Create a project' })
@@ -61,25 +57,15 @@ export class ProjectController {
   @ApiQuery({ name: 'includeArchived', type: Boolean, required: false })
   @ApiQuery({ name: 'query', type: String, required: false })
   @ApiOkResponse({ type: ProjectConnectionResponse })
-  async listProjects(
+  listProjects(
     @Query('first', new ParseIntPipe({ optional: true })) first?: number,
     @Query('after') after?: string,
     @Query('includeArchived', new ParseBoolPipe({ optional: true })) includeArchived?: boolean,
     @Query('query') query?: string,
   ) {
-    const page = await this.projects.listUserProjects(
+    return this.projects.listUserProjects(
       projectListQuery({ first, after, includeArchived, query }),
     );
-    const summaries = await this.workspaces.getProjectWorkspaceSummaries({
-      projectIds: page.edges.map(({ node }) => node.id),
-    });
-    return {
-      ...page,
-      edges: page.edges.map((edge) => ({
-        ...edge,
-        node: { ...edge.node, summary: summaries[edge.node.id] },
-      })),
-    };
   }
 
   @Get(':id')
