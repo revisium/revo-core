@@ -3,7 +3,6 @@ import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service.js';
 import { getOffsetPagination } from '../../../../infrastructure/pagination/get-offset-pagination.js';
 import { WorkspaceProjectService } from '../../application/workspace-project.service.js';
-import { toWorkspace } from '../../storage/workspace.mapper.js';
 import { workspaceIncludeArchived } from '../../validation/workspace-input.js';
 import {
   ListWorkspacesQuery,
@@ -38,7 +37,12 @@ export class ListWorkspacesHandler implements IQueryHandler<
             take,
             orderBy: [{ name: 'asc' }, { id: 'asc' }],
           })
-        ).map(toWorkspace),
+        ).map((record) => ({
+          ...record,
+          createdAt: record.createdAt.toISOString(),
+          updatedAt: record.updatedAt.toISOString(),
+          archivedAt: record.archivedAt?.toISOString() ?? null,
+        })),
       count: () => this.prisma.workspace.count({ where }),
     });
   }

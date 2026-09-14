@@ -2,7 +2,6 @@ import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
 import { WorkspaceProjectService } from '../../application/workspace-project.service.js';
 import { WorkspaceStoreService } from '../../storage/workspace-store.service.js';
-import { toWorkspace } from '../../storage/workspace.mapper.js';
 import {
   GetWorkspaceQuery,
   type GetWorkspaceQueryReturnType,
@@ -21,6 +20,13 @@ export class GetWorkspaceHandler implements IQueryHandler<
   async execute({ data }: GetWorkspaceQuery): Promise<GetWorkspaceQueryReturnType> {
     await this.projects.assertAccessible(data.projectId);
 
-    return toWorkspace(await this.store.get(data.projectId, data.id));
+    const record = await this.store.get(data.projectId, data.id);
+
+    return {
+      ...record,
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
+      archivedAt: record.archivedAt?.toISOString() ?? null,
+    };
   }
 }
