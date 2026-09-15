@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
+import type { RunDetails } from '@revisium/revo-run';
 
 import { reportErrorDiagnostic } from '../../../../infrastructure/error-diagnostic.js';
 import { RevoRunService } from '../../../../infrastructure/run-runtime/revo-run.service.js';
@@ -23,14 +24,10 @@ export class GetRunDetailsHandler implements IQueryHandler<
   ) {}
 
   async execute(query: GetRunDetailsQuery): Promise<GetRunDetailsQueryReturnType> {
+    let details: RunDetails | undefined;
+
     try {
-      const details = await this.runs.getRunDetails(query.data.runId);
-
-      if (details === undefined) {
-        return undefined;
-      }
-
-      return { ...details, projectId: await this.projects.getRunProjectId(query.data) };
+      details = await this.runs.getRunDetails(query.data.runId);
     } catch (error) {
       if (isReportableRunError(error)) {
         reportErrorDiagnostic(
@@ -42,5 +39,13 @@ export class GetRunDetailsHandler implements IQueryHandler<
 
       return rethrowPublicRunError(error);
     }
+
+    if (details === undefined) {
+      return undefined;
+    }
+
+    const projectId = await this.projects.getRunProjectId(query.data);
+
+    return { ...details, projectId };
   }
 }

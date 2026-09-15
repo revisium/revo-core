@@ -1,5 +1,6 @@
 import { ConflictException, Logger, NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
+import type { RunSnapshot } from '@revisium/revo-run';
 
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
@@ -46,14 +47,14 @@ export class ArchiveUserProjectHandler implements ICommandHandler<
       throw new ConflictException(ProjectError.notActive);
     }
 
-    const runIds = await this.transaction.projectRun.findMany({
+    const projectRuns = await this.transaction.projectRun.findMany({
       where: { projectId },
       select: { runId: true },
     });
 
-    const blockingRunIds = await this.blockingRunIds(
+    const blockingRunIds = await this.findBlockingRunIds(
       projectId,
-      runIds.map(({ runId }) => runId),
+      projectRuns.map(({ runId }) => runId),
     );
 
     if (blockingRunIds.length > 0) {
@@ -75,28 +76,39 @@ export class ArchiveUserProjectHandler implements ICommandHandler<
     return true;
   }
 
-  private async blockingRunIds(projectId: string, runIds: readonly string[]): Promise<string[]> {
-    const snapshots = await Promise.all(
-      runIds.map(async (runId) => {
-        try {
-          return await this.runs.getRun(runId);
-        } catch (error) {
-          reportErrorDiagnostic(
-            this.logger,
-            { operation: 'project.archive.run_observation', projectId, runId },
-            error,
-          );
-          throw error;
-        }
-      }),
+  private async findBlockingRunIds(
+    projectId: string,
+    runIds: readonly string[],
+  ): Promise<string[]> {
+    const observations = await Promise.all(
+      runIds.map(async (runId) => ({
+        runId,
+        snapshot: await this.readRunForArchival(projectId, runId),
+      })),
     );
 
-    return runIds.filter((runId, index) => {
-      const snapshot = snapshots[index];
-
-      return (
-        snapshot === undefined || !['succeeded', 'failed', 'cancelled'].includes(snapshot.status)
-      );
-    });
+    return observations
+      .filter(({ snapshot }) => blocksProjectArchival(snapshot))
+      .map(({ runId }) => runId);
   }
+
+  private async readRunForArchival(
+    projectId: string,
+    runId: string,
+  ): Promise<RunSnapshot | undefined> {
+    try {
+      return await this.runs.getRun(runId);
+    } catch (error) {
+      reportErrorDiagnostic(
+        this.logger,
+        { operation: 'project.archive.run_observation', projectId, runId },
+        error,
+      );
+      throw error;
+    }
+  }
+}
+
+function blocksProjectArchival(snapshot: RunSnapshot | undefined): boolean {
+  return snapshot === undefined || !['succeeded', 'failed', 'cancelled'].includes(snapshot.status);
 }

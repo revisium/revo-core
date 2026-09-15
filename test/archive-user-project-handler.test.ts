@@ -1,9 +1,9 @@
 import { ConflictException, Logger, NotFoundException } from '@nestjs/common';
-import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 import { EngineModule } from '@revisium/engine';
+import type { RunSnapshot } from '@revisium/revo-run';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
@@ -13,6 +13,7 @@ import { ProjectModule } from '../src/features/project/project.module.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
 import { RevoRunService } from '../src/infrastructure/run-runtime/revo-run.service.js';
 import { RunRuntimeModule } from '../src/infrastructure/run-runtime/run-runtime.module.js';
+import { ProjectTestRuntimeModule } from './support/project-test-runtime.module.js';
 
 type Started = {
   readonly module: TestingModule;
@@ -20,17 +21,9 @@ type Started = {
   readonly prisma: PrismaService;
 };
 
-let getRun: (
-  runId: string,
-) => Promise<
-  Pick<NonNullable<Awaited<ReturnType<RevoRunService['getRun']>>>, 'runId' | 'status'> | undefined
-> = async () => undefined;
+type ArchiveRunSnapshot = Pick<RunSnapshot, 'runId' | 'status'>;
 
-@Module({
-  providers: [{ provide: RevoRunService, useValue: { getRun: (id: string) => getRun(id) } }],
-  exports: [RevoRunService],
-})
-class TestRunRuntimeModule {}
+let getRun: (runId: string) => Promise<ArchiveRunSnapshot | undefined> = async () => undefined;
 
 describe('ArchiveUserProjectHandler', () => {
   let started: Started | undefined;
@@ -39,6 +32,7 @@ describe('ArchiveUserProjectHandler', () => {
   afterEach(async () => {
     vi.restoreAllMocks();
     getRun = async () => undefined;
+
     if (started === undefined) {
       return;
     }
@@ -174,7 +168,9 @@ describe('ArchiveUserProjectHandler', () => {
 
   test('keeps an active project and reports a failed linked-run observation', async () => {
     const observationError = new Error('runtime unavailable');
-    getRun = async () => await Promise.reject(observationError);
+    getRun = async () => {
+      throw observationError;
+    };
     const logged = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     started = await start();
     const projectId = await createProject(started.prisma, { status: ProjectStatus.ACTIVE });
@@ -222,7 +218,9 @@ async function start(): Promise<Started> {
     ],
   })
     .overrideModule(RunRuntimeModule)
-    .useModule(TestRunRuntimeModule)
+    .useModule(ProjectTestRuntimeModule)
+    .overrideProvider(RevoRunService)
+    .useValue({ getRun: (runId: string) => getRun(runId) })
     .compile();
   await module.init();
 

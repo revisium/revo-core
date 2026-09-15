@@ -14,11 +14,11 @@ export class GetRunProjectIdHandler implements IQueryHandler<
   constructor(private readonly transactions: TransactionPrismaService) {}
 
   async execute({ data }: GetRunProjectIdQuery): Promise<GetRunProjectIdQueryReturnType> {
-    const run = await this.transactions.getTransactionOrPrisma().projectRun.findUnique({
+    const ownership = await this.transactions.getTransactionOrPrisma().projectRun.findUnique({
       where: { runId: data.runId },
       select: { projectId: true },
     });
 
-    return run?.projectId ?? null;
+    return ownership?.projectId ?? null;
   }
 }

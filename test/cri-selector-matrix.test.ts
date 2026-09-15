@@ -45,7 +45,7 @@ describe('CRI selector matrix', () => {
     try {
       const prisma = app.get(PrismaService);
       await prisma.$transaction([
-        prisma.projectRun.deleteMany({ where: { projectId: projectId } }),
+        prisma.projectRun.deleteMany({ where: { projectId } }),
         prisma.project.deleteMany({ where: { id: projectId } }),
       ]);
     } finally {

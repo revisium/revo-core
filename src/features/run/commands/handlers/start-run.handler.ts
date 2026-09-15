@@ -31,45 +31,20 @@ export class StartRunHandler implements ICommandHandler<
   async execute(command: StartRunCommand): Promise<StartRunCommandReturnType> {
     const { data } = command;
 
-    const hasPipelineId = Object.hasOwn(data, 'pipelineId');
-    const hasPipeline = Object.hasOwn(data, 'pipeline');
-    const hasProfileId = Object.hasOwn(data, 'profileId');
-    const hasProfile = Object.hasOwn(data, 'profile');
+    this.assertSelectors(data);
 
-    if (hasPipelineId && hasPipeline) {
-      return this.invalidPipelineSelector('conflict');
-    }
-    if (!hasPipelineId && !hasPipeline) {
-      return this.invalidPipelineSelector('required');
-    }
-    if (hasProfileId && hasProfile) {
-      return this.invalidProfileSelector('conflict');
-    }
-    if (!hasProfileId && !hasProfile) {
-      return this.invalidProfileSelector('required');
-    }
-
-    const pipeline = await this.selectedPipeline(data, hasPipelineId);
-    const profile = await this.selectedProfile(data, hasProfileId);
+    const pipeline = await this.resolvePipeline(data);
+    const profile = await this.resolveProfile(data);
 
     this.assertProfileShape(profile);
-
-    if (typeof data.projectId !== 'string' || data.projectId.trim().length === 0) {
-      throw new BadRequestException({
-        statusCode: 400,
-        code: 'project_id_invalid',
-        message: 'Project ID is required.',
-        path: '/projectId',
-        details: { reason: 'required' },
-      });
-    }
+    this.assertProjectId(data.projectId);
 
     const runId = `r${nanoid()}`;
 
     try {
       await this.projects.reserveRun({ projectId: data.projectId, runId });
     } catch (error) {
-      throw projectReservationError(error);
+      return rethrowProjectReservationError(error);
     }
 
     try {
@@ -108,11 +83,8 @@ export class StartRunHandler implements ICommandHandler<
     }
   }
 
-  private async selectedPipeline(
-    data: StartRunCommandData,
-    hasPipelineId: boolean,
-  ): Promise<PipelineSourcePackage> {
-    if (hasPipelineId) {
+  private async resolvePipeline(data: StartRunCommandData): Promise<PipelineSourcePackage> {
+    if (Object.hasOwn(data, 'pipelineId')) {
       if (!isCatalogRecordId(data.pipelineId)) {
         return this.invalidPipelineSelector('invalid_id');
       }
@@ -127,11 +99,8 @@ export class StartRunHandler implements ICommandHandler<
     return data.pipeline;
   }
 
-  private async selectedProfile(
-    data: StartRunCommandData,
-    hasProfileId: boolean,
-  ): Promise<RunProfile> {
-    if (hasProfileId) {
+  private async resolveProfile(data: StartRunCommandData): Promise<RunProfile> {
+    if (Object.hasOwn(data, 'profileId')) {
       if (!isCatalogRecordId(data.profileId)) {
         return this.invalidProfileSelector('invalid_id');
       }
@@ -166,6 +135,41 @@ export class StartRunHandler implements ICommandHandler<
     });
   }
 
+  private assertSelectors(data: StartRunCommandData): void {
+    const hasPipelineId = Object.hasOwn(data, 'pipelineId');
+    const hasPipeline = Object.hasOwn(data, 'pipeline');
+    const hasProfileId = Object.hasOwn(data, 'profileId');
+    const hasProfile = Object.hasOwn(data, 'profile');
+
+    if (hasPipelineId && hasPipeline) {
+      return this.invalidPipelineSelector('conflict');
+    }
+
+    if (!hasPipelineId && !hasPipeline) {
+      return this.invalidPipelineSelector('required');
+    }
+
+    if (hasProfileId && hasProfile) {
+      return this.invalidProfileSelector('conflict');
+    }
+
+    if (!hasProfileId && !hasProfile) {
+      return this.invalidProfileSelector('required');
+    }
+  }
+
+  private assertProjectId(projectId: string): void {
+    if (typeof projectId !== 'string' || projectId.trim().length === 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        code: 'project_id_invalid',
+        message: 'Project ID is required.',
+        path: '/projectId',
+        details: { reason: 'required' },
+      });
+    }
+  }
+
   private assertProfileShape(profile: RunProfile): void {
     if (
       typeof profile !== 'object' ||
@@ -185,7 +189,7 @@ export class StartRunHandler implements ICommandHandler<
   }
 }
 
-function projectReservationError(error: unknown): never {
+function rethrowProjectReservationError(error: unknown): never {
   if (error instanceof NotFoundException) {
     throw new NotFoundException({
       statusCode: 404,

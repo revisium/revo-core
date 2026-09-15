@@ -88,6 +88,7 @@ describe('durable Project Run ownership', () => {
         runId,
         projectId,
       });
+
       return { runId };
     });
 
@@ -105,6 +106,7 @@ describe('durable Project Run ownership', () => {
         runSerializable(async (transaction) => {
           await handler(transaction);
           expect(await transaction.projectRun.count({ where: { projectId } })).toBe(1);
+
           if (phase === 'statement') {
             await transaction.$executeRaw`SELECT 1 / 0`;
           } else {
@@ -223,7 +225,7 @@ describe('durable Project Run ownership', () => {
   });
 
   test('archive wins and reservation retries without runtime admission', async () => {
-    const result = await race('archive');
+    const result = await raceArchiveAndReservation('archive');
 
     expect(result.archival).toEqual({ value: true });
     expect(result.admission).toMatchObject({ error: { response: { code: 'project_archived' } } });
@@ -236,7 +238,7 @@ describe('durable Project Run ownership', () => {
   });
 
   test('reservation wins and archive retries against unresolved ownership', async () => {
-    const result = await race('reservation');
+    const result = await raceArchiveAndReservation('reservation');
     const reservation = await prisma.projectRun.findFirstOrThrow({ where: { projectId } });
 
     expect(result.admission).toEqual({ value: { runId: reservation.runId } });
@@ -255,7 +257,7 @@ describe('durable Project Run ownership', () => {
     });
   });
 
-  async function race(winner: 'archive' | 'reservation') {
+  async function raceArchiveAndReservation(winner: 'archive' | 'reservation') {
     const barriers = installReadBarriers(transactions);
     runtime.createRun.mockImplementation(async ({ runId }) => ({ runId }));
     const admission = barriers.scope.run('reservation', startRun).then(
@@ -285,7 +287,7 @@ describe('durable Project Run ownership', () => {
   }
 });
 
-function barrier() {
+function createReadBarrier() {
   const entered = Promise.withResolvers<void>();
   const released = Promise.withResolvers<void>();
 
@@ -301,8 +303,8 @@ function barrier() {
 
 function installReadBarriers(transactions: TransactionPrismaService) {
   const scope = new AsyncLocalStorage<'archive' | 'reservation'>();
-  const archive = barrier();
-  const reservation = barrier();
+  const archive = createReadBarrier();
+  const reservation = createReadBarrier();
   const getTransaction = transactions.getTransaction.bind(transactions);
   vi.spyOn(transactions, 'getTransaction').mockImplementation(() => {
     const transaction = getTransaction();
@@ -311,37 +313,57 @@ function installReadBarriers(transactions: TransactionPrismaService) {
     return new Proxy(transaction, {
       get(target, property) {
         if (property === 'project' && operation === 'reservation') {
-          return new Proxy(target.project, {
-            get(delegate, method) {
-              if (method === 'findFirst') {
-                return async (args: Prisma.ProjectFindFirstArgs) => {
-                  const result = await delegate.findFirst(args);
-                  await reservation.pause();
-                  return result;
-                };
-              }
-              return Reflect.get(delegate, method);
-            },
-          });
+          return pauseAfterProjectLookup(target.project, reservation.pause);
         }
+
         if (property === 'projectRun' && operation === 'archive') {
-          return new Proxy(target.projectRun, {
-            get(delegate, method) {
-              if (method === 'findMany') {
-                return async (args: Prisma.ProjectRunFindManyArgs) => {
-                  const result = await delegate.findMany(args);
-                  await archive.pause();
-                  return result;
-                };
-              }
-              return Reflect.get(delegate, method);
-            },
-          });
+          return pauseAfterOwnershipLookup(target.projectRun, archive.pause);
         }
+
         return Reflect.get(target, property);
       },
     });
   });
 
   return { scope, archive, reservation };
+}
+
+function pauseAfterProjectLookup(
+  project: Prisma.TransactionClient['project'],
+  pause: () => Promise<void>,
+) {
+  return new Proxy(project, {
+    get(delegate, method) {
+      if (method === 'findFirst') {
+        return async (args: Prisma.ProjectFindFirstArgs) => {
+          const result = await delegate.findFirst(args);
+          await pause();
+
+          return result;
+        };
+      }
+
+      return Reflect.get(delegate, method);
+    },
+  });
+}
+
+function pauseAfterOwnershipLookup(
+  projectRun: Prisma.TransactionClient['projectRun'],
+  pause: () => Promise<void>,
+) {
+  return new Proxy(projectRun, {
+    get(delegate, method) {
+      if (method === 'findMany') {
+        return async (args: Prisma.ProjectRunFindManyArgs) => {
+          const result = await delegate.findMany(args);
+          await pause();
+
+          return result;
+        };
+      }
+
+      return Reflect.get(delegate, method);
+    },
+  });
 }
