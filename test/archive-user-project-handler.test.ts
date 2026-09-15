@@ -137,20 +137,23 @@ describe('ArchiveUserProjectHandler', () => {
     ).resolves.toMatchObject({ status: ProjectStatus.ACTIVE });
   });
 
-  test('blocks a confirmed active run and identifies it in the conflict', async () => {
-    getRun = async (runId) => ({ runId, status: 'running' });
-    started = await start();
-    const projectId = await createProject(started.prisma, { status: ProjectStatus.ACTIVE });
-    createdProjectIds.push(projectId);
-    await started.prisma.projectRun.create({ data: { projectId, runId: 'r_active' } });
+  test.each(['pending', 'running', 'cancelling', 'recovery_required'] as const)(
+    'blocks a %s run and identifies it in the conflict',
+    async (status) => {
+      getRun = async (runId) => ({ runId, status });
+      started = await start();
+      const projectId = await createProject(started.prisma, { status: ProjectStatus.ACTIVE });
+      createdProjectIds.push(projectId);
+      await started.prisma.projectRun.create({ data: { projectId, runId: `r_${status}` } });
 
-    await expect(started.projects.archiveUserProject({ projectId })).rejects.toMatchObject({
-      response: { code: 'project_has_active_runs', details: { runIds: ['r_active'] } },
-    });
-    expect(await started.prisma.project.findUnique({ where: { id: projectId } })).toMatchObject({
-      status: ProjectStatus.ACTIVE,
-    });
-  });
+      await expect(started.projects.archiveUserProject({ projectId })).rejects.toMatchObject({
+        response: { code: 'project_has_active_runs', details: { runIds: [`r_${status}`] } },
+      });
+      expect(await started.prisma.project.findUnique({ where: { id: projectId } })).toMatchObject({
+        status: ProjectStatus.ACTIVE,
+      });
+    },
+  );
 
   test.each(['succeeded', 'failed', 'cancelled'] as const)(
     'archives and retains a terminal %s run relation',

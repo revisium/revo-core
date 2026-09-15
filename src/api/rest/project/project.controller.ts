@@ -19,25 +19,30 @@ import {
   ApiBadRequestResponse,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiExtraModels,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiQuery,
   ApiTags,
+  getSchemaPath,
 } from '@nestjs/swagger';
 
 import { ProjectError } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
 import { ProjectCreateRequest } from './dto/project-create.request.js';
 import { ProjectUpdateRequest } from './dto/project-update.request.js';
+import { ProjectActiveRunsErrorResponse } from './model/project-active-runs-error.response.js';
 import { ProjectConnectionResponse } from './model/project-connection.response.js';
 import { ProjectCreatedResponse } from './model/project-created.response.js';
+import { ProjectNotActiveErrorResponse } from './model/project-not-active-error.response.js';
 import { ProjectResponse } from './model/project.response.js';
 import { projectListQuery } from './project-list.query.js';
 import { projectUpdateBody } from './project-update.body.js';
 
 @ApiTags('Projects')
+@ApiExtraModels(ProjectNotActiveErrorResponse, ProjectActiveRunsErrorResponse)
 @Controller('projects')
 @UsePipes(new ValidationPipe())
 export class ProjectController {
@@ -87,7 +92,15 @@ export class ProjectController {
   @ApiOperation({ operationId: 'archiveProject', summary: 'Archive a project' })
   @ApiNoContentResponse()
   @ApiNotFoundResponse({ description: ProjectError.notFound })
-  @ApiConflictResponse({ description: ProjectError.notActive })
+  @ApiConflictResponse({
+    description: 'Project is not active or has active runs.',
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(ProjectNotActiveErrorResponse) },
+        { $ref: getSchemaPath(ProjectActiveRunsErrorResponse) },
+      ],
+    },
+  })
   async archiveProject(@Param('id') id: string): Promise<void> {
     await this.projects.archiveUserProject({ projectId: id });
   }
