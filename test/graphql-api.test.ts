@@ -339,6 +339,50 @@ describe('GraphQL API', () => {
     expect(repeated.body.errors[0].message).toBe('Project is not active.');
   });
 
+  test('returns active run blocker ids when archiving over GraphQL', async () => {
+    const project = await createProject(app, createdProjectIds, 'GraphQL archive conflict');
+    await app
+      .get(PrismaService)
+      .projectRun.create({ data: { projectId: project.id, runId: 'r_graphql_archive_conflict' } });
+
+    const response = await graphql(app, ARCHIVE_PROJECT, { data: { id: project.id } });
+
+    expect(response.body.data).toBeNull();
+    expect(response.body.errors).toHaveLength(1);
+    expect(response.body.errors[0]).toMatchObject({ message: 'Project has active runs.' });
+    expect(response.body.errors[0].extensions).toEqual({
+      statusCode: 409,
+      code: 'project_has_active_runs',
+      message: 'Project has active runs.',
+      path: '/projectId',
+      details: { runIds: ['r_graphql_archive_conflict'] },
+    });
+    expect(await storedProject(app, project.id)).toMatchObject({ status: ProjectStatus.ACTIVE });
+  });
+
+  test('archives a project with a terminal linked Run over GraphQL', async () => {
+    const project = await createProject(app, createdProjectIds, 'GraphQL terminal run archive');
+    const runId = 'r_graphql_terminal_archive';
+    vi.spyOn(app.get(RevoRunService), 'getRun').mockResolvedValue({
+      schemaVersion: 'run-snapshot/v1',
+      runId,
+      status: 'succeeded',
+      createdAt: '2026-09-15T00:00:00.000Z',
+      updatedAt: '2026-09-15T00:00:00.000Z',
+      terminal: { kind: 'succeeded', outcome: 'ok', output: {} },
+    });
+    await app.get(PrismaService).projectRun.create({ data: { projectId: project.id, runId } });
+
+    const response = await graphql(app, ARCHIVE_PROJECT, { data: { id: project.id } });
+
+    expect(response.body).toEqual({ data: { archiveProject: true } });
+    expect(await storedProject(app, project.id)).toMatchObject({ status: ProjectStatus.ARCHIVED });
+    expect(await app.get(PrismaService).projectRun.findUnique({ where: { runId } })).toEqual({
+      projectId: project.id,
+      runId,
+    });
+  });
+
   test('archiving an unknown project returns a not found error', async () => {
     const missing = await graphql(app, ARCHIVE_PROJECT, { data: { id: 'unknown-project-id' } });
     expect(missing.body.data).toBeNull();

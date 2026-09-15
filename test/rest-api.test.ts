@@ -329,6 +329,48 @@ describe('REST API', () => {
     expect(repeated.body).toMatchObject({ message: 'Project is not active.' });
   });
 
+  test('returns active run blocker ids when archiving over REST', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST archive conflict');
+    await app
+      .get(PrismaService)
+      .projectRun.create({ data: { projectId: project.id, runId: 'r_rest_archive_conflict' } });
+
+    const response = await request(app.getHttpServer())
+      .post(`/api/projects/${project.id}/archive`)
+      .expect(409);
+
+    expect(response.body).toEqual({
+      statusCode: 409,
+      code: 'project_has_active_runs',
+      message: 'Project has active runs.',
+      path: '/projectId',
+      details: { runIds: ['r_rest_archive_conflict'] },
+    });
+    expect(await storedProject(app, project.id)).toMatchObject({ status: ProjectStatus.ACTIVE });
+  });
+
+  test('archives a project with a terminal linked Run over REST', async () => {
+    const project = await createProject(app, createdProjectIds, 'REST terminal run archive');
+    const runId = 'r_rest_terminal_archive';
+    vi.spyOn(app.get(RevoRunService), 'getRun').mockResolvedValue({
+      schemaVersion: 'run-snapshot/v1',
+      runId,
+      status: 'succeeded',
+      createdAt: '2026-09-15T00:00:00.000Z',
+      updatedAt: '2026-09-15T00:00:00.000Z',
+      terminal: { kind: 'succeeded', outcome: 'ok', output: {} },
+    });
+    await app.get(PrismaService).projectRun.create({ data: { projectId: project.id, runId } });
+
+    await request(app.getHttpServer()).post(`/api/projects/${project.id}/archive`).expect(204);
+
+    expect(await storedProject(app, project.id)).toMatchObject({ status: ProjectStatus.ARCHIVED });
+    expect(await app.get(PrismaService).projectRun.findUnique({ where: { runId } })).toEqual({
+      projectId: project.id,
+      runId,
+    });
+  });
+
   test('archiving an unknown project returns 404', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/projects/unknown-project-id/archive')

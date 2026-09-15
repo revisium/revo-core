@@ -2915,7 +2915,21 @@
             "description": "Project was not found."
           },
           "409": {
-            "description": "Project is not active."
+            "description": "Project is not active or has active runs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ProjectNotActiveErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ProjectActiveRunsErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
           }
         },
         "summary": "Archive a project",
@@ -5448,6 +5462,62 @@
           }
         },
         "required": ["pipelineId", "status", "profile"]
+      },
+      "ProjectNotActiveErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Project is not active."
+          },
+          "error": {
+            "type": "string",
+            "example": "Conflict"
+          },
+          "statusCode": {
+            "type": "number",
+            "example": 409
+          }
+        },
+        "required": ["message", "error", "statusCode"]
+      },
+      "ProjectActiveRunsDetailsResponse": {
+        "type": "object",
+        "properties": {
+          "runIds": {
+            "example": ["r_example"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["runIds"]
+      },
+      "ProjectActiveRunsErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 409
+          },
+          "code": {
+            "type": "string",
+            "enum": ["project_has_active_runs"]
+          },
+          "message": {
+            "type": "string",
+            "example": "Project has active runs."
+          },
+          "path": {
+            "type": "string",
+            "example": "/projectId"
+          },
+          "details": {
+            "$ref": "#/components/schemas/ProjectActiveRunsDetailsResponse"
+          }
+        },
+        "required": ["statusCode", "code", "message", "path", "details"]
       },
       "ProjectCreateRequest": {
         "type": "object",
