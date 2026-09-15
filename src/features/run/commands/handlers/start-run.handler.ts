@@ -13,7 +13,11 @@ import {
 } from '../../../project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../project/project-api.service.js';
 import { RunApplicationError } from '../../contracts/run.errors.js';
-import { isReportableRunError, rethrowPublicRunError } from '../../run-manager-error.mapper.js';
+import { rethrowCatalogReadError } from '../../engine/catalog-error.mapper.js';
+import {
+  isReportableRunError,
+  rethrowPublicRunError,
+} from '../../engine/run-manager-error.mapper.js';
 import {
   StartRunCommand,
   type StartRunCommandData,
@@ -94,7 +98,11 @@ export class StartRunHandler implements ICommandHandler<
         return this.invalidPipelineSelector('invalid_id');
       }
 
-      return (await this.catalog.getPipeline(data.pipelineId)).pipeline;
+      try {
+        return (await this.catalog.getPipeline(data.pipelineId)).pipeline;
+      } catch (error) {
+        return rethrowCatalogReadError(error);
+      }
     }
 
     if (data.pipeline === undefined) {
@@ -110,7 +118,11 @@ export class StartRunHandler implements ICommandHandler<
         return this.invalidProfileSelector('invalid_id');
       }
 
-      return (await this.catalog.getLaunchProfile(data.profileId)).profile;
+      try {
+        return (await this.catalog.getLaunchProfile(data.profileId)).profile;
+      } catch (error) {
+        return rethrowCatalogReadError(error);
+      }
     }
 
     if (data.profile === undefined) {
@@ -120,12 +132,18 @@ export class StartRunHandler implements ICommandHandler<
     return data.profile;
   }
 
-  private invalidPipelineSelector(reason: string): never {
-    throw new RunApplicationError('run_selector_invalid', { selector: 'pipeline', reason });
+  private invalidPipelineSelector(reason: 'required' | 'conflict' | 'invalid_id'): never {
+    throw new RunApplicationError({
+      code: 'run_selector_invalid',
+      details: { selector: 'pipeline', reason },
+    });
   }
 
-  private invalidProfileSelector(reason: string): never {
-    throw new RunApplicationError('run_selector_invalid', { selector: 'profile', reason });
+  private invalidProfileSelector(reason: 'required' | 'conflict' | 'invalid_id'): never {
+    throw new RunApplicationError({
+      code: 'run_selector_invalid',
+      details: { selector: 'profile', reason },
+    });
   }
 
   private assertSelectors(data: StartRunCommandData): void {
@@ -153,7 +171,7 @@ export class StartRunHandler implements ICommandHandler<
 
   private assertProjectId(projectId: string): void {
     if (typeof projectId !== 'string' || projectId.trim().length === 0) {
-      throw new RunApplicationError('project_id_invalid', {});
+      throw new RunApplicationError({ code: 'project_id_invalid', details: {} });
     }
   }
 
@@ -177,12 +195,18 @@ export class StartRunHandler implements ICommandHandler<
 }
 
 function rethrowProjectReservationError(error: unknown): never {
-  if (error instanceof ProjectApplicationError && error.code === ProjectErrorCode.notFound) {
-    throw new RunApplicationError('project_unavailable', {});
+  if (
+    error instanceof ProjectApplicationError &&
+    error.failure.code === ProjectErrorCode.notFound
+  ) {
+    throw new RunApplicationError({ code: 'project_unavailable', details: {} });
   }
 
-  if (error instanceof ProjectApplicationError && error.code === ProjectErrorCode.notActive) {
-    throw new RunApplicationError('project_archived', {});
+  if (
+    error instanceof ProjectApplicationError &&
+    error.failure.code === ProjectErrorCode.notActive
+  ) {
+    throw new RunApplicationError({ code: 'project_archived', details: {} });
   }
 
   throw error;

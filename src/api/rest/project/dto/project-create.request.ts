@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 
-import { ProjectPublicMessage } from '../../../errors/public-error-definitions.js';
+import { ProjectPublicMessage } from '../../../errors/project-public-messages.js';
 
 export class ProjectCreateRequest {
   @ApiProperty()

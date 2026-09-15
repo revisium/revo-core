@@ -25,13 +25,8 @@ export type WorkspaceInputField =
   | 'sourcePath'
   | 'includeArchived';
 
-export class WorkspaceError<
-  TCode extends WorkspaceErrorCode = WorkspaceErrorCode,
-> extends ApplicationError<TCode, WorkspaceErrorDetails[WorkspaceErrorCode]> {
-  constructor(
-    readonly code: TCode,
-    readonly field?: WorkspaceInputField,
-  ) {
-    super(code, field === undefined ? {} : { field });
-  }
-}
+export type WorkspaceFailure = {
+  [TCode in WorkspaceErrorCode]: Readonly<{ code: TCode; details: WorkspaceErrorDetails[TCode] }>;
+}[WorkspaceErrorCode];
+
+export class WorkspaceError extends ApplicationError<WorkspaceFailure> {}

@@ -28,11 +28,11 @@ export class ReserveProjectRunHandler implements ICommandHandler<
       });
 
       if (project === null || project.status === ProjectStatus.CREATING) {
-        throw new ProjectApplicationError(ProjectErrorCode.notFound);
+        throw new ProjectApplicationError({ code: ProjectErrorCode.notFound, details: {} });
       }
 
       if (project.status !== ProjectStatus.ACTIVE) {
-        throw new ProjectApplicationError(ProjectErrorCode.notActive);
+        throw new ProjectApplicationError({ code: ProjectErrorCode.notActive, details: {} });
       }
 
       await this.transaction.projectRun.create({ data });

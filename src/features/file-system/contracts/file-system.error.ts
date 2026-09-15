@@ -17,13 +17,11 @@ export type FileSystemErrorDetails = {
   [TCode in FileSystemErrorCode]: Record<string, never>;
 };
 
-export class FileSystemError<
-  TCode extends FileSystemErrorCode = FileSystemErrorCode,
-> extends ApplicationError<TCode, FileSystemErrorDetails[TCode]> {
-  constructor(readonly code: TCode) {
-    super(code, {});
-  }
-}
+export type FileSystemFailure = {
+  [TCode in FileSystemErrorCode]: Readonly<{ code: TCode; details: FileSystemErrorDetails[TCode] }>;
+}[FileSystemErrorCode];
+
+export class FileSystemError extends ApplicationError<FileSystemFailure> {}
 
 export function rethrowFileSystemError(error: unknown): never {
   if (error instanceof FileSystemError) {
@@ -35,19 +33,19 @@ export function rethrowFileSystemError(error: unknown): never {
 
   switch (code) {
     case 'ENOENT':
-      throw new FileSystemError('FILE_SYSTEM_NOT_FOUND');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_NOT_FOUND', details: {} });
     case 'ENOTDIR':
-      throw new FileSystemError('FILE_SYSTEM_NOT_DIRECTORY');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_NOT_DIRECTORY', details: {} });
     case 'EACCES':
     case 'EPERM':
-      throw new FileSystemError('FILE_SYSTEM_ACCESS_DENIED');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_ACCESS_DENIED', details: {} });
     case 'EEXIST':
-      throw new FileSystemError('FILE_SYSTEM_ALREADY_EXISTS');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_ALREADY_EXISTS', details: {} });
     case 'EINVAL':
     case 'ENAMETOOLONG':
     case 'ELOOP':
-      throw new FileSystemError('FILE_SYSTEM_INVALID_PATH');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_INVALID_PATH', details: {} });
     default:
-      throw new FileSystemError('FILE_SYSTEM_IO_ERROR');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_IO_ERROR', details: {} });
   }
 }

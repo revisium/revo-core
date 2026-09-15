@@ -28,7 +28,7 @@ import {
   ProjectErrorCode,
 } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
-import { ProjectPublicMessage } from '../../errors/public-error-definitions.js';
+import { ProjectPublicMessage } from '../../errors/project-public-messages.js';
 import { WorkItemUpdateRequest } from './dto/work-item-update.request.js';
 import { WorkItemRequest } from './dto/work-item.request.js';
 import { WorkItemConnectionResponse } from './model/work-item-connection.response.js';
@@ -74,7 +74,7 @@ export class WorkItemController {
   ) {
     const workItem = await this.projects.getWorkItem(projectId, workItemId);
     if (workItem === null) {
-      throw new ProjectApplicationError(ProjectErrorCode.recordNotFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.recordNotFound, details: {} });
     }
 
     return workItem;

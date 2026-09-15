@@ -24,10 +24,10 @@ export class CreateDirectoryHandler implements ICommandHandler<
 
     if (!(await this.filesystem.isDirectory(canonicalParent))) {
       if (!(await this.filesystem.exists(canonicalParent))) {
-        throw new FileSystemError('FILE_SYSTEM_NOT_FOUND');
+        throw new FileSystemError({ code: 'FILE_SYSTEM_NOT_FOUND', details: {} });
       }
 
-      throw new FileSystemError('FILE_SYSTEM_NOT_DIRECTORY');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_NOT_DIRECTORY', details: {} });
     }
 
     const canonical = directoryChild(canonicalParent, data.name);

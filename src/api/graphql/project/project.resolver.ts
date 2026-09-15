@@ -1,8 +1,6 @@
-import { UseFilters } from '@nestjs/common';
 import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
-import { ApplicationGraphqlExceptionFilter } from '../application-graphql-exception.filter.js';
 import { ProjectCreateInput } from './input/project-create.input.js';
 import { ProjectListInput } from './input/project-list.input.js';
 import { ProjectUpdateInput } from './input/project-update.input.js';
@@ -22,7 +20,6 @@ import { WorkPlanConnectionModel } from './model/work-plan-connection.model.js';
 import { WorkPlanModel } from './model/work-plan.model.js';
 
 @Resolver(() => ProjectModel)
-@UseFilters(ApplicationGraphqlExceptionFilter)
 export class ProjectResolver {
   constructor(private readonly projectApi: ProjectApiService) {}
 

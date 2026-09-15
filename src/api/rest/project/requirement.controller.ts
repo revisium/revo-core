@@ -28,7 +28,7 @@ import {
   ProjectErrorCode,
 } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
-import { ProjectPublicMessage } from '../../errors/public-error-definitions.js';
+import { ProjectPublicMessage } from '../../errors/project-public-messages.js';
 import { RequirementUpdateRequest } from './dto/requirement-update.request.js';
 import { RequirementRequest } from './dto/requirement.request.js';
 import { RequirementConnectionResponse } from './model/requirement-connection.response.js';
@@ -74,7 +74,7 @@ export class RequirementController {
   ) {
     const requirement = await this.projects.getRequirement(projectId, requirementId);
     if (requirement === null) {
-      throw new ProjectApplicationError(ProjectErrorCode.recordNotFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.recordNotFound, details: {} });
     }
 
     return requirement;

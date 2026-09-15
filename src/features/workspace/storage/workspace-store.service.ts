@@ -14,7 +14,7 @@ export class WorkspaceStoreService {
       .workspace.findFirst({ where: { id, projectId } });
 
     if (record === null) {
-      throw new WorkspaceError('WORKSPACE_NOT_FOUND');
+      throw new WorkspaceError({ code: 'WORKSPACE_NOT_FOUND', details: {} });
     }
 
     return record;
@@ -24,7 +24,7 @@ export class WorkspaceStoreService {
     const record = await this.get(projectId, id);
 
     if (record.isArchived) {
-      throw new WorkspaceError('WORKSPACE_ARCHIVED');
+      throw new WorkspaceError({ code: 'WORKSPACE_ARCHIVED', details: {} });
     }
 
     return record;
@@ -48,7 +48,7 @@ export class WorkspaceStoreService {
     });
 
     if (record === undefined) {
-      throw new WorkspaceError('WORKSPACE_NOT_FOUND');
+      throw new WorkspaceError({ code: 'WORKSPACE_NOT_FOUND', details: {} });
     }
 
     return record;

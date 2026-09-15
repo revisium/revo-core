@@ -29,7 +29,7 @@ export class UpdateRequirementHandler implements ICommandHandler<
       data: row,
     });
     if (updated.row === null) {
-      throw new ProjectApplicationError(ProjectErrorCode.recordNotFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.recordNotFound, details: {} });
     }
 
     return this.drafts.toRecord(updated.row);

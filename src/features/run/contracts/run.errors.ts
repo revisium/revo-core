@@ -1,3 +1,5 @@
+import type { RunManagerErrorCode } from '@revisium/revo-run';
+
 import { ApplicationError } from '../../../application/errors/application-error.js';
 
 export const RunErrorCode = {
@@ -5,7 +7,6 @@ export const RunErrorCode = {
   projectIdInvalid: 'project_id_invalid',
   projectUnavailable: 'project_unavailable',
   projectArchived: 'project_archived',
-  catalogDefinitionCorrupt: 'catalog_definition_corrupt',
   agentRuntimeUnavailable: 'agent_runtime_unavailable',
   invalidListRunsFilter: 'invalid_list_runs_filter',
   invalidCreateRunInput: 'invalid_create_run_input',
@@ -41,15 +42,27 @@ export const RunErrorCode = {
 } as const;
 
 export type RunErrorCode = (typeof RunErrorCode)[keyof typeof RunErrorCode];
+export type CompleteRunManagerCodes = Exclude<
+  RunErrorCode,
+  'run_selector_invalid' | 'project_id_invalid' | 'project_unavailable' | 'project_archived'
+>;
+export type CompleteRunManagerPayloads = {
+  [TCode in RunManagerErrorCode]: Readonly<{
+    code: TCode;
+    details: RunErrorDetails[TCode];
+  }>;
+};
 type Empty = Record<string, never>;
 type WithPath = { readonly path: string | null };
 
 export type RunErrorDetails = {
-  run_selector_invalid: { readonly selector: 'pipeline' | 'profile'; readonly reason: string };
+  run_selector_invalid: {
+    readonly selector: 'pipeline' | 'profile';
+    readonly reason: 'required' | 'conflict' | 'invalid_id';
+  };
   project_id_invalid: Empty;
   project_unavailable: Empty;
   project_archived: Empty;
-  catalog_definition_corrupt: { readonly path: '/pipeline' | '/profile' };
   agent_runtime_unavailable: Empty;
   invalid_list_runs_filter: WithPath & { readonly reason: string };
   invalid_create_run_input: WithPath & { readonly reason: string };
@@ -130,6 +143,13 @@ export type RunErrorDetails = {
   run_wait_timed_out: { readonly runId: string; readonly timeoutMs: number };
 };
 
-export class RunApplicationError<
-  TCode extends RunErrorCode = RunErrorCode,
-> extends ApplicationError<TCode, object> {}
+type LocalRunFailure = {
+  [TCode in Exclude<RunErrorCode, RunManagerErrorCode>]: Readonly<{
+    code: TCode;
+    details: RunErrorDetails[TCode];
+  }>;
+}[Exclude<RunErrorCode, RunManagerErrorCode>];
+
+export type RunFailure = LocalRunFailure | CompleteRunManagerPayloads[RunManagerErrorCode];
+
+export class RunApplicationError extends ApplicationError<RunFailure> {}

@@ -1,12 +1,8 @@
-export class ApplicationError<
-  TCode extends string = string,
-  TDetails extends object = Record<string, never>,
-> extends Error {
-  constructor(
-    readonly code: TCode,
-    readonly details: TDetails,
-  ) {
-    super(code);
+export type ApplicationFailure = Readonly<{ code: string; details: object }>;
+
+export class ApplicationError<TFailure extends ApplicationFailure> extends Error {
+  constructor(readonly failure: TFailure) {
+    super(failure.code);
     this.name = 'ApplicationError';
   }
 }

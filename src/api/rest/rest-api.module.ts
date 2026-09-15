@@ -7,6 +7,8 @@ import { ProjectModule } from '../../features/project/project.module.js';
 import { RunModule } from '../../features/run/run.module.js';
 import { SystemModule } from '../../features/system/system.module.js';
 import { WorkspaceModule } from '../../features/workspace/workspace.module.js';
+import { PublicErrorExceptionFilter } from '../errors/public-error-exception.filter.js';
+import { ApplicationGraphqlExceptionFilter } from '../graphql/application-graphql-exception.filter.js';
 import { ApplicationHttpExceptionFilter } from './application-http-exception.filter.js';
 import { FileSystemController } from './file-system/file-system.controller.js';
 import { CatalogRecordsController } from './playbook-catalog/catalog-records.controller.js';
@@ -44,6 +46,11 @@ import { WorkspaceController } from './workspace/workspace.controller.js';
     RunController,
     SystemController,
   ],
-  providers: [{ provide: APP_FILTER, useClass: ApplicationHttpExceptionFilter }],
+  providers: [
+    ApplicationHttpExceptionFilter,
+    ApplicationGraphqlExceptionFilter,
+    PublicErrorExceptionFilter,
+    { provide: APP_FILTER, useExisting: PublicErrorExceptionFilter },
+  ],
 })
 export class RestApiModule {}

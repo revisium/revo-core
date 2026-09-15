@@ -69,7 +69,7 @@ export class RestoreUserProjectHandler implements ICommandHandler<
 
   private restoreRejection(status: ProjectStatus | null): ProjectApplicationError {
     return status === null || status === ProjectStatus.CREATING
-      ? new ProjectApplicationError(ProjectErrorCode.notFound)
-      : new ProjectApplicationError(ProjectErrorCode.notArchived);
+      ? new ProjectApplicationError({ code: ProjectErrorCode.notFound, details: {} })
+      : new ProjectApplicationError({ code: ProjectErrorCode.notArchived, details: {} });
   }
 }

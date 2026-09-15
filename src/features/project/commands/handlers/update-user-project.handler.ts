@@ -48,7 +48,7 @@ export class UpdateUserProjectHandler implements ICommandHandler<
 
   private readName(name: string): string {
     if (typeof name !== 'string' || name.trim() === '') {
-      throw new ProjectApplicationError(ProjectErrorCode.nameRequired);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.nameRequired, details: {} });
     }
 
     return name.trim();
@@ -56,7 +56,7 @@ export class UpdateUserProjectHandler implements ICommandHandler<
 
   private readDescription(description: string): string {
     if (typeof description !== 'string') {
-      throw new ProjectApplicationError(ProjectErrorCode.descriptionInvalid);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.descriptionInvalid, details: {} });
     }
 
     return description;
@@ -79,11 +79,11 @@ export class UpdateUserProjectHandler implements ICommandHandler<
     });
 
     if (project === null) {
-      throw new ProjectApplicationError(ProjectErrorCode.notFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.notFound, details: {} });
     }
 
     if (project.status !== ProjectStatus.ACTIVE) {
-      throw new ProjectApplicationError(ProjectErrorCode.notActive);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.notActive, details: {} });
     }
   }
 }

@@ -65,7 +65,7 @@ describe('RestoreUserProjectHandler', () => {
     createdProjectIds.push(projectId);
 
     await expect(started.projects.restoreUserProject({ projectId })).rejects.toMatchObject({
-      code: ProjectErrorCode.notArchived,
+      failure: { code: ProjectErrorCode.notArchived },
     });
 
     await expect(readProject(started.prisma, projectId)).resolves.toMatchObject({
@@ -81,7 +81,7 @@ describe('RestoreUserProjectHandler', () => {
     const applyMigrations = vi.spyOn(started.engine, 'applyMigrations');
 
     await expect(started.projects.restoreUserProject({ projectId })).rejects.toMatchObject({
-      code: ProjectErrorCode.notFound,
+      failure: { code: ProjectErrorCode.notFound },
     });
     expect(applyMigrations).not.toHaveBeenCalled();
 
@@ -96,7 +96,7 @@ describe('RestoreUserProjectHandler', () => {
 
     await expect(
       started.projects.restoreUserProject({ projectId: 'missing-project' }),
-    ).rejects.toMatchObject({ code: ProjectErrorCode.notFound });
+    ).rejects.toMatchObject({ failure: { code: ProjectErrorCode.notFound } });
     expect(applyMigrations).not.toHaveBeenCalled();
   });
 
@@ -107,7 +107,7 @@ describe('RestoreUserProjectHandler', () => {
 
     await expect(
       started.projects.restoreUserProject({ projectId: SYSTEM_PLAYBOOKS_PROJECT.id }),
-    ).rejects.toMatchObject({ code: ProjectErrorCode.notFound });
+    ).rejects.toMatchObject({ failure: { code: ProjectErrorCode.notFound } });
     expect(applyMigrations).not.toHaveBeenCalled();
 
     await expect(readProject(started.prisma, SYSTEM_PLAYBOOKS_PROJECT.id)).resolves.toMatchObject({
@@ -128,7 +128,7 @@ describe('RestoreUserProjectHandler', () => {
     });
 
     await expect(started.projects.restoreUserProject({ projectId })).rejects.toMatchObject({
-      code: ProjectErrorCode.notArchived,
+      failure: { code: ProjectErrorCode.notArchived },
     });
 
     await expect(readProject(started.prisma, projectId)).resolves.toMatchObject({

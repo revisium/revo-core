@@ -1,8 +1,6 @@
-import { UseFilters } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { WorkspaceApiService } from '../../../features/workspace/workspace-api.service.js';
-import { ApplicationGraphqlExceptionFilter } from '../application-graphql-exception.filter.js';
 import { CreateWorkspaceInput } from './model/create-workspace.input.js';
 import { UpdateWorkspaceInput } from './model/update-workspace.input.js';
 import { WorkspaceCheckModel } from './model/workspace-check.model.js';
@@ -16,7 +14,6 @@ import { registerWorkspaceEnums } from './workspace.enums.js';
 registerWorkspaceEnums();
 
 @Resolver()
-@UseFilters(ApplicationGraphqlExceptionFilter)
 export class WorkspaceResolver {
   constructor(private readonly api: WorkspaceApiService) {}
 

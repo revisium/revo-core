@@ -108,8 +108,10 @@ describe('run library error diagnostics', () => {
       const result = input.execute(runs);
 
       await expect(result).rejects.toMatchObject({
-        code: 'run_read_failed',
-        details: { runId: 'r_read', operation: input.libraryOperation },
+        failure: {
+          code: 'run_read_failed',
+          details: { runId: 'r_read', operation: input.libraryOperation },
+        },
       });
       expect(logged).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({ operation: input.operation, runId: 'r_read' }),

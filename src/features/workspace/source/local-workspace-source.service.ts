@@ -24,15 +24,12 @@ export class LocalWorkspaceSourceService {
       return await this.inspect(sourcePath, type);
     } catch (error) {
       if (error instanceof FileSystemError) {
-        switch (error.code) {
+        switch (error.failure.code) {
           case 'FILE_SYSTEM_INVALID_PATH':
           case 'FILE_SYSTEM_NOT_FOUND':
             return {
               availability: WorkspaceAvailability.NOT_FOUND,
-              errorCode:
-                error.code === 'FILE_SYSTEM_INVALID_PATH'
-                  ? 'FILE_SYSTEM_INVALID_PATH'
-                  : 'FILE_SYSTEM_NOT_FOUND',
+              errorCode: error.failure.code,
             };
           case 'FILE_SYSTEM_NOT_DIRECTORY':
             return {
@@ -50,14 +47,7 @@ export class LocalWorkspaceSourceService {
           case 'FILE_SYSTEM_TOO_LARGE':
             return {
               availability: WorkspaceAvailability.CHECK_FAILED,
-              errorCode:
-                error.code === 'FILE_SYSTEM_ALREADY_EXISTS'
-                  ? 'FILE_SYSTEM_ALREADY_EXISTS'
-                  : error.code === 'FILE_SYSTEM_INVALID_NAME'
-                    ? 'FILE_SYSTEM_INVALID_NAME'
-                    : error.code === 'FILE_SYSTEM_IO_ERROR'
-                      ? 'FILE_SYSTEM_IO_ERROR'
-                      : 'FILE_SYSTEM_TOO_LARGE',
+              errorCode: error.failure.code,
             };
         }
       }

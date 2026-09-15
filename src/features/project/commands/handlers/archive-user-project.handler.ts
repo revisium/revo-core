@@ -40,11 +40,11 @@ export class ArchiveUserProjectHandler implements ICommandHandler<
     });
 
     if (project === null || project.status === ProjectStatus.CREATING) {
-      throw new ProjectApplicationError(ProjectErrorCode.notFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.notFound, details: {} });
     }
 
     if (project.status !== ProjectStatus.ACTIVE) {
-      throw new ProjectApplicationError(ProjectErrorCode.notActive);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.notActive, details: {} });
     }
 
     const projectRuns = await this.transaction.projectRun.findMany({
@@ -58,8 +58,9 @@ export class ArchiveUserProjectHandler implements ICommandHandler<
     );
 
     if (blockingRunIds.length > 0) {
-      throw new ProjectApplicationError(ProjectErrorCode.hasActiveRuns, {
-        runIds: blockingRunIds,
+      throw new ProjectApplicationError({
+        code: ProjectErrorCode.hasActiveRuns,
+        details: { runIds: blockingRunIds },
       });
     }
 

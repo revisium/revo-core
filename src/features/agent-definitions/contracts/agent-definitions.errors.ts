@@ -13,10 +13,11 @@ export type AgentDefinitionsErrorDetails = {
 
 import { ApplicationError } from '../../../application/errors/application-error.js';
 
-export class AgentDefinitionsApplicationError<
-  TCode extends AgentDefinitionsErrorCode = AgentDefinitionsErrorCode,
-> extends ApplicationError<TCode, AgentDefinitionsErrorDetails[TCode]> {
-  constructor(readonly code: TCode) {
-    super(code, {});
-  }
-}
+export type AgentDefinitionsFailure = {
+  [TCode in AgentDefinitionsErrorCode]: Readonly<{
+    code: TCode;
+    details: AgentDefinitionsErrorDetails[TCode];
+  }>;
+}[AgentDefinitionsErrorCode];
+
+export class AgentDefinitionsApplicationError extends ApplicationError<AgentDefinitionsFailure> {}

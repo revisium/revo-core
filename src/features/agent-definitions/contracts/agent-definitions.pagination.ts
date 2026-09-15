@@ -55,7 +55,10 @@ const decode = (cursor: string): Position => {
     }
 
     if (value.epoch !== cursorEpoch) {
-      throw new AgentDefinitionsApplicationError(AgentDefinitionsErrorCode.expiredCursor);
+      throw new AgentDefinitionsApplicationError({
+        code: AgentDefinitionsErrorCode.expiredCursor,
+        details: {},
+      });
     }
 
     return { definitionId: value.definitionId };
@@ -64,7 +67,10 @@ const decode = (cursor: string): Position => {
       throw error;
     }
 
-    throw new AgentDefinitionsApplicationError(AgentDefinitionsErrorCode.invalidCursor);
+    throw new AgentDefinitionsApplicationError({
+      code: AgentDefinitionsErrorCode.invalidCursor,
+      details: {},
+    });
   }
 };
 

@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsIn, IsString, ValidateNested } from 'class-validator';
 
-import { ProjectPublicMessage } from '../../../errors/public-error-definitions.js';
+import { ProjectPublicMessage } from '../../../errors/project-public-messages.js';
 import { AdrAlternativeResponse } from '../model/adr-alternative.response.js';
 
 export class AdrRequest {

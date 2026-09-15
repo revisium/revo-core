@@ -42,7 +42,7 @@ export class DeleteUserProjectHandler implements ICommandHandler<
       select: { id: true },
     });
     if (project === null) {
-      throw new ProjectApplicationError(ProjectErrorCode.notFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.notFound, details: {} });
     }
 
     await this.transaction.branch.deleteMany({ where: { projectId } });

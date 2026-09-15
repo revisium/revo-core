@@ -28,7 +28,7 @@ import {
   ProjectErrorCode,
 } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
-import { ProjectPublicMessage } from '../../errors/public-error-definitions.js';
+import { ProjectPublicMessage } from '../../errors/project-public-messages.js';
 import { AdrUpdateRequest } from './dto/adr-update.request.js';
 import { AdrRequest } from './dto/adr.request.js';
 import { AdrConnectionResponse } from './model/adr-connection.response.js';
@@ -71,7 +71,7 @@ export class AdrController {
   async getAdr(@Param('projectId') projectId: string, @Param('adrId') adrId: string) {
     const adr = await this.projects.getAdr(projectId, adrId);
     if (adr === null) {
-      throw new ProjectApplicationError(ProjectErrorCode.recordNotFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.recordNotFound, details: {} });
     }
 
     return adr;

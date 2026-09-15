@@ -28,7 +28,7 @@ import {
   ProjectErrorCode,
 } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
-import { ProjectPublicMessage } from '../../errors/public-error-definitions.js';
+import { ProjectPublicMessage } from '../../errors/project-public-messages.js';
 import { WorkPlanUpdateRequest } from './dto/work-plan-update.request.js';
 import { WorkPlanRequest } from './dto/work-plan.request.js';
 import { WorkPlanConnectionResponse } from './model/work-plan-connection.response.js';
@@ -74,7 +74,7 @@ export class WorkPlanController {
   ) {
     const workPlan = await this.projects.getWorkPlan(projectId, workPlanId);
     if (workPlan === null) {
-      throw new ProjectApplicationError(ProjectErrorCode.recordNotFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.recordNotFound, details: {} });
     }
 
     return workPlan;

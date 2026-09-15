@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 
 import type { UpdateUserProjectCommandData } from '../../../features/project/commands/index.js';
-import { ProjectPublicMessage } from '../../errors/public-error-definitions.js';
+import { ProjectPublicMessage } from '../../errors/project-public-messages.js';
 import type { ProjectUpdateRequest } from './dto/project-update.request.js';
 
 export function projectUpdateBody(id: string, data: unknown): UpdateUserProjectCommandData {

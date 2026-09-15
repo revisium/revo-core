@@ -1,13 +1,10 @@
-import { UseFilters } from '@nestjs/common';
 import { Args, Int, Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AgentDefinitionsApiService } from '../../../features/agent-definitions/agent-definitions-api.service.js';
-import { ApplicationGraphqlExceptionFilter } from '../application-graphql-exception.filter.js';
 import { AgentConfigurationsModel } from './model/agent-configurations.model.js';
 import { AgentDefinitionConnectionModel, AgentDescriptorModel } from './model/index.js';
 
 @Resolver()
-@UseFilters(ApplicationGraphqlExceptionFilter)
 export class AgentDefinitionsResolver {
   constructor(private readonly definitions: AgentDefinitionsApiService) {}
 

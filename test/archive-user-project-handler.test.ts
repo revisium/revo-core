@@ -81,7 +81,7 @@ describe('ArchiveUserProjectHandler', () => {
 
     const outcome = started.projects.archiveUserProject({ projectId: 'unknown-project-id' });
 
-    await expect(outcome).rejects.toMatchObject({ code: ProjectErrorCode.notFound });
+    await expect(outcome).rejects.toMatchObject({ failure: { code: ProjectErrorCode.notFound } });
   });
 
   test('rejects a project stuck in CREATING with notFound', async () => {
@@ -91,7 +91,7 @@ describe('ArchiveUserProjectHandler', () => {
 
     const outcome = started.projects.archiveUserProject({ projectId });
 
-    await expect(outcome).rejects.toMatchObject({ code: ProjectErrorCode.notFound });
+    await expect(outcome).rejects.toMatchObject({ failure: { code: ProjectErrorCode.notFound } });
   });
 
   test('rejects an already archived project with notActive, status unchanged', async () => {
@@ -101,7 +101,7 @@ describe('ArchiveUserProjectHandler', () => {
 
     const outcome = started.projects.archiveUserProject({ projectId });
 
-    await expect(outcome).rejects.toMatchObject({ code: ProjectErrorCode.notActive });
+    await expect(outcome).rejects.toMatchObject({ failure: { code: ProjectErrorCode.notActive } });
 
     const project = await started.prisma.project.findUniqueOrThrow({ where: { id: projectId } });
     expect(project.status).toBe(ProjectStatus.ARCHIVED);
@@ -117,7 +117,7 @@ describe('ArchiveUserProjectHandler', () => {
 
     const outcome = started.projects.archiveUserProject({ projectId });
 
-    await expect(outcome).rejects.toMatchObject({ code: ProjectErrorCode.notFound });
+    await expect(outcome).rejects.toMatchObject({ failure: { code: ProjectErrorCode.notFound } });
   });
 
   test('keeps an active project when a linked run is unresolved', async () => {
@@ -127,7 +127,7 @@ describe('ArchiveUserProjectHandler', () => {
     await started.prisma.projectRun.create({ data: { projectId, runId: 'r_unresolved' } });
 
     await expect(started.projects.archiveUserProject({ projectId })).rejects.toMatchObject({
-      code: ProjectErrorCode.hasActiveRuns,
+      failure: { code: ProjectErrorCode.hasActiveRuns },
     });
     await expect(
       started.prisma.project.findUniqueOrThrow({ where: { id: projectId } }),
@@ -144,8 +144,10 @@ describe('ArchiveUserProjectHandler', () => {
       await started.prisma.projectRun.create({ data: { projectId, runId: `r_${status}` } });
 
       await expect(started.projects.archiveUserProject({ projectId })).rejects.toMatchObject({
-        code: ProjectErrorCode.hasActiveRuns,
-        details: { runIds: [`r_${status}`] },
+        failure: {
+          code: ProjectErrorCode.hasActiveRuns,
+          details: { runIds: [`r_${status}`] },
+        },
       });
       expect(await started.prisma.project.findUnique({ where: { id: projectId } })).toMatchObject({
         status: ProjectStatus.ACTIVE,

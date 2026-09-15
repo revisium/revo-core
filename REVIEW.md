@@ -21,7 +21,7 @@
 
 - Expected feature failures use transport-free application error contracts with feature-owned codes and typed, correlated payloads. They do not import HTTP, GraphQL, status, or public message definitions.
 - The API error catalog owns exact public messages, statuses, compatibility codes, descriptions, and transport metadata. A single shared projection explicitly copies permitted fields and nested values; it never spreads exceptions or arbitrary response objects.
-- REST and GraphQL adapters consume that projection and contain no feature branches, business checks, or duplicate payload validation. Adding a public application error updates its feature contract, catalog entry, projection allowlist, and mixed-transport boundary test while preserving existing path, field, absent, and null behavior.
+- REST and GraphQL adapters consume that projection and contain no feature branches, business checks, or duplicate payload validation. Adding a public application error updates its feature contract, owning throw/conversion site, catalog entry, `public-error-payload.ts` allowlist, and mixed-transport boundary test while preserving existing path, field, absent, and null behavior.
 
 ## Feature and CQRS layout
 

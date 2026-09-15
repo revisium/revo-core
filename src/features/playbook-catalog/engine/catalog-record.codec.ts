@@ -1,8 +1,7 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import type { PipelineSourcePackage, RunProfile } from '@revisium/revo-run';
 
 import { CatalogTable } from '../contracts/catalog-table.js';
-import { CatalogDefinitionCorruptError } from '../contracts/catalog.errors.js';
 import type {
   CatalogRecordData,
   LaunchProfileRecordData,
@@ -126,7 +125,13 @@ function invalidCatalogDefinition(field: CatalogDefinitionField, reason: string)
 }
 
 function corruptCatalogDefinition(field: CatalogDefinitionField): never {
-  throw new CatalogDefinitionCorruptError(field);
+  throw new ConflictException({
+    statusCode: 409,
+    code: 'catalog_definition_corrupt',
+    message: 'Catalog definition is corrupt.',
+    path: `/${field}`,
+    details: { reason: 'storage_json' },
+  });
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {

@@ -1,22 +1,36 @@
-import { Catch } from '@nestjs/common';
-import type { GqlExceptionFilter } from '@nestjs/graphql';
+import { HttpException, Injectable } from '@nestjs/common';
 import { GraphQLError } from 'graphql';
 
-import { ApplicationError } from '../../application/errors/application-error.js';
-import type { ApplicationErrorCode } from '../errors/public-error-definitions.js';
-import { publicErrorResponse } from '../errors/public-error-response.js';
+import type {
+  PublicErrorGraphqlResponse,
+  PublicErrorResponse,
+} from '../errors/public-error-response.js';
 
-@Catch(ApplicationError)
-export class ApplicationGraphqlExceptionFilter implements GqlExceptionFilter {
-  catch(exception: ApplicationError<ApplicationErrorCode, object>): Error {
-    const response = publicErrorResponse(exception, 'graphql');
-    if (
-      response.code === undefined &&
-      response.path === undefined &&
-      response.details === undefined
-    ) {
-      return new GraphQLError(response.message);
+@Injectable()
+export class ApplicationGraphqlExceptionFilter {
+  catch(exception: unknown, response?: PublicErrorResponse): unknown {
+    if (response !== undefined) {
+      return this.reply(response.graphql);
     }
-    return new GraphQLError(response.message, { extensions: response });
+
+    if (exception instanceof GraphQLError) {
+      return exception;
+    }
+
+    if (exception instanceof HttpException && exception.getStatus() < 500) {
+      return exception;
+    }
+
+    return this.reply({
+      message: 'Internal server error.',
+      extensions: { code: 'INTERNAL_SERVER_ERROR' },
+    });
+  }
+
+  private reply(response: PublicErrorGraphqlResponse): GraphQLError {
+    return new GraphQLError(
+      response.message,
+      response.extensions === undefined ? undefined : { extensions: response.extensions },
+    );
   }
 }

@@ -7,11 +7,15 @@ export const CatalogError = {
   recordUnavailable: 'Record unavailable',
 } as const;
 
-export class CatalogDefinitionCorruptError extends ApplicationError<
-  'catalog_definition_corrupt',
-  { readonly path: 'pipeline' | 'profile' }
-> {
+export const CatalogErrorCode = { definitionCorrupt: 'catalog_definition_corrupt' } as const;
+
+export type CatalogDefinitionCorruptFailure = Readonly<{
+  code: 'catalog_definition_corrupt';
+  details: { readonly field: 'pipeline' | 'profile' };
+}>;
+
+export class CatalogDefinitionCorruptError extends ApplicationError<CatalogDefinitionCorruptFailure> {
   constructor(path: 'pipeline' | 'profile') {
-    super('catalog_definition_corrupt', { path });
+    super({ code: 'catalog_definition_corrupt', details: { field: path } });
   }
 }

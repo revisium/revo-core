@@ -9,7 +9,7 @@ export function absolutePath(location: string): string {
     location.includes('\0') ||
     !path.isAbsolute(location)
   ) {
-    throw new FileSystemError('FILE_SYSTEM_INVALID_PATH');
+    throw new FileSystemError({ code: 'FILE_SYSTEM_INVALID_PATH', details: {} });
   }
 
   if (
@@ -18,7 +18,7 @@ export function absolutePath(location: string): string {
       location.startsWith('\\\\.\\') ||
       location.slice(2).includes(':'))
   ) {
-    throw new FileSystemError('FILE_SYSTEM_INVALID_PATH');
+    throw new FileSystemError({ code: 'FILE_SYSTEM_INVALID_PATH', details: {} });
   }
 
   return path.resolve(location);
@@ -35,7 +35,7 @@ export function directoryChild(parent: string, name: string): string {
     /[. ]$/u.test(name) ||
     /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu.test(name)
   ) {
-    throw new FileSystemError('FILE_SYSTEM_INVALID_NAME');
+    throw new FileSystemError({ code: 'FILE_SYSTEM_INVALID_NAME', details: {} });
   }
 
   return path.join(parent, name);

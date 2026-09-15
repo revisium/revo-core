@@ -45,7 +45,7 @@ export class CreateUserProjectHandler implements ICommandHandler<
 
   async execute({ data }: CreateUserProjectCommand): Promise<CreateUserProjectCommandReturnType> {
     if (typeof data.name !== 'string' || data.name.trim() === '') {
-      throw new ProjectApplicationError(ProjectErrorCode.nameRequired);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.nameRequired, details: {} });
     }
 
     const description = this.readDescription(data);
@@ -73,7 +73,7 @@ export class CreateUserProjectHandler implements ICommandHandler<
     }
 
     if (typeof data.description !== 'string') {
-      throw new ProjectApplicationError(ProjectErrorCode.descriptionInvalid);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.descriptionInvalid, details: {} });
     }
 
     return data.description;

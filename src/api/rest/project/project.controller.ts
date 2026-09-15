@@ -33,7 +33,7 @@ import {
   ProjectErrorCode,
 } from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
-import { ProjectPublicMessage } from '../../errors/public-error-definitions.js';
+import { ProjectPublicMessage } from '../../errors/project-public-messages.js';
 import { ProjectCreateRequest } from './dto/project-create.request.js';
 import { ProjectUpdateRequest } from './dto/project-update.request.js';
 import { ProjectActiveRunsErrorResponse } from './model/project-active-runs-error.response.js';
@@ -84,7 +84,7 @@ export class ProjectController {
     const project = await this.projects.getUserProject(id);
 
     if (project === null) {
-      throw new ProjectApplicationError(ProjectErrorCode.notFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.notFound, details: {} });
     }
 
     return project;

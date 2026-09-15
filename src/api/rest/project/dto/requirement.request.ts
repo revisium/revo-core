@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsIn, IsString } from 'class-validator';
 
-import { ProjectPublicMessage } from '../../../errors/public-error-definitions.js';
+import { ProjectPublicMessage } from '../../../errors/project-public-messages.js';
 
 export class RequirementRequest {
   @ApiProperty()

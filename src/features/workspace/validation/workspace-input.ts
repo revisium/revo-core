@@ -5,7 +5,7 @@ import { WorkspaceError } from '../contracts/workspace.errors.js';
 
 export function workspaceName(value: unknown): string {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > 200) {
-    throw new WorkspaceError('WORKSPACE_INVALID_INPUT', 'name');
+    throw new WorkspaceError({ code: 'WORKSPACE_INVALID_INPUT', details: { field: 'name' } });
   }
 
   return value.trim();
@@ -13,7 +13,10 @@ export function workspaceName(value: unknown): string {
 
 export function workspaceDescription(value: unknown = ''): string {
   if (typeof value !== 'string') {
-    throw new WorkspaceError('WORKSPACE_INVALID_INPUT', 'description');
+    throw new WorkspaceError({
+      code: 'WORKSPACE_INVALID_INPUT',
+      details: { field: 'description' },
+    });
   }
 
   return value;
@@ -21,7 +24,7 @@ export function workspaceDescription(value: unknown = ''): string {
 
 export function workspaceType(value: unknown): WorkspaceType {
   if (value !== WorkspaceType.folder && value !== WorkspaceType.repository) {
-    throw new WorkspaceError('WORKSPACE_INVALID_INPUT', 'type');
+    throw new WorkspaceError({ code: 'WORKSPACE_INVALID_INPUT', details: { field: 'type' } });
   }
 
   return value;
@@ -29,7 +32,7 @@ export function workspaceType(value: unknown): WorkspaceType {
 
 export function workspacePath(value: unknown): string {
   if (typeof value !== 'string' || !path.isAbsolute(value) || value.includes('\0')) {
-    throw new WorkspaceError('WORKSPACE_INVALID_INPUT', 'sourcePath');
+    throw new WorkspaceError({ code: 'WORKSPACE_INVALID_INPUT', details: { field: 'sourcePath' } });
   }
 
   return path.resolve(value);
@@ -41,7 +44,10 @@ export function workspaceIncludeArchived(value: unknown): boolean | undefined {
   }
 
   if (typeof value !== 'boolean') {
-    throw new WorkspaceError('WORKSPACE_INVALID_INPUT', 'includeArchived');
+    throw new WorkspaceError({
+      code: 'WORKSPACE_INVALID_INPUT',
+      details: { field: 'includeArchived' },
+    });
   }
 
   return value;

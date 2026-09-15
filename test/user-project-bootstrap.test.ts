@@ -102,7 +102,7 @@ describe('project bootstrap cleanup', () => {
         .execute<DeleteUserProjectCommand, DeleteUserProjectCommandReturnType>(
           new DeleteUserProjectCommand({ projectId: SYSTEM_PLAYBOOKS_PROJECT.id }),
         ),
-    ).rejects.toMatchObject({ code: ProjectErrorCode.notFound });
+    ).rejects.toMatchObject({ failure: { code: ProjectErrorCode.notFound } });
 
     await expect(
       prisma.project.findUnique({ where: { id: SYSTEM_PLAYBOOKS_PROJECT.id } }),
