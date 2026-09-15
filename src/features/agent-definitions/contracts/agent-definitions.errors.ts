@@ -6,11 +6,18 @@ export const AgentDefinitionsErrorCode = {
 export type AgentDefinitionsErrorCode =
   (typeof AgentDefinitionsErrorCode)[keyof typeof AgentDefinitionsErrorCode];
 
-export class AgentDefinitionsApplicationError extends Error {
-  constructor(
-    readonly code: AgentDefinitionsErrorCode,
-    message: string,
-  ) {
-    super(message);
-  }
-}
+export type AgentDefinitionsErrorDetails = {
+  REVO_AGENT_SESSION_INVALID_CURSOR: Record<string, never>;
+  REVO_AGENT_SESSION_EXPIRED_CURSOR: Record<string, never>;
+};
+
+import { ApplicationError } from '../../../application/errors/application-error.js';
+
+export type AgentDefinitionsFailure = {
+  [TCode in AgentDefinitionsErrorCode]: Readonly<{
+    code: TCode;
+    details: AgentDefinitionsErrorDetails[TCode];
+  }>;
+}[AgentDefinitionsErrorCode];
+
+export class AgentDefinitionsApplicationError extends ApplicationError<AgentDefinitionsFailure> {}

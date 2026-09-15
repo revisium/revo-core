@@ -55,10 +55,10 @@ const decode = (cursor: string): Position => {
     }
 
     if (value.epoch !== cursorEpoch) {
-      throw new AgentDefinitionsApplicationError(
-        AgentDefinitionsErrorCode.expiredCursor,
-        'Agent definition cursor belongs to an earlier process.',
-      );
+      throw new AgentDefinitionsApplicationError({
+        code: AgentDefinitionsErrorCode.expiredCursor,
+        details: {},
+      });
     }
 
     return { definitionId: value.definitionId };
@@ -67,10 +67,10 @@ const decode = (cursor: string): Position => {
       throw error;
     }
 
-    throw new AgentDefinitionsApplicationError(
-      AgentDefinitionsErrorCode.invalidCursor,
-      'Agent definition cursor is invalid.',
-    );
+    throw new AgentDefinitionsApplicationError({
+      code: AgentDefinitionsErrorCode.invalidCursor,
+      details: {},
+    });
   }
 };
 

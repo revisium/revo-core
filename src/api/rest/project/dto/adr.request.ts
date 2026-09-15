@@ -2,12 +2,12 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsIn, IsString, ValidateNested } from 'class-validator';
 
-import { ProjectError } from '../../../../features/project/contracts/project.errors.js';
+import { ProjectPublicMessage } from '../../../errors/project-public-messages.js';
 import { AdrAlternativeResponse } from '../model/adr-alternative.response.js';
 
 export class AdrRequest {
   @ApiProperty()
-  @IsString({ message: ProjectError.recordIdRequired })
+  @IsString({ message: ProjectPublicMessage.recordIdRequired })
   id: string;
 
   @ApiProperty()

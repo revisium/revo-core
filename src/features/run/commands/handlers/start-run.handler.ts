@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Logger, NotFoundException } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { RunManagerError, type PipelineSourcePackage, type RunProfile } from '@revisium/revo-run';
 import { nanoid } from 'nanoid';
@@ -7,8 +7,17 @@ import { reportErrorDiagnostic } from '../../../../infrastructure/error-diagnost
 import { RevoRunService } from '../../../../infrastructure/run-runtime/revo-run.service.js';
 import { isCatalogRecordId } from '../../../playbook-catalog/contracts/catalog-record-id.js';
 import { PlaybookCatalogApiService } from '../../../playbook-catalog/playbook-catalog-api.service.js';
+import {
+  ProjectApplicationError,
+  ProjectErrorCode,
+} from '../../../project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../project/project-api.service.js';
-import { isReportableRunError, rethrowPublicRunError } from '../../run-manager-error.mapper.js';
+import { RunApplicationError } from '../../contracts/run.errors.js';
+import { rethrowCatalogReadError } from '../../engine/catalog-error.mapper.js';
+import {
+  isReportableRunError,
+  rethrowPublicRunError,
+} from '../../engine/run-manager-error.mapper.js';
 import {
   StartRunCommand,
   type StartRunCommandData,
@@ -89,7 +98,11 @@ export class StartRunHandler implements ICommandHandler<
         return this.invalidPipelineSelector('invalid_id');
       }
 
-      return (await this.catalog.getPipeline(data.pipelineId)).pipeline;
+      try {
+        return (await this.catalog.getPipeline(data.pipelineId)).pipeline;
+      } catch (error) {
+        return rethrowCatalogReadError(error);
+      }
     }
 
     if (data.pipeline === undefined) {
@@ -105,7 +118,11 @@ export class StartRunHandler implements ICommandHandler<
         return this.invalidProfileSelector('invalid_id');
       }
 
-      return (await this.catalog.getLaunchProfile(data.profileId)).profile;
+      try {
+        return (await this.catalog.getLaunchProfile(data.profileId)).profile;
+      } catch (error) {
+        return rethrowCatalogReadError(error);
+      }
     }
 
     if (data.profile === undefined) {
@@ -115,23 +132,17 @@ export class StartRunHandler implements ICommandHandler<
     return data.profile;
   }
 
-  private invalidPipelineSelector(reason: string): never {
-    throw new BadRequestException({
-      statusCode: 400,
+  private invalidPipelineSelector(reason: 'required' | 'conflict' | 'invalid_id'): never {
+    throw new RunApplicationError({
       code: 'run_selector_invalid',
-      message: 'Exactly one pipeline selector is required.',
-      path: '/pipeline',
-      details: { reason },
+      details: { selector: 'pipeline', reason },
     });
   }
 
-  private invalidProfileSelector(reason: string): never {
-    throw new BadRequestException({
-      statusCode: 400,
+  private invalidProfileSelector(reason: 'required' | 'conflict' | 'invalid_id'): never {
+    throw new RunApplicationError({
       code: 'run_selector_invalid',
-      message: 'Exactly one profile selector is required.',
-      path: '/profile',
-      details: { reason },
+      details: { selector: 'profile', reason },
     });
   }
 
@@ -160,13 +171,7 @@ export class StartRunHandler implements ICommandHandler<
 
   private assertProjectId(projectId: string): void {
     if (typeof projectId !== 'string' || projectId.trim().length === 0) {
-      throw new BadRequestException({
-        statusCode: 400,
-        code: 'project_id_invalid',
-        message: 'Project ID is required.',
-        path: '/projectId',
-        details: { reason: 'required' },
-      });
+      throw new RunApplicationError({ code: 'project_id_invalid', details: {} });
     }
   }
 
@@ -190,24 +195,18 @@ export class StartRunHandler implements ICommandHandler<
 }
 
 function rethrowProjectReservationError(error: unknown): never {
-  if (error instanceof NotFoundException) {
-    throw new NotFoundException({
-      statusCode: 404,
-      code: 'project_unavailable',
-      message: error.message,
-      path: '/projectId',
-      details: {},
-    });
+  if (
+    error instanceof ProjectApplicationError &&
+    error.failure.code === ProjectErrorCode.notFound
+  ) {
+    throw new RunApplicationError({ code: 'project_unavailable', details: {} });
   }
 
-  if (error instanceof ConflictException) {
-    throw new ConflictException({
-      statusCode: 409,
-      code: 'project_archived',
-      message: error.message,
-      path: '/projectId',
-      details: {},
-    });
+  if (
+    error instanceof ProjectApplicationError &&
+    error.failure.code === ProjectErrorCode.notActive
+  ) {
+    throw new RunApplicationError({ code: 'project_archived', details: {} });
   }
 
   throw error;

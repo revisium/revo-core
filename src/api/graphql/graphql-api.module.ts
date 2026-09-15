@@ -10,7 +10,6 @@ import { ProjectModule } from '../../features/project/project.module.js';
 import { RunModule } from '../../features/run/run.module.js';
 import { SystemModule } from '../../features/system/system.module.js';
 import { WorkspaceModule } from '../../features/workspace/workspace.module.js';
-import { AgentDefinitionsGraphqlExceptionFilter } from './agent-definitions/agent-definitions-graphql-exception.filter.js';
 import { AgentDefinitionsResolver } from './agent-definitions/agent-definitions.resolver.js';
 import { DialogueResolver } from './dialogue/dialogue.resolver.js';
 import { FileSystemResolver } from './file-system/file-system.resolver.js';
@@ -51,7 +50,6 @@ initRegisterEnumTypes();
   providers: [
     AgentDefinitionsResolver,
     DialogueResolver,
-    AgentDefinitionsGraphqlExceptionFilter,
     WorkspaceResolver,
     FileSystemResolver,
     ProjectResolver,

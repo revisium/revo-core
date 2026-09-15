@@ -24,22 +24,22 @@ export class LocalWorkspaceSourceService {
       return await this.inspect(sourcePath, type);
     } catch (error) {
       if (error instanceof FileSystemError) {
-        switch (error.code) {
+        switch (error.failure.code) {
           case 'FILE_SYSTEM_INVALID_PATH':
           case 'FILE_SYSTEM_NOT_FOUND':
             return {
               availability: WorkspaceAvailability.NOT_FOUND,
-              errorCode: error.code,
+              errorCode: error.failure.code,
             };
           case 'FILE_SYSTEM_NOT_DIRECTORY':
             return {
               availability: WorkspaceAvailability.NOT_DIRECTORY,
-              errorCode: error.code,
+              errorCode: 'FILE_SYSTEM_NOT_DIRECTORY',
             };
           case 'FILE_SYSTEM_ACCESS_DENIED':
             return {
               availability: WorkspaceAvailability.ACCESS_DENIED,
-              errorCode: error.code,
+              errorCode: 'FILE_SYSTEM_ACCESS_DENIED',
             };
           case 'FILE_SYSTEM_ALREADY_EXISTS':
           case 'FILE_SYSTEM_INVALID_NAME':
@@ -47,7 +47,7 @@ export class LocalWorkspaceSourceService {
           case 'FILE_SYSTEM_TOO_LARGE':
             return {
               availability: WorkspaceAvailability.CHECK_FAILED,
-              errorCode: error.code,
+              errorCode: error.failure.code,
             };
         }
       }

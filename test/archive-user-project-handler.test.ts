@@ -1,4 +1,4 @@
-import { ConflictException, Logger, NotFoundException } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
@@ -8,6 +8,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
 import { databaseConfig } from '../src/config/database.config.js';
+import { ProjectErrorCode } from '../src/features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../src/features/project/project-api.service.js';
 import { ProjectModule } from '../src/features/project/project.module.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
@@ -80,8 +81,7 @@ describe('ArchiveUserProjectHandler', () => {
 
     const outcome = started.projects.archiveUserProject({ projectId: 'unknown-project-id' });
 
-    await expect(outcome).rejects.toBeInstanceOf(NotFoundException);
-    await expect(outcome).rejects.toThrow('Project was not found.');
+    await expect(outcome).rejects.toMatchObject({ failure: { code: ProjectErrorCode.notFound } });
   });
 
   test('rejects a project stuck in CREATING with notFound', async () => {
@@ -91,8 +91,7 @@ describe('ArchiveUserProjectHandler', () => {
 
     const outcome = started.projects.archiveUserProject({ projectId });
 
-    await expect(outcome).rejects.toBeInstanceOf(NotFoundException);
-    await expect(outcome).rejects.toThrow('Project was not found.');
+    await expect(outcome).rejects.toMatchObject({ failure: { code: ProjectErrorCode.notFound } });
   });
 
   test('rejects an already archived project with notActive, status unchanged', async () => {
@@ -102,8 +101,7 @@ describe('ArchiveUserProjectHandler', () => {
 
     const outcome = started.projects.archiveUserProject({ projectId });
 
-    await expect(outcome).rejects.toBeInstanceOf(ConflictException);
-    await expect(outcome).rejects.toThrow('Project is not active.');
+    await expect(outcome).rejects.toMatchObject({ failure: { code: ProjectErrorCode.notActive } });
 
     const project = await started.prisma.project.findUniqueOrThrow({ where: { id: projectId } });
     expect(project.status).toBe(ProjectStatus.ARCHIVED);
@@ -119,8 +117,7 @@ describe('ArchiveUserProjectHandler', () => {
 
     const outcome = started.projects.archiveUserProject({ projectId });
 
-    await expect(outcome).rejects.toBeInstanceOf(NotFoundException);
-    await expect(outcome).rejects.toThrow('Project was not found.');
+    await expect(outcome).rejects.toMatchObject({ failure: { code: ProjectErrorCode.notFound } });
   });
 
   test('keeps an active project when a linked run is unresolved', async () => {
@@ -129,9 +126,9 @@ describe('ArchiveUserProjectHandler', () => {
     createdProjectIds.push(projectId);
     await started.prisma.projectRun.create({ data: { projectId, runId: 'r_unresolved' } });
 
-    await expect(started.projects.archiveUserProject({ projectId })).rejects.toBeInstanceOf(
-      ConflictException,
-    );
+    await expect(started.projects.archiveUserProject({ projectId })).rejects.toMatchObject({
+      failure: { code: ProjectErrorCode.hasActiveRuns },
+    });
     await expect(
       started.prisma.project.findUniqueOrThrow({ where: { id: projectId } }),
     ).resolves.toMatchObject({ status: ProjectStatus.ACTIVE });
@@ -147,7 +144,10 @@ describe('ArchiveUserProjectHandler', () => {
       await started.prisma.projectRun.create({ data: { projectId, runId: `r_${status}` } });
 
       await expect(started.projects.archiveUserProject({ projectId })).rejects.toMatchObject({
-        response: { code: 'project_has_active_runs', details: { runIds: [`r_${status}`] } },
+        failure: {
+          code: ProjectErrorCode.hasActiveRuns,
+          details: { runIds: [`r_${status}`] },
+        },
       });
       expect(await started.prisma.project.findUnique({ where: { id: projectId } })).toMatchObject({
         status: ProjectStatus.ACTIVE,

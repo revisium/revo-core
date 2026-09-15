@@ -552,7 +552,7 @@ describe('Dialogue persistence edge contracts', () => {
       .poll(() => scenario.client.interactions(dialogue.id))
       .toEqual([expect.objectContaining({ status: 'RESPONDING' })]);
     barrier.fail();
-    await expect(response).rejects.toThrow('Controlled interaction response delivery failure.');
+    await expect(response).rejects.toThrow('Internal server error.');
     expect(await scenario.client.dialogue(dialogue.id)).toMatchObject({
       activeTurnId: null,
       lastOutcome: 'UNCERTAIN',

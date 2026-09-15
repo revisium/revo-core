@@ -1,4 +1,3 @@
-import { UseFilters } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { WorkspaceApiService } from '../../../features/workspace/workspace-api.service.js';
@@ -10,13 +9,11 @@ import { WorkspaceListInput } from './model/workspace-list.input.js';
 import { WorkspaceSourceInput } from './model/workspace-source.input.js';
 import { WorkspaceInput } from './model/workspace.input.js';
 import { WorkspaceModel } from './model/workspace.model.js';
-import { WorkspaceGraphqlExceptionFilter } from './workspace-graphql-exception.filter.js';
 import { registerWorkspaceEnums } from './workspace.enums.js';
 
 registerWorkspaceEnums();
 
 @Resolver()
-@UseFilters(WorkspaceGraphqlExceptionFilter)
 export class WorkspaceResolver {
   constructor(private readonly api: WorkspaceApiService) {}
 

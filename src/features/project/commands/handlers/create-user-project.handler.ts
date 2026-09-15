@@ -1,4 +1,4 @@
-import { BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { CommandBus, CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { IdService } from '@revisium/engine';
 import { nanoid } from 'nanoid';
@@ -7,7 +7,11 @@ import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import { errorReason } from '../../../../infrastructure/error-reason.js';
-import { ProjectError } from '../../contracts/project.errors.js';
+import {
+  ProjectApplicationError,
+  ProjectErrorCode,
+  ProjectTechnicalError,
+} from '../../contracts/project.errors.js';
 import { ProjectContentModelService } from '../../project-content-model.service.js';
 import {
   CreateUserProjectCommand,
@@ -41,7 +45,7 @@ export class CreateUserProjectHandler implements ICommandHandler<
 
   async execute({ data }: CreateUserProjectCommand): Promise<CreateUserProjectCommandReturnType> {
     if (typeof data.name !== 'string' || data.name.trim() === '') {
-      throw new BadRequestException(ProjectError.nameRequired);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.nameRequired, details: {} });
     }
 
     const description = this.readDescription(data);
@@ -53,7 +57,7 @@ export class CreateUserProjectHandler implements ICommandHandler<
       const published = await this.contentModel.apply(projectId);
 
       if (!published) {
-        throw new InternalServerErrorException(ProjectError.initCommitMissing);
+        throw new Error(ProjectTechnicalError.initCommitMissing);
       }
     } catch (error) {
       await this.removeCreatedProject(projectId);
@@ -69,7 +73,7 @@ export class CreateUserProjectHandler implements ICommandHandler<
     }
 
     if (typeof data.description !== 'string') {
-      throw new BadRequestException(ProjectError.descriptionInvalid);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.descriptionInvalid, details: {} });
     }
 
     return data.description;

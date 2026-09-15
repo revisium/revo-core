@@ -5,7 +5,10 @@ import type { RunDetails } from '@revisium/revo-run';
 import { reportErrorDiagnostic } from '../../../../infrastructure/error-diagnostic.js';
 import { RevoRunService } from '../../../../infrastructure/run-runtime/revo-run.service.js';
 import { ProjectApiService } from '../../../project/project-api.service.js';
-import { isReportableRunError, rethrowPublicRunError } from '../../run-manager-error.mapper.js';
+import {
+  isReportableRunError,
+  rethrowPublicRunError,
+} from '../../engine/run-manager-error.mapper.js';
 import {
   GetRunDetailsQuery,
   type GetRunDetailsQueryReturnType,

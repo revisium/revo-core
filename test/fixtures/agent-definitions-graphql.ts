@@ -1,12 +1,16 @@
 import { YogaDriver, type YogaDriverConfig } from '@graphql-yoga/nestjs';
 import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 import { Test } from '@nestjs/testing';
 import type { AgentManager, AgentSessions } from '@revisium/revo-agent-runtime';
 import request from 'supertest';
 import { vi } from 'vitest';
 
+import { PublicErrorExceptionFilter } from '../../src/api/errors/public-error-exception.filter.js';
 import { AgentDefinitionsResolver } from '../../src/api/graphql/agent-definitions/agent-definitions.resolver.js';
+import { ApplicationGraphqlExceptionFilter } from '../../src/api/graphql/application-graphql-exception.filter.js';
+import { ApplicationHttpExceptionFilter } from '../../src/api/rest/application-http-exception.filter.js';
 import { databaseConfig } from '../../src/config/database.config.js';
 import { AgentDefinitionsModule } from '../../src/features/agent-definitions/agent-definitions.module.js';
 import { AgentConfigurationCache } from '../../src/features/agent-definitions/configurations/agent-configuration-cache.js';
@@ -53,7 +57,13 @@ export async function createAgentDefinitionsGraphqlApp() {
         sortSchema: true,
       }),
     ],
-    providers: [AgentDefinitionsResolver],
+    providers: [
+      AgentDefinitionsResolver,
+      ApplicationHttpExceptionFilter,
+      ApplicationGraphqlExceptionFilter,
+      PublicErrorExceptionFilter,
+      { provide: APP_FILTER, useExisting: PublicErrorExceptionFilter },
+    ],
   })
     .overrideProvider(AGENT_MANAGER)
     .useValue(manager)

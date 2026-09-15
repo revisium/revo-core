@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -24,8 +23,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ProjectError } from '../../../features/project/contracts/project.errors.js';
+import {
+  ProjectApplicationError,
+  ProjectErrorCode,
+} from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
+import { ProjectPublicMessage } from '../../errors/project-public-messages.js';
 import { AdrUpdateRequest } from './dto/adr-update.request.js';
 import { AdrRequest } from './dto/adr.request.js';
 import { AdrConnectionResponse } from './model/adr-connection.response.js';
@@ -42,7 +45,7 @@ export class AdrController {
   @Post()
   @ApiOperation({ operationId: 'createAdr', summary: 'Create an ADR' })
   @ApiCreatedResponse({ type: AdrResponse })
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.notFound })
   createAdr(@Param('projectId') projectId: string, @Body() data: AdrRequest) {
     return this.projects.createAdr(adrCreateBody(projectId, data));
   }
@@ -52,7 +55,7 @@ export class AdrController {
   @ApiQuery({ name: 'first', type: Number, required: false })
   @ApiQuery({ name: 'after', type: String, required: false })
   @ApiOkResponse({ type: AdrConnectionResponse })
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.notFound })
   listAdrs(
     @Param('projectId') projectId: string,
     @Query('first', new ParseIntPipe({ optional: true })) first?: number,
@@ -64,11 +67,11 @@ export class AdrController {
   @Get(':adrId')
   @ApiOperation({ operationId: 'getAdr', summary: 'Get an ADR' })
   @ApiOkResponse({ type: AdrResponse })
-  @ApiNotFoundResponse({ description: ProjectError.recordNotFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.recordNotFound })
   async getAdr(@Param('projectId') projectId: string, @Param('adrId') adrId: string) {
     const adr = await this.projects.getAdr(projectId, adrId);
     if (adr === null) {
-      throw new NotFoundException(ProjectError.recordNotFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.recordNotFound, details: {} });
     }
 
     return adr;
@@ -77,7 +80,7 @@ export class AdrController {
   @Put(':adrId')
   @ApiOperation({ operationId: 'updateAdr', summary: 'Replace an ADR' })
   @ApiOkResponse({ type: AdrResponse })
-  @ApiNotFoundResponse({ description: ProjectError.recordNotFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.recordNotFound })
   updateAdr(
     @Param('projectId') projectId: string,
     @Param('adrId') adrId: string,
@@ -90,7 +93,7 @@ export class AdrController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ operationId: 'deleteAdr', summary: 'Delete an ADR' })
   @ApiNoContentResponse()
-  @ApiNotFoundResponse({ description: ProjectError.recordNotFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.recordNotFound })
   async deleteAdr(
     @Param('projectId') projectId: string,
     @Param('adrId') adrId: string,

@@ -87,7 +87,7 @@ export class FileSystemService {
 
       try {
         if (!(await file.stat()).isFile()) {
-          throw new FileSystemError('FILE_SYSTEM_INVALID_PATH');
+          throw new FileSystemError({ code: 'FILE_SYSTEM_INVALID_PATH', details: {} });
         }
 
         const buffer = Buffer.alloc(maxBytes + 1);
@@ -104,7 +104,7 @@ export class FileSystemService {
           size += bytesRead;
         }
 
-        throw new FileSystemError('FILE_SYSTEM_TOO_LARGE');
+        throw new FileSystemError({ code: 'FILE_SYSTEM_TOO_LARGE', details: {} });
       } finally {
         await file.close();
       }
@@ -127,7 +127,10 @@ export class FileSystemService {
               ? { name: `${letter}:`, path: volume, type: FileSystemRootType.VOLUME }
               : undefined;
           } catch (error) {
-            if (error instanceof FileSystemError && error.code === 'FILE_SYSTEM_ACCESS_DENIED') {
+            if (
+              error instanceof FileSystemError &&
+              error.failure.code === 'FILE_SYSTEM_ACCESS_DENIED'
+            ) {
               return undefined;
             }
 
@@ -147,7 +150,7 @@ export class FileSystemService {
     try {
       return await this.metadata(location);
     } catch (error) {
-      if (error instanceof FileSystemError && error.code === 'FILE_SYSTEM_NOT_FOUND') {
+      if (error instanceof FileSystemError && error.failure.code === 'FILE_SYSTEM_NOT_FOUND') {
         return undefined;
       }
 

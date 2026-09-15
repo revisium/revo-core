@@ -5509,6 +5509,10 @@
             "type": "string",
             "example": "Project has active runs."
           },
+          "description": {
+            "type": "string",
+            "example": "Stop or finish the active runs before archiving the project."
+          },
           "path": {
             "type": "string",
             "example": "/projectId"

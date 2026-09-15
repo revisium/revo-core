@@ -151,7 +151,7 @@ describe('durable Project Run ownership', () => {
     });
     runtime.createRun.mockRejectedValue(error);
 
-    await expect(startRun()).rejects.toMatchObject({ response: { code } });
+    await expect(startRun()).rejects.toMatchObject({ failure: { code } });
 
     expect(
       await prisma.projectRun.findMany({
@@ -178,7 +178,7 @@ describe('durable Project Run ownership', () => {
     const logged = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
     await expect(startRun()).rejects.toMatchObject({
-      response: { code: 'pipeline_compilation_failed' },
+      failure: { code: 'pipeline_compilation_failed' },
     });
 
     const reservation = await prisma.projectRun.findFirstOrThrow({ where: { projectId } });
@@ -205,20 +205,19 @@ describe('durable Project Run ownership', () => {
     vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     runtime.createRun.mockRejectedValue(error);
 
-    const publicMessage =
-      error instanceof RunManagerError && error.code === 'run_id_conflict'
-        ? 'A run ID could not be allocated.'
-        : error.message;
-    await expect(startRun()).rejects.toThrow(publicMessage);
+    const publicCode = error instanceof RunManagerError ? error.code : undefined;
+    await expect(startRun()).rejects.toMatchObject(
+      publicCode === undefined ? { message: error.message } : { failure: { code: publicCode } },
+    );
 
     const reservation = await prisma.projectRun.findFirstOrThrow({ where: { projectId } });
     await expect(runs.getRun({ runId: reservation.runId })).resolves.toBeUndefined();
     runtime.getRun.mockRejectedValue(
       new RunManagerError('run_read_failed', { runId: reservation.runId, operation: 'get_run' }),
     );
-    await expect(runs.getRun({ runId: reservation.runId })).rejects.toThrow(
-      'Run observation could not be read.',
-    );
+    await expect(runs.getRun({ runId: reservation.runId })).rejects.toMatchObject({
+      failure: { code: 'run_read_failed' },
+    });
     expect(await prisma.projectRun.findUnique({ where: { runId: reservation.runId } })).toEqual(
       reservation,
     );
@@ -228,7 +227,7 @@ describe('durable Project Run ownership', () => {
     const result = await raceArchiveAndReservation('archive');
 
     expect(result.archival).toEqual({ value: true });
-    expect(result.admission).toMatchObject({ error: { response: { code: 'project_archived' } } });
+    expect(result.admission).toMatchObject({ error: { failure: { code: 'project_archived' } } });
     expect(result.barriers.reservation.pause).toHaveBeenCalledTimes(2);
     expect(runtime.createRun).not.toHaveBeenCalled();
     expect(await prisma.projectRun.count({ where: { projectId } })).toBe(0);
@@ -244,10 +243,7 @@ describe('durable Project Run ownership', () => {
     expect(result.admission).toEqual({ value: { runId: reservation.runId } });
     expect(result.archival).toMatchObject({
       error: {
-        response: {
-          code: 'project_has_active_runs',
-          details: { runIds: [reservation.runId] },
-        },
+        failure: { code: 'project_has_active_runs', details: { runIds: [reservation.runId] } },
       },
     });
     expect(result.barriers.archive.pause).toHaveBeenCalledTimes(2);

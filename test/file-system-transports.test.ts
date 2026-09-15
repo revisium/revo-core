@@ -4,12 +4,16 @@ import path from 'node:path';
 
 import { YogaDriver, type YogaDriverConfig } from '@graphql-yoga/nestjs';
 import type { INestApplication } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
+import { PublicErrorExceptionFilter } from '../src/api/errors/public-error-exception.filter.js';
+import { ApplicationGraphqlExceptionFilter } from '../src/api/graphql/application-graphql-exception.filter.js';
 import { FileSystemResolver } from '../src/api/graphql/file-system/file-system.resolver.js';
+import { ApplicationHttpExceptionFilter } from '../src/api/rest/application-http-exception.filter.js';
 import { FileSystemController } from '../src/api/rest/file-system/file-system.controller.js';
 import { initSwagger } from '../src/api/rest/swagger.js';
 import { FileSystemError } from '../src/features/file-system/contracts/file-system.error.js';
@@ -36,7 +40,13 @@ describe('Filesystem transport contracts', () => {
           path: '/graphql',
         }),
       ],
-      providers: [FileSystemResolver],
+      providers: [
+        FileSystemResolver,
+        ApplicationHttpExceptionFilter,
+        ApplicationGraphqlExceptionFilter,
+        PublicErrorExceptionFilter,
+        { provide: APP_FILTER, useExisting: PublicErrorExceptionFilter },
+      ],
       controllers: [FileSystemController],
     }).compile();
     app = module.createNestApplication();
@@ -86,7 +96,7 @@ describe('Filesystem transport contracts', () => {
 
   test('OS access rejection retains a distinct public error', async () => {
     vi.spyOn(app.get(FileSystemService), 'metadata').mockRejectedValue(
-      new FileSystemError('FILE_SYSTEM_ACCESS_DENIED'),
+      new FileSystemError({ code: 'FILE_SYSTEM_ACCESS_DENIED', details: {} }),
     );
     const rest = await request(app.getHttpServer())
       .get('/file-system/entry')

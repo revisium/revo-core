@@ -1,4 +1,4 @@
-import { ConflictException, Logger, NotFoundException } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import type { RunSnapshot } from '@revisium/revo-run';
 
@@ -7,7 +7,7 @@ import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enu
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import { reportErrorDiagnostic } from '../../../../infrastructure/error-diagnostic.js';
 import { RevoRunService } from '../../../../infrastructure/run-runtime/revo-run.service.js';
-import { ProjectError } from '../../contracts/project.errors.js';
+import { ProjectApplicationError, ProjectErrorCode } from '../../contracts/project.errors.js';
 import {
   ArchiveUserProjectCommand,
   type ArchiveUserProjectCommandReturnType,
@@ -40,11 +40,11 @@ export class ArchiveUserProjectHandler implements ICommandHandler<
     });
 
     if (project === null || project.status === ProjectStatus.CREATING) {
-      throw new NotFoundException(ProjectError.notFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.notFound, details: {} });
     }
 
     if (project.status !== ProjectStatus.ACTIVE) {
-      throw new ConflictException(ProjectError.notActive);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.notActive, details: {} });
     }
 
     const projectRuns = await this.transaction.projectRun.findMany({
@@ -58,11 +58,8 @@ export class ArchiveUserProjectHandler implements ICommandHandler<
     );
 
     if (blockingRunIds.length > 0) {
-      throw new ConflictException({
-        statusCode: 409,
-        code: 'project_has_active_runs',
-        message: ProjectError.hasActiveRuns,
-        path: '/projectId',
+      throw new ProjectApplicationError({
+        code: ProjectErrorCode.hasActiveRuns,
         details: { runIds: blockingRunIds },
       });
     }

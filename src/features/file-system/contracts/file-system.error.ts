@@ -1,24 +1,27 @@
-import { HttpException } from '@nestjs/common';
+import { ApplicationError } from '../../../application/errors/application-error.js';
 
-const errors = {
-  FILE_SYSTEM_NOT_FOUND: [404, 'Filesystem entry was not found.'],
-  FILE_SYSTEM_NOT_DIRECTORY: [400, 'Filesystem entry is not a directory.'],
-  FILE_SYSTEM_ACCESS_DENIED: [403, 'The operating system denied filesystem access.'],
-  FILE_SYSTEM_ALREADY_EXISTS: [409, 'Filesystem entry already exists.'],
-  FILE_SYSTEM_INVALID_PATH: [400, 'Filesystem path is invalid.'],
-  FILE_SYSTEM_INVALID_NAME: [400, 'Directory name is invalid.'],
-  FILE_SYSTEM_TOO_LARGE: [413, 'Filesystem text exceeds the supported size.'],
-  FILE_SYSTEM_IO_ERROR: [500, 'Filesystem operation failed.'],
+export const FileSystemErrorCode = {
+  notFound: 'FILE_SYSTEM_NOT_FOUND',
+  notDirectory: 'FILE_SYSTEM_NOT_DIRECTORY',
+  accessDenied: 'FILE_SYSTEM_ACCESS_DENIED',
+  alreadyExists: 'FILE_SYSTEM_ALREADY_EXISTS',
+  invalidPath: 'FILE_SYSTEM_INVALID_PATH',
+  invalidName: 'FILE_SYSTEM_INVALID_NAME',
+  tooLarge: 'FILE_SYSTEM_TOO_LARGE',
+  ioError: 'FILE_SYSTEM_IO_ERROR',
 } as const;
 
-export type FileSystemErrorCode = keyof typeof errors;
+export type FileSystemErrorCode = (typeof FileSystemErrorCode)[keyof typeof FileSystemErrorCode];
 
-export class FileSystemError extends HttpException {
-  constructor(readonly code: FileSystemErrorCode) {
-    const [statusCode, message] = errors[code];
-    super({ statusCode, code, message }, statusCode);
-  }
-}
+export type FileSystemErrorDetails = {
+  [TCode in FileSystemErrorCode]: Record<string, never>;
+};
+
+export type FileSystemFailure = {
+  [TCode in FileSystemErrorCode]: Readonly<{ code: TCode; details: FileSystemErrorDetails[TCode] }>;
+}[FileSystemErrorCode];
+
+export class FileSystemError extends ApplicationError<FileSystemFailure> {}
 
 export function rethrowFileSystemError(error: unknown): never {
   if (error instanceof FileSystemError) {
@@ -30,19 +33,19 @@ export function rethrowFileSystemError(error: unknown): never {
 
   switch (code) {
     case 'ENOENT':
-      throw new FileSystemError('FILE_SYSTEM_NOT_FOUND');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_NOT_FOUND', details: {} });
     case 'ENOTDIR':
-      throw new FileSystemError('FILE_SYSTEM_NOT_DIRECTORY');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_NOT_DIRECTORY', details: {} });
     case 'EACCES':
     case 'EPERM':
-      throw new FileSystemError('FILE_SYSTEM_ACCESS_DENIED');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_ACCESS_DENIED', details: {} });
     case 'EEXIST':
-      throw new FileSystemError('FILE_SYSTEM_ALREADY_EXISTS');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_ALREADY_EXISTS', details: {} });
     case 'EINVAL':
     case 'ENAMETOOLONG':
     case 'ELOOP':
-      throw new FileSystemError('FILE_SYSTEM_INVALID_PATH');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_INVALID_PATH', details: {} });
     default:
-      throw new FileSystemError('FILE_SYSTEM_IO_ERROR');
+      throw new FileSystemError({ code: 'FILE_SYSTEM_IO_ERROR', details: {} });
   }
 }

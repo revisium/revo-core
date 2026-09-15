@@ -1,10 +1,9 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
-import { ProjectError } from '../../contracts/project.errors.js';
+import { ProjectApplicationError, ProjectErrorCode } from '../../contracts/project.errors.js';
 import {
   ReserveProjectRunCommand,
   type ReserveProjectRunCommandReturnType,
@@ -29,11 +28,11 @@ export class ReserveProjectRunHandler implements ICommandHandler<
       });
 
       if (project === null || project.status === ProjectStatus.CREATING) {
-        throw new NotFoundException(ProjectError.notFound);
+        throw new ProjectApplicationError({ code: ProjectErrorCode.notFound, details: {} });
       }
 
       if (project.status !== ProjectStatus.ACTIVE) {
-        throw new ConflictException(ProjectError.notActive);
+        throw new ProjectApplicationError({ code: ProjectErrorCode.notActive, details: {} });
       }
 
       await this.transaction.projectRun.create({ data });

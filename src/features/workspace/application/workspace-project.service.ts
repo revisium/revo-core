@@ -12,11 +12,11 @@ export class WorkspaceProjectService {
     const project = await this.projects.getUserProject(projectId);
 
     if (project === null) {
-      throw new WorkspaceError('WORKSPACE_PROJECT_NOT_FOUND');
+      throw new WorkspaceError({ code: 'WORKSPACE_PROJECT_NOT_FOUND', details: {} });
     }
 
     if (writable && project.status !== PublicProjectStatus.active) {
-      throw new WorkspaceError('WORKSPACE_PROJECT_ARCHIVED');
+      throw new WorkspaceError({ code: 'WORKSPACE_PROJECT_ARCHIVED', details: {} });
     }
   }
 }

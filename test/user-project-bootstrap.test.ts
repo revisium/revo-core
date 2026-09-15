@@ -12,7 +12,7 @@ import {
   DeleteUserProjectCommand,
   type DeleteUserProjectCommandReturnType,
 } from '../src/features/project/commands/impl/delete-user-project.command.js';
-import { ProjectError } from '../src/features/project/contracts/project.errors.js';
+import { ProjectErrorCode } from '../src/features/project/contracts/project.errors.js';
 import { ProjectContentModelService } from '../src/features/project/project-content-model.service.js';
 import { UserProjectMigrationsService } from '../src/features/project/user-project-migrations.service.js';
 import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
@@ -102,7 +102,7 @@ describe('project bootstrap cleanup', () => {
         .execute<DeleteUserProjectCommand, DeleteUserProjectCommandReturnType>(
           new DeleteUserProjectCommand({ projectId: SYSTEM_PLAYBOOKS_PROJECT.id }),
         ),
-    ).rejects.toThrow(ProjectError.notFound);
+    ).rejects.toMatchObject({ failure: { code: ProjectErrorCode.notFound } });
 
     await expect(
       prisma.project.findUnique({ where: { id: SYSTEM_PLAYBOOKS_PROJECT.id } }),

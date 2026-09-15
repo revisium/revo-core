@@ -80,7 +80,7 @@ describe('FileSystemModule public operations', () => {
     const file = path.join(directory, 'too-large.txt');
     await writeFile(file, 'a'.repeat(65537));
     await expect(filesystem.readTextFile({ path: file })).rejects.toMatchObject({
-      code: 'FILE_SYSTEM_TOO_LARGE',
+      failure: { code: 'FILE_SYSTEM_TOO_LARGE' },
     });
   });
 
@@ -112,7 +112,7 @@ describe('FileSystemModule public operations', () => {
 
   test('rejects relative paths', async () => {
     await expect(filesystem.getEntry({ path: 'relative' })).rejects.toMatchObject({
-      code: 'FILE_SYSTEM_INVALID_PATH',
+      failure: { code: 'FILE_SYSTEM_INVALID_PATH' },
     });
   });
 
@@ -121,15 +121,13 @@ describe('FileSystemModule public operations', () => {
     async (name) => {
       await expect(
         filesystem.createDirectory({ parentPath: directory, name }),
-      ).rejects.toMatchObject({ code: 'FILE_SYSTEM_INVALID_NAME' });
+      ).rejects.toMatchObject({ failure: { code: 'FILE_SYSTEM_INVALID_NAME' } });
     },
   );
 
   test('reports missing filesystem entries', async () => {
     await expect(
       filesystem.getEntry({ path: path.join(directory, 'missing') }),
-    ).rejects.toMatchObject({
-      code: 'FILE_SYSTEM_NOT_FOUND',
-    });
+    ).rejects.toMatchObject({ failure: { code: 'FILE_SYSTEM_NOT_FOUND' } });
   });
 });

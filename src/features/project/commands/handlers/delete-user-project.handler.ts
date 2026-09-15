@@ -1,10 +1,9 @@
-import { NotFoundException } from '@nestjs/common';
 import { CommandBus, CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind } from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
-import { ProjectError } from '../../contracts/project.errors.js';
+import { ProjectApplicationError, ProjectErrorCode } from '../../contracts/project.errors.js';
 import {
   CleanupProjectDatasetCommand,
   type CleanupProjectDatasetCommandReturnType,
@@ -43,7 +42,7 @@ export class DeleteUserProjectHandler implements ICommandHandler<
       select: { id: true },
     });
     if (project === null) {
-      throw new NotFoundException(ProjectError.notFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.notFound, details: {} });
     }
 
     await this.transaction.branch.deleteMany({ where: { projectId } });

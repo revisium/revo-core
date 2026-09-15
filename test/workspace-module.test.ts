@@ -144,21 +144,17 @@ describe('Workspace module and transports', () => {
     const b = await connect('Shared source', source, 'folder', otherProject);
     expect(b.id).not.toBe(a.id);
     await expect(api.getWorkspace({ projectId: otherProject, id: a.id })).rejects.toMatchObject({
-      code: 'WORKSPACE_NOT_FOUND',
+      failure: { code: 'WORKSPACE_NOT_FOUND' },
     });
     await expect(
       api.updateWorkspace({ projectId: otherProject, id: a.id, name: 'wrong' }),
-    ).rejects.toMatchObject({ code: 'WORKSPACE_NOT_FOUND' });
+    ).rejects.toMatchObject({ failure: { code: 'WORKSPACE_NOT_FOUND' } });
     await expect(api.archiveWorkspace({ projectId: otherProject, id: a.id })).rejects.toMatchObject(
-      {
-        code: 'WORKSPACE_NOT_FOUND',
-      },
+      { failure: { code: 'WORKSPACE_NOT_FOUND' } },
     );
     await api.archiveWorkspace({ projectId, id: a.id });
     await expect(api.restoreWorkspace({ projectId: otherProject, id: a.id })).rejects.toMatchObject(
-      {
-        code: 'WORKSPACE_NOT_FOUND',
-      },
+      { failure: { code: 'WORKSPACE_NOT_FOUND' } },
     );
   });
 
@@ -213,7 +209,9 @@ describe('Workspace module and transports', () => {
 
   test('OS access failures become an availability observation', async () => {
     const fs = app.get(FileSystemApiService);
-    vi.spyOn(fs, 'getEntry').mockRejectedValue(new FileSystemError('FILE_SYSTEM_ACCESS_DENIED'));
+    vi.spyOn(fs, 'getEntry').mockRejectedValue(
+      new FileSystemError({ code: 'FILE_SYSTEM_ACCESS_DENIED', details: {} }),
+    );
     const workspace = await connect();
     expect(await api.checkWorkspace({ projectId, id: workspace.id })).toMatchObject({
       availability: 'ACCESS_DENIED',
@@ -330,7 +328,7 @@ describe('Workspace module and transports', () => {
   test('text reads reject directories', async () => {
     const fs = app.get(FileSystemApiService);
     await expect(fs.readTextFile({ path: source })).rejects.toMatchObject({
-      code: 'FILE_SYSTEM_INVALID_PATH',
+      failure: { code: 'FILE_SYSTEM_INVALID_PATH' },
     });
   });
 
@@ -341,7 +339,7 @@ describe('Workspace module and transports', () => {
     expect(await fs.readTextFile({ path: textPath })).toHaveLength(65536);
     await writeFile(textPath, 'x'.repeat(65537));
     await expect(fs.readTextFile({ path: textPath })).rejects.toMatchObject({
-      code: 'FILE_SYSTEM_TOO_LARGE',
+      failure: { code: 'FILE_SYSTEM_TOO_LARGE' },
     });
   });
 
@@ -350,7 +348,7 @@ describe('Workspace module and transports', () => {
     const textPath = path.join(source, 'keep.txt');
     await rm(textPath);
     await expect(fs.readTextFile({ path: textPath })).rejects.toMatchObject({
-      code: 'FILE_SYSTEM_NOT_FOUND',
+      failure: { code: 'FILE_SYSTEM_NOT_FOUND' },
     });
   });
 
@@ -364,7 +362,9 @@ describe('Workspace module and transports', () => {
     expect(await api.getWorkspace({ projectId, id: workspace.id })).toMatchObject({
       id: workspace.id,
     });
-    await expect(connect()).rejects.toMatchObject({ code: 'WORKSPACE_PROJECT_ARCHIVED' });
+    await expect(connect()).rejects.toMatchObject({
+      failure: { code: 'WORKSPACE_PROJECT_ARCHIVED' },
+    });
     await Promise.all(
       [
         () => api.updateWorkspace({ projectId, id: workspace.id, name: 'No' }),
@@ -372,7 +372,9 @@ describe('Workspace module and transports', () => {
         () => api.archiveWorkspace({ projectId, id: workspace.id }),
         () => api.restoreWorkspace({ projectId, id: workspace.id }),
       ].map((operation) =>
-        expect(operation()).rejects.toMatchObject({ code: 'WORKSPACE_PROJECT_ARCHIVED' }),
+        expect(operation()).rejects.toMatchObject({
+          failure: { code: 'WORKSPACE_PROJECT_ARCHIVED' },
+        }),
       ),
     );
     await projects.restoreUserProject({ projectId });
@@ -489,14 +491,16 @@ describe('Workspace module and transports', () => {
             sourcePath: source,
             ...invalid,
           } as Parameters<typeof api.createWorkspace>[0]),
-        ).rejects.toMatchObject({ code: 'WORKSPACE_INVALID_INPUT' }),
+        ).rejects.toMatchObject({ failure: { code: 'WORKSPACE_INVALID_INPUT' } }),
       ),
     );
     await expect(connect('Missing project', source, 'folder', nanoid())).rejects.toMatchObject({
-      code: 'WORKSPACE_PROJECT_NOT_FOUND',
+      failure: { code: 'WORKSPACE_PROJECT_NOT_FOUND' },
     });
     await prisma.project.update({ where: { id: projectId }, data: { kind: ProjectKind.SYSTEM } });
-    await expect(connect()).rejects.toMatchObject({ code: 'WORKSPACE_PROJECT_NOT_FOUND' });
+    await expect(connect()).rejects.toMatchObject({
+      failure: { code: 'WORKSPACE_PROJECT_NOT_FOUND' },
+    });
   });
 
   test('REST creates and retrieves Workspaces', async () => {

@@ -1,16 +1,16 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, ValidateIf } from 'class-validator';
 
-import { ProjectError } from '../../../../features/project/contracts/project.errors.js';
+import { ProjectPublicMessage } from '../../../errors/project-public-messages.js';
 
 export class ProjectUpdateRequest {
   @ApiPropertyOptional()
   @ValidateIf((request: ProjectUpdateRequest) => request.name !== undefined)
-  @IsString({ message: ProjectError.nameRequired })
+  @IsString({ message: ProjectPublicMessage.nameRequired })
   name?: string;
 
   @ApiPropertyOptional()
   @ValidateIf((request: ProjectUpdateRequest) => request.description !== undefined)
-  @IsString({ message: ProjectError.descriptionInvalid })
+  @IsString({ message: ProjectPublicMessage.descriptionInvalid })
   description?: string;
 }

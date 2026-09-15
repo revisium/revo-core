@@ -44,7 +44,7 @@ describe('Agent definition pagination', () => {
 
   it('rejects a malformed cursor', () => {
     expect(() => paginateAgentDefinitions(records, { after: '???' }, identity)).toThrow(
-      'cursor is invalid',
+      'REVO_AGENT_SESSION_INVALID_CURSOR',
     );
   });
 });

@@ -5,7 +5,6 @@ import {
   Header,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   ParseBoolPipe,
   ParseIntPipe,
@@ -29,8 +28,12 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 
-import { ProjectError } from '../../../features/project/contracts/project.errors.js';
+import {
+  ProjectApplicationError,
+  ProjectErrorCode,
+} from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
+import { ProjectPublicMessage } from '../../errors/project-public-messages.js';
 import { ProjectCreateRequest } from './dto/project-create.request.js';
 import { ProjectUpdateRequest } from './dto/project-update.request.js';
 import { ProjectActiveRunsErrorResponse } from './model/project-active-runs-error.response.js';
@@ -76,12 +79,12 @@ export class ProjectController {
   @Get(':id')
   @ApiOperation({ operationId: 'getProject', summary: 'Get a project' })
   @ApiOkResponse({ type: ProjectResponse })
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.notFound })
   async getProject(@Param('id') id: string): Promise<ProjectResponse> {
     const project = await this.projects.getUserProject(id);
 
     if (project === null) {
-      throw new NotFoundException(ProjectError.notFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.notFound, details: {} });
     }
 
     return project;
@@ -91,7 +94,7 @@ export class ProjectController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ operationId: 'archiveProject', summary: 'Archive a project' })
   @ApiNoContentResponse()
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.notFound })
   @ApiConflictResponse({
     description: 'Project is not active or has active runs.',
     schema: {
@@ -110,8 +113,8 @@ export class ProjectController {
   @Header('Content-Type', 'application/json')
   @ApiOperation({ operationId: 'restoreProject', summary: 'Restore an archived project' })
   @ApiOkResponse({ type: Boolean })
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
-  @ApiConflictResponse({ description: ProjectError.notArchived })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.notFound })
+  @ApiConflictResponse({ description: ProjectPublicMessage.notArchived })
   restoreProject(@Param('id') id: string): Promise<boolean> {
     return this.projects.restoreUserProject({ projectId: id });
   }
@@ -120,9 +123,9 @@ export class ProjectController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ operationId: 'updateProject', summary: 'Update a project' })
   @ApiNoContentResponse()
-  @ApiBadRequestResponse({ description: ProjectError.updateBodyInvalid })
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
-  @ApiConflictResponse({ description: ProjectError.notActive })
+  @ApiBadRequestResponse({ description: ProjectPublicMessage.updateBodyInvalid })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.notFound })
+  @ApiConflictResponse({ description: ProjectPublicMessage.notActive })
   async updateProject(@Param('id') id: string, @Body() data: ProjectUpdateRequest): Promise<void> {
     await this.projects.updateUserProject(projectUpdateBody(id, data));
   }

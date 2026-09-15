@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -24,8 +23,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ProjectError } from '../../../features/project/contracts/project.errors.js';
+import {
+  ProjectApplicationError,
+  ProjectErrorCode,
+} from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
+import { ProjectPublicMessage } from '../../errors/project-public-messages.js';
 import { RequirementUpdateRequest } from './dto/requirement-update.request.js';
 import { RequirementRequest } from './dto/requirement.request.js';
 import { RequirementConnectionResponse } from './model/requirement-connection.response.js';
@@ -42,7 +45,7 @@ export class RequirementController {
   @Post()
   @ApiOperation({ operationId: 'createRequirement', summary: 'Create a requirement' })
   @ApiCreatedResponse({ type: RequirementResponse })
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.notFound })
   createRequirement(@Param('projectId') projectId: string, @Body() data: RequirementRequest) {
     return this.projects.createRequirement(requirementCreateBody(projectId, data));
   }
@@ -52,7 +55,7 @@ export class RequirementController {
   @ApiQuery({ name: 'first', type: Number, required: false })
   @ApiQuery({ name: 'after', type: String, required: false })
   @ApiOkResponse({ type: RequirementConnectionResponse })
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.notFound })
   listRequirements(
     @Param('projectId') projectId: string,
     @Query('first', new ParseIntPipe({ optional: true })) first?: number,
@@ -64,14 +67,14 @@ export class RequirementController {
   @Get(':requirementId')
   @ApiOperation({ operationId: 'getRequirement', summary: 'Get a requirement' })
   @ApiOkResponse({ type: RequirementResponse })
-  @ApiNotFoundResponse({ description: ProjectError.recordNotFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.recordNotFound })
   async getRequirement(
     @Param('projectId') projectId: string,
     @Param('requirementId') requirementId: string,
   ) {
     const requirement = await this.projects.getRequirement(projectId, requirementId);
     if (requirement === null) {
-      throw new NotFoundException(ProjectError.recordNotFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.recordNotFound, details: {} });
     }
 
     return requirement;
@@ -80,7 +83,7 @@ export class RequirementController {
   @Put(':requirementId')
   @ApiOperation({ operationId: 'updateRequirement', summary: 'Replace a requirement' })
   @ApiOkResponse({ type: RequirementResponse })
-  @ApiNotFoundResponse({ description: ProjectError.recordNotFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.recordNotFound })
   updateRequirement(
     @Param('projectId') projectId: string,
     @Param('requirementId') requirementId: string,
@@ -93,7 +96,7 @@ export class RequirementController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ operationId: 'deleteRequirement', summary: 'Delete a requirement' })
   @ApiNoContentResponse()
-  @ApiNotFoundResponse({ description: ProjectError.recordNotFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.recordNotFound })
   async deleteRequirement(
     @Param('projectId') projectId: string,
     @Param('requirementId') requirementId: string,

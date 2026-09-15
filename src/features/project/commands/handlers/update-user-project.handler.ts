@@ -1,10 +1,9 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
-import { ProjectError } from '../../contracts/project.errors.js';
+import { ProjectApplicationError, ProjectErrorCode } from '../../contracts/project.errors.js';
 import {
   UpdateUserProjectCommand,
   type UpdateUserProjectCommandData,
@@ -49,7 +48,7 @@ export class UpdateUserProjectHandler implements ICommandHandler<
 
   private readName(name: string): string {
     if (typeof name !== 'string' || name.trim() === '') {
-      throw new BadRequestException(ProjectError.nameRequired);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.nameRequired, details: {} });
     }
 
     return name.trim();
@@ -57,7 +56,7 @@ export class UpdateUserProjectHandler implements ICommandHandler<
 
   private readDescription(description: string): string {
     if (typeof description !== 'string') {
-      throw new BadRequestException(ProjectError.descriptionInvalid);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.descriptionInvalid, details: {} });
     }
 
     return description;
@@ -80,11 +79,11 @@ export class UpdateUserProjectHandler implements ICommandHandler<
     });
 
     if (project === null) {
-      throw new NotFoundException(ProjectError.notFound);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.notFound, details: {} });
     }
 
     if (project.status !== ProjectStatus.ACTIVE) {
-      throw new ConflictException(ProjectError.notActive);
+      throw new ProjectApplicationError({ code: ProjectErrorCode.notActive, details: {} });
     }
   }
 }
