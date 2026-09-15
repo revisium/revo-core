@@ -2,6 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import type { RunSnapshot, RunStatus, RunTerminal } from '@revisium/revo-run';
 
 export class RunResponse implements RunSnapshot {
+  @ApiProperty({ type: String, nullable: true })
+  projectId: string | null;
+
   @ApiProperty({ enum: ['run-snapshot/v1'] })
   schemaVersion: 'run-snapshot/v1';
 

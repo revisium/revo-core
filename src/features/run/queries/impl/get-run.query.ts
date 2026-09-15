@@ -4,7 +4,9 @@ export type GetRunQueryData = {
   readonly runId: string;
 };
 
-export type GetRunQueryReturnType = RunSnapshot | undefined;
+export type RunSnapshotWithProject = RunSnapshot & { readonly projectId: string | null };
+
+export type GetRunQueryReturnType = RunSnapshotWithProject | undefined;
 
 export class GetRunQuery {
   constructor(readonly data: GetRunQueryData) {}

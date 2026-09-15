@@ -6,9 +6,9 @@ import { ConfigService } from '@nestjs/config';
 import type { CreateRunInput, RunProfile } from '@revisium/revo-run';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import { prepareRunProfile } from '../../../src/features/run/infrastructure/working-directory/run-profile-working-directory.js';
-import { RunWorkingDirectoryCoordinator } from '../../../src/features/run/infrastructure/working-directory/run-working-directory-coordinator.js';
-import { TemporaryRunDirectoryHost } from '../../../src/features/run/infrastructure/working-directory/temporary-run-directory-host.js';
+import { prepareRunProfile } from '../../../src/infrastructure/run-runtime/working-directory/run-profile-working-directory.js';
+import { RunWorkingDirectoryCoordinator } from '../../../src/infrastructure/run-runtime/working-directory/run-working-directory-coordinator.js';
+import { TemporaryRunDirectoryHost } from '../../../src/infrastructure/run-runtime/working-directory/temporary-run-directory-host.js';
 import { singleAgentProfile, taskPipeline } from '../../fixtures/task-pipeline.js';
 import { FakeRunManager } from '../../support/run/fake-run-manager.js';
 

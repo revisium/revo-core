@@ -35,6 +35,12 @@ import {
   RestoreUserProjectCommand,
   type RestoreUserProjectCommandData,
   type RestoreUserProjectCommandReturnType,
+  ReleaseProjectRunCommand,
+  type ReleaseProjectRunCommandData,
+  type ReleaseProjectRunCommandReturnType,
+  ReserveProjectRunCommand,
+  type ReserveProjectRunCommandData,
+  type ReserveProjectRunCommandReturnType,
   UpdateAdrCommand,
   type UpdateAdrCommandReturnType,
   UpdateRequirementCommand,
@@ -54,6 +60,9 @@ import {
   type GetProjectQueryData,
   type GetProjectQueryReturnType,
   GetRequirementQuery,
+  GetRunProjectIdQuery,
+  type GetRunProjectIdQueryData,
+  type GetRunProjectIdQueryReturnType,
   type GetRequirementQueryReturnType,
   GetUserProjectQuery,
   type GetUserProjectQueryReturnType,
@@ -127,6 +136,12 @@ export class ProjectApiService {
     );
   }
 
+  getRunProjectId(data: GetRunProjectIdQueryData): Promise<GetRunProjectIdQueryReturnType> {
+    return this.queries.execute<GetRunProjectIdQuery, GetRunProjectIdQueryReturnType>(
+      new GetRunProjectIdQuery(data),
+    );
+  }
+
   listUserProjects(data: ListUserProjectsQueryData): Promise<ListUserProjectsQueryReturnType> {
     return this.queries.execute<ListUserProjectsQuery, ListUserProjectsQueryReturnType>(
       new ListUserProjectsQuery(data),
@@ -138,6 +153,18 @@ export class ProjectApiService {
   ): Promise<RestoreUserProjectCommandReturnType> {
     return this.commands.execute<RestoreUserProjectCommand, RestoreUserProjectCommandReturnType>(
       new RestoreUserProjectCommand(data),
+    );
+  }
+
+  reserveRun(data: ReserveProjectRunCommandData): Promise<ReserveProjectRunCommandReturnType> {
+    return this.commands.execute<ReserveProjectRunCommand, ReserveProjectRunCommandReturnType>(
+      new ReserveProjectRunCommand(data),
+    );
+  }
+
+  releaseRun(data: ReleaseProjectRunCommandData): Promise<ReleaseProjectRunCommandReturnType> {
+    return this.commands.execute<ReleaseProjectRunCommand, ReleaseProjectRunCommandReturnType>(
+      new ReleaseProjectRunCommand(data),
     );
   }
 

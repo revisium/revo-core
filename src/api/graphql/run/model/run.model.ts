@@ -4,6 +4,9 @@ import { GraphQLJSON } from 'graphql-scalars';
 
 @ObjectType()
 export class RunModel {
+  @Field(() => ID, { nullable: true })
+  projectId: string | null;
+
   @Field()
   schemaVersion: 'run-snapshot/v1';
 

@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Project: 'Project',
+  ProjectRun: 'ProjectRun',
   Workspace: 'Workspace',
   ReviewThread: 'ReviewThread',
   ReviewMessage: 'ReviewMessage',
@@ -101,6 +102,14 @@ export const ProjectScalarFieldEnum = {
 } as const
 
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
+
+
+export const ProjectRunScalarFieldEnum = {
+  runId: 'runId',
+  projectId: 'projectId'
+} as const
+
+export type ProjectRunScalarFieldEnum = (typeof ProjectRunScalarFieldEnum)[keyof typeof ProjectRunScalarFieldEnum]
 
 
 export const WorkspaceScalarFieldEnum = {

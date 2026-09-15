@@ -1,15 +1,19 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 import { EngineModule } from '@revisium/engine';
-import { afterEach, describe, expect, test } from 'vitest';
+import type { RunSnapshot } from '@revisium/revo-run';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
 import { databaseConfig } from '../src/config/database.config.js';
 import { ProjectApiService } from '../src/features/project/project-api.service.js';
 import { ProjectModule } from '../src/features/project/project.module.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
+import { RevoRunService } from '../src/infrastructure/run-runtime/revo-run.service.js';
+import { RunRuntimeModule } from '../src/infrastructure/run-runtime/run-runtime.module.js';
+import { ProjectTestRuntimeModule } from './support/project-test-runtime.module.js';
 
 type Started = {
   readonly module: TestingModule;
@@ -17,11 +21,18 @@ type Started = {
   readonly prisma: PrismaService;
 };
 
+type ArchiveRunSnapshot = Pick<RunSnapshot, 'runId' | 'status'>;
+
+let getRun: (runId: string) => Promise<ArchiveRunSnapshot | undefined> = async () => undefined;
+
 describe('ArchiveUserProjectHandler', () => {
   let started: Started | undefined;
   const createdProjectIds: string[] = [];
 
   afterEach(async () => {
+    vi.restoreAllMocks();
+    getRun = async () => undefined;
+
     if (started === undefined) {
       return;
     }
@@ -29,6 +40,7 @@ describe('ArchiveUserProjectHandler', () => {
     const projectIds = createdProjectIds.splice(0);
 
     if (projectIds.length > 0) {
+      await started.prisma.projectRun.deleteMany({ where: { projectId: { in: projectIds } } });
       await started.prisma.project.deleteMany({ where: { id: { in: projectIds } } });
     }
 
@@ -110,6 +122,74 @@ describe('ArchiveUserProjectHandler', () => {
     await expect(outcome).rejects.toBeInstanceOf(NotFoundException);
     await expect(outcome).rejects.toThrow('Project was not found.');
   });
+
+  test('keeps an active project when a linked run is unresolved', async () => {
+    started = await start();
+    const projectId = await createProject(started.prisma, { status: ProjectStatus.ACTIVE });
+    createdProjectIds.push(projectId);
+    await started.prisma.projectRun.create({ data: { projectId, runId: 'r_unresolved' } });
+
+    await expect(started.projects.archiveUserProject({ projectId })).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+    await expect(
+      started.prisma.project.findUniqueOrThrow({ where: { id: projectId } }),
+    ).resolves.toMatchObject({ status: ProjectStatus.ACTIVE });
+  });
+
+  test('blocks a confirmed active run and identifies it in the conflict', async () => {
+    getRun = async (runId) => ({ runId, status: 'running' });
+    started = await start();
+    const projectId = await createProject(started.prisma, { status: ProjectStatus.ACTIVE });
+    createdProjectIds.push(projectId);
+    await started.prisma.projectRun.create({ data: { projectId, runId: 'r_active' } });
+
+    await expect(started.projects.archiveUserProject({ projectId })).rejects.toMatchObject({
+      response: { code: 'project_has_active_runs', details: { runIds: ['r_active'] } },
+    });
+    expect(await started.prisma.project.findUnique({ where: { id: projectId } })).toMatchObject({
+      status: ProjectStatus.ACTIVE,
+    });
+  });
+
+  test.each(['succeeded', 'failed', 'cancelled'] as const)(
+    'archives and retains a terminal %s run relation',
+    async (status) => {
+      getRun = async (runId) => ({ runId, status });
+      started = await start();
+      const projectId = await createProject(started.prisma, { status: ProjectStatus.ACTIVE });
+      createdProjectIds.push(projectId);
+      await started.prisma.projectRun.create({ data: { projectId, runId: `r_${status}` } });
+
+      await expect(started.projects.archiveUserProject({ projectId })).resolves.toBe(true);
+      await expect(started.prisma.projectRun.count({ where: { projectId } })).resolves.toBe(1);
+    },
+  );
+
+  test('keeps an active project and reports a failed linked-run observation', async () => {
+    const observationError = new Error('runtime unavailable');
+    getRun = async () => {
+      throw observationError;
+    };
+    const logged = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    started = await start();
+    const projectId = await createProject(started.prisma, { status: ProjectStatus.ACTIVE });
+    createdProjectIds.push(projectId);
+    await started.prisma.projectRun.create({ data: { projectId, runId: 'r_observation_failed' } });
+
+    await expect(started.projects.archiveUserProject({ projectId })).rejects.toBe(observationError);
+    await expect(
+      started.prisma.project.findUniqueOrThrow({ where: { id: projectId } }),
+    ).resolves.toMatchObject({ status: ProjectStatus.ACTIVE });
+    await expect(started.prisma.projectRun.count({ where: { projectId } })).resolves.toBe(1);
+    expect(logged).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: 'project.archive.run_observation',
+        projectId,
+        runId: 'r_observation_failed',
+      }),
+    );
+  });
 });
 
 async function createProject(
@@ -136,7 +216,12 @@ async function start(): Promise<Started> {
       EngineModule.forRoot(),
       ProjectModule,
     ],
-  }).compile();
+  })
+    .overrideModule(RunRuntimeModule)
+    .useModule(ProjectTestRuntimeModule)
+    .overrideProvider(RevoRunService)
+    .useValue({ getRun: (runId: string) => getRun(runId) })
+    .compile();
   await module.init();
 
   return {

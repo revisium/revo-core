@@ -200,6 +200,7 @@ export type ProjectWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   workspaces?: Prisma.WorkspaceListRelationFilter
   branches?: Prisma.BranchListRelationFilter
+  runs?: Prisma.ProjectRunListRelationFilter
 }
 
 export type ProjectOrderByWithRelationInput = {
@@ -212,6 +213,7 @@ export type ProjectOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   workspaces?: Prisma.WorkspaceOrderByRelationAggregateInput
   branches?: Prisma.BranchOrderByRelationAggregateInput
+  runs?: Prisma.ProjectRunOrderByRelationAggregateInput
 }
 
 export type ProjectWhereUniqueInput = Prisma.AtLeast<{
@@ -227,6 +229,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   workspaces?: Prisma.WorkspaceListRelationFilter
   branches?: Prisma.BranchListRelationFilter
+  runs?: Prisma.ProjectRunListRelationFilter
 }, "id">
 
 export type ProjectOrderByWithAggregationInput = {
@@ -265,6 +268,7 @@ export type ProjectCreateInput = {
   updatedAt?: Date | string
   workspaces?: Prisma.WorkspaceCreateNestedManyWithoutProjectInput
   branches?: Prisma.BranchCreateNestedManyWithoutProjectInput
+  runs?: Prisma.ProjectRunCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateInput = {
@@ -277,6 +281,7 @@ export type ProjectUncheckedCreateInput = {
   updatedAt?: Date | string
   workspaces?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutProjectInput
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutProjectInput
+  runs?: Prisma.ProjectRunUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUpdateInput = {
@@ -289,6 +294,7 @@ export type ProjectUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workspaces?: Prisma.WorkspaceUpdateManyWithoutProjectNestedInput
   branches?: Prisma.BranchUpdateManyWithoutProjectNestedInput
+  runs?: Prisma.ProjectRunUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateInput = {
@@ -301,6 +307,7 @@ export type ProjectUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workspaces?: Prisma.WorkspaceUncheckedUpdateManyWithoutProjectNestedInput
   branches?: Prisma.BranchUncheckedUpdateManyWithoutProjectNestedInput
+  runs?: Prisma.ProjectRunUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateManyInput = {
@@ -384,6 +391,20 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type ProjectCreateNestedOneWithoutRunsInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutRunsInput, Prisma.ProjectUncheckedCreateWithoutRunsInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutRunsInput
+  connect?: Prisma.ProjectWhereUniqueInput
+}
+
+export type ProjectUpdateOneRequiredWithoutRunsNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutRunsInput, Prisma.ProjectUncheckedCreateWithoutRunsInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutRunsInput
+  upsert?: Prisma.ProjectUpsertWithoutRunsInput
+  connect?: Prisma.ProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutRunsInput, Prisma.ProjectUpdateWithoutRunsInput>, Prisma.ProjectUncheckedUpdateWithoutRunsInput>
+}
+
 export type ProjectCreateNestedOneWithoutWorkspacesInput = {
   create?: Prisma.XOR<Prisma.ProjectCreateWithoutWorkspacesInput, Prisma.ProjectUncheckedCreateWithoutWorkspacesInput>
   connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutWorkspacesInput
@@ -412,6 +433,70 @@ export type ProjectUpdateOneRequiredWithoutBranchesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutBranchesInput, Prisma.ProjectUpdateWithoutBranchesInput>, Prisma.ProjectUncheckedUpdateWithoutBranchesInput>
 }
 
+export type ProjectCreateWithoutRunsInput = {
+  id?: string
+  name: string
+  description?: string
+  status?: $Enums.ProjectStatus
+  kind?: $Enums.ProjectKind
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspaces?: Prisma.WorkspaceCreateNestedManyWithoutProjectInput
+  branches?: Prisma.BranchCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectUncheckedCreateWithoutRunsInput = {
+  id?: string
+  name: string
+  description?: string
+  status?: $Enums.ProjectStatus
+  kind?: $Enums.ProjectKind
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspaces?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutProjectInput
+  branches?: Prisma.BranchUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectCreateOrConnectWithoutRunsInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutRunsInput, Prisma.ProjectUncheckedCreateWithoutRunsInput>
+}
+
+export type ProjectUpsertWithoutRunsInput = {
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutRunsInput, Prisma.ProjectUncheckedUpdateWithoutRunsInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutRunsInput, Prisma.ProjectUncheckedCreateWithoutRunsInput>
+  where?: Prisma.ProjectWhereInput
+}
+
+export type ProjectUpdateToOneWithWhereWithoutRunsInput = {
+  where?: Prisma.ProjectWhereInput
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutRunsInput, Prisma.ProjectUncheckedUpdateWithoutRunsInput>
+}
+
+export type ProjectUpdateWithoutRunsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  kind?: Prisma.EnumProjectKindFieldUpdateOperationsInput | $Enums.ProjectKind
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspaces?: Prisma.WorkspaceUpdateManyWithoutProjectNestedInput
+  branches?: Prisma.BranchUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectUncheckedUpdateWithoutRunsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  kind?: Prisma.EnumProjectKindFieldUpdateOperationsInput | $Enums.ProjectKind
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspaces?: Prisma.WorkspaceUncheckedUpdateManyWithoutProjectNestedInput
+  branches?: Prisma.BranchUncheckedUpdateManyWithoutProjectNestedInput
+}
+
 export type ProjectCreateWithoutWorkspacesInput = {
   id?: string
   name: string
@@ -421,6 +506,7 @@ export type ProjectCreateWithoutWorkspacesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branches?: Prisma.BranchCreateNestedManyWithoutProjectInput
+  runs?: Prisma.ProjectRunCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutWorkspacesInput = {
@@ -432,6 +518,7 @@ export type ProjectUncheckedCreateWithoutWorkspacesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   branches?: Prisma.BranchUncheckedCreateNestedManyWithoutProjectInput
+  runs?: Prisma.ProjectRunUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutWorkspacesInput = {
@@ -459,6 +546,7 @@ export type ProjectUpdateWithoutWorkspacesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.BranchUpdateManyWithoutProjectNestedInput
+  runs?: Prisma.ProjectRunUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutWorkspacesInput = {
@@ -470,6 +558,7 @@ export type ProjectUncheckedUpdateWithoutWorkspacesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   branches?: Prisma.BranchUncheckedUpdateManyWithoutProjectNestedInput
+  runs?: Prisma.ProjectRunUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutBranchesInput = {
@@ -481,6 +570,7 @@ export type ProjectCreateWithoutBranchesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   workspaces?: Prisma.WorkspaceCreateNestedManyWithoutProjectInput
+  runs?: Prisma.ProjectRunCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutBranchesInput = {
@@ -492,6 +582,7 @@ export type ProjectUncheckedCreateWithoutBranchesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   workspaces?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutProjectInput
+  runs?: Prisma.ProjectRunUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutBranchesInput = {
@@ -519,6 +610,7 @@ export type ProjectUpdateWithoutBranchesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workspaces?: Prisma.WorkspaceUpdateManyWithoutProjectNestedInput
+  runs?: Prisma.ProjectRunUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutBranchesInput = {
@@ -530,6 +622,7 @@ export type ProjectUncheckedUpdateWithoutBranchesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workspaces?: Prisma.WorkspaceUncheckedUpdateManyWithoutProjectNestedInput
+  runs?: Prisma.ProjectRunUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 
@@ -540,11 +633,13 @@ export type ProjectUncheckedUpdateWithoutBranchesInput = {
 export type ProjectCountOutputType = {
   workspaces: number
   branches: number
+  runs: number
 }
 
 export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workspaces?: boolean | ProjectCountOutputTypeCountWorkspacesArgs
   branches?: boolean | ProjectCountOutputTypeCountBranchesArgs
+  runs?: boolean | ProjectCountOutputTypeCountRunsArgs
 }
 
 /**
@@ -571,6 +666,13 @@ export type ProjectCountOutputTypeCountBranchesArgs<ExtArgs extends runtime.Type
   where?: Prisma.BranchWhereInput
 }
 
+/**
+ * ProjectCountOutputType without action
+ */
+export type ProjectCountOutputTypeCountRunsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectRunWhereInput
+}
+
 
 export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -582,6 +684,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   updatedAt?: boolean
   workspaces?: boolean | Prisma.Project$workspacesArgs<ExtArgs>
   branches?: boolean | Prisma.Project$branchesArgs<ExtArgs>
+  runs?: boolean | Prisma.Project$runsArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["project"]>
 
@@ -619,6 +722,7 @@ export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workspaces?: boolean | Prisma.Project$workspacesArgs<ExtArgs>
   branches?: boolean | Prisma.Project$branchesArgs<ExtArgs>
+  runs?: boolean | Prisma.Project$runsArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProjectIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -629,6 +733,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     workspaces: Prisma.$WorkspacePayload<ExtArgs>[]
     branches: Prisma.$BranchPayload<ExtArgs>[]
+    runs: Prisma.$ProjectRunPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1034,6 +1139,7 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   workspaces<T extends Prisma.Project$workspacesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$workspacesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branches<T extends Prisma.Project$branchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$branchesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BranchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  runs<T extends Prisma.Project$runsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$runsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1508,6 +1614,30 @@ export type Project$branchesArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.BranchScalarFieldEnum | Prisma.BranchScalarFieldEnum[]
+}
+
+/**
+ * Project.runs
+ */
+export type Project$runsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectRun
+   */
+  select?: Prisma.ProjectRunSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectRun
+   */
+  omit?: Prisma.ProjectRunOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectRunInclude<ExtArgs> | null
+  where?: Prisma.ProjectRunWhereInput
+  orderBy?: Prisma.ProjectRunOrderByWithRelationInput | Prisma.ProjectRunOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectRunWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectRunScalarFieldEnum | Prisma.ProjectRunScalarFieldEnum[]
 }
 
 /**

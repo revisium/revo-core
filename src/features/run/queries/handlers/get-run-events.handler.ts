@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 
 import { reportErrorDiagnostic } from '../../../../infrastructure/error-diagnostic.js';
-import { RevoRunService } from '../../revo-run.service.js';
+import { RevoRunService } from '../../../../infrastructure/run-runtime/revo-run.service.js';
 import { isReportableRunError, rethrowPublicRunError } from '../../run-manager-error.mapper.js';
 import {
   GetRunEventsQuery,

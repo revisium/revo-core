@@ -10,6 +10,9 @@ import { CATALOG_RECORD_ID_PATTERN } from '../../../../features/playbook-catalog
 import { JSON_VALUE_SCHEMA } from '../../share/json-value.schema.js';
 
 export class StartRunRequest {
+  @ApiProperty({ type: 'string', minLength: 1 })
+  projectId: string;
+
   @ApiPropertyOptional({
     type: 'string',
     minLength: 1,
@@ -41,6 +44,7 @@ type ApiBodySchema = Extract<ApiBodyOptions, { schema: unknown }>['schema'];
 export const START_RUN_REQUEST_SCHEMA = {
   allOf: [
     { $ref: getSchemaPath(StartRunRequest) },
+    { required: ['projectId'] },
     {
       oneOf: [
         { required: ['pipelineId'], not: { required: ['pipeline'] } },

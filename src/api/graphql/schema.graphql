@@ -938,6 +938,7 @@ type RoleRefModel {
 
 type RunModel {
   createdAt: String!
+  projectId: ID
   runId: ID!
   schemaVersion: String!
   status: String!
@@ -1032,6 +1033,7 @@ input StartRunInput {
   pipelineId: ID
   profile: JSON
   profileId: ID
+  projectId: ID!
 }
 
 type StartRunResultModel {

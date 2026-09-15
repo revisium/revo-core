@@ -1,6 +1,7 @@
 import { GetAdrHandler } from './handlers/get-adr.handler.js';
 import { GetProjectHandler } from './handlers/get-project.handler.js';
 import { GetRequirementHandler } from './handlers/get-requirement.handler.js';
+import { GetRunProjectIdHandler } from './handlers/get-run-project-id.handler.js';
 import { GetUserProjectHandler } from './handlers/get-user-project.handler.js';
 import { GetWorkItemHandler } from './handlers/get-work-item.handler.js';
 import { GetWorkPlanHandler } from './handlers/get-work-plan.handler.js';
@@ -21,6 +22,11 @@ export type {
   GetRequirementQueryData,
   GetRequirementQueryReturnType,
 } from './impl/get-requirement.query.js';
+export { GetRunProjectIdQuery } from './impl/get-run-project-id.query.js';
+export type {
+  GetRunProjectIdQueryData,
+  GetRunProjectIdQueryReturnType,
+} from './impl/get-run-project-id.query.js';
 export { GetUserProjectQuery } from './impl/get-user-project.query.js';
 export type {
   GetUserProjectQueryData,
@@ -70,6 +76,7 @@ export type {
 } from './impl/list-work-plans.query.js';
 
 export const PROJECT_QUERY_HANDLERS = [
+  GetRunProjectIdHandler,
   GetProjectHandler,
   GetUserProjectHandler,
   ListUserProjectsHandler,

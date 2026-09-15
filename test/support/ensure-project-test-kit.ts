@@ -9,6 +9,8 @@ import { databaseConfig } from '../../src/config/database.config.js';
 import { ProjectApiService } from '../../src/features/project/project-api.service.js';
 import { ProjectModule } from '../../src/features/project/project.module.js';
 import { PrismaService } from '../../src/infrastructure/database/prisma.service.js';
+import { RunRuntimeModule } from '../../src/infrastructure/run-runtime/run-runtime.module.js';
+import { ProjectTestRuntimeModule } from './project-test-runtime.module.js';
 
 export class EnsureProjectTestKit {
   private readonly projectIds = new Set<string>();
@@ -27,7 +29,10 @@ export class EnsureProjectTestKit {
         EngineModule.forRoot(),
         ProjectModule,
       ],
-    }).compile();
+    })
+      .overrideModule(RunRuntimeModule)
+      .useModule(ProjectTestRuntimeModule)
+      .compile();
     await module.init();
 
     return new EnsureProjectTestKit(

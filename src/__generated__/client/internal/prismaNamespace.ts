@@ -398,6 +398,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Project: 'Project',
+  ProjectRun: 'ProjectRun',
   Workspace: 'Workspace',
   ReviewThread: 'ReviewThread',
   ReviewMessage: 'ReviewMessage',
@@ -433,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "project" | "workspace" | "reviewThread" | "reviewMessage" | "branch" | "revision" | "table" | "row" | "fileBlob" | "projectFileUsage" | "tableMigration" | "dbosWorkflowStatus" | "dbosOperationOutput" | "dialogue" | "dialogueTurn" | "dialogueHistoryItem" | "dialogueInteraction" | "agentSessionEventStream" | "agentSessionEvent" | "dialogueChange" | "dialogueFeedPosition"
+    modelProps: "project" | "projectRun" | "workspace" | "reviewThread" | "reviewMessage" | "branch" | "revision" | "table" | "row" | "fileBlob" | "projectFileUsage" | "tableMigration" | "dbosWorkflowStatus" | "dbosOperationOutput" | "dialogue" | "dialogueTurn" | "dialogueHistoryItem" | "dialogueInteraction" | "agentSessionEventStream" | "agentSessionEvent" | "dialogueChange" | "dialogueFeedPosition"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -508,6 +509,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProjectCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProjectCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProjectRun: {
+      payload: Prisma.$ProjectRunPayload<ExtArgs>
+      fields: Prisma.ProjectRunFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProjectRunFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectRunPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProjectRunFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectRunPayload>
+        }
+        findFirst: {
+          args: Prisma.ProjectRunFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectRunPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProjectRunFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectRunPayload>
+        }
+        findMany: {
+          args: Prisma.ProjectRunFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectRunPayload>[]
+        }
+        create: {
+          args: Prisma.ProjectRunCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectRunPayload>
+        }
+        createMany: {
+          args: Prisma.ProjectRunCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProjectRunCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectRunPayload>[]
+        }
+        delete: {
+          args: Prisma.ProjectRunDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectRunPayload>
+        }
+        update: {
+          args: Prisma.ProjectRunUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectRunPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProjectRunDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProjectRunUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProjectRunUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectRunPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProjectRunUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectRunPayload>
+        }
+        aggregate: {
+          args: Prisma.ProjectRunAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProjectRun>
+        }
+        groupBy: {
+          args: Prisma.ProjectRunGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectRunGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProjectRunCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectRunCountAggregateOutputType> | number
         }
       }
     }
@@ -2043,6 +2118,14 @@ export const ProjectScalarFieldEnum = {
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
 
 
+export const ProjectRunScalarFieldEnum = {
+  runId: 'runId',
+  projectId: 'projectId'
+} as const
+
+export type ProjectRunScalarFieldEnum = (typeof ProjectRunScalarFieldEnum)[keyof typeof ProjectRunScalarFieldEnum]
+
+
 export const WorkspaceScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -2834,6 +2917,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
   project?: Prisma.ProjectOmit
+  projectRun?: Prisma.ProjectRunOmit
   workspace?: Prisma.WorkspaceOmit
   reviewThread?: Prisma.ReviewThreadOmit
   reviewMessage?: Prisma.ReviewMessageOmit

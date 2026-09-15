@@ -5,12 +5,12 @@ import { join } from 'node:path';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 
-import { RevoRunService } from '../../src/features/run/revo-run.service.js';
 import {
   createRevoCoreRuntime,
   type RevoCoreLifecycleEvent,
   type RevoCoreRuntime,
 } from '../../src/index.js';
+import { RevoRunService } from '../../src/infrastructure/run-runtime/revo-run.service.js';
 import { IsolatedRuntimeDatabase } from '../support/runtime/isolated-runtime-database.js';
 
 interface FallbackRequest {
