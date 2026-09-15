@@ -4,12 +4,14 @@ import path from 'node:path';
 
 import { YogaDriver, type YogaDriverConfig } from '@graphql-yoga/nestjs';
 import type { INestApplication } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { FileSystemResolver } from '../src/api/graphql/file-system/file-system.resolver.js';
+import { ApplicationHttpExceptionFilter } from '../src/api/rest/application-http-exception.filter.js';
 import { FileSystemController } from '../src/api/rest/file-system/file-system.controller.js';
 import { initSwagger } from '../src/api/rest/swagger.js';
 import { FileSystemError } from '../src/features/file-system/contracts/file-system.error.js';
@@ -36,7 +38,10 @@ describe('Filesystem transport contracts', () => {
           path: '/graphql',
         }),
       ],
-      providers: [FileSystemResolver],
+      providers: [
+        FileSystemResolver,
+        { provide: APP_FILTER, useClass: ApplicationHttpExceptionFilter },
+      ],
       controllers: [FileSystemController],
     }).compile();
     app = module.createNestApplication();

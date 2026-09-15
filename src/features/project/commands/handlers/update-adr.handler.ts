@@ -1,9 +1,8 @@
-import { NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { EngineApiService } from '@revisium/engine';
 
 import { ProjectTable } from '../../contracts/project-table.js';
-import { ProjectError } from '../../contracts/project.errors.js';
+import { ProjectApplicationError, ProjectErrorCode } from '../../contracts/project.errors.js';
 import { ProjectDraftService } from '../../project-draft.service.js';
 import { UpdateAdrCommand, type UpdateAdrCommandReturnType } from '../impl/update-adr.command.js';
 
@@ -27,7 +26,7 @@ export class UpdateAdrHandler implements ICommandHandler<
       data: row,
     });
     if (updated.row === null) {
-      throw new NotFoundException(ProjectError.recordNotFound);
+      throw new ProjectApplicationError(ProjectErrorCode.recordNotFound);
     }
 
     return this.drafts.toRecord(updated.row);

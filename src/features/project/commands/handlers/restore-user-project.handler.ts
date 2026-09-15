@@ -1,10 +1,9 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 
 import type { Prisma } from '../../../../__generated__/client/client.js';
 import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enums.js';
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
-import { ProjectError } from '../../contracts/project.errors.js';
+import { ProjectApplicationError, ProjectErrorCode } from '../../contracts/project.errors.js';
 import { ProjectContentModelService } from '../../project-content-model.service.js';
 import {
   RestoreUserProjectCommand,
@@ -68,9 +67,9 @@ export class RestoreUserProjectHandler implements ICommandHandler<
     return project === null ? null : project.status;
   }
 
-  private restoreRejection(status: ProjectStatus | null): NotFoundException | ConflictException {
+  private restoreRejection(status: ProjectStatus | null): ProjectApplicationError {
     return status === null || status === ProjectStatus.CREATING
-      ? new NotFoundException(ProjectError.notFound)
-      : new ConflictException(ProjectError.notArchived);
+      ? new ProjectApplicationError(ProjectErrorCode.notFound)
+      : new ProjectApplicationError(ProjectErrorCode.notArchived);
   }
 }

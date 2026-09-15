@@ -1,7 +1,8 @@
-import { HttpException, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { RunManagerError, type RunDetails, type RunSnapshot } from '@revisium/revo-run';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
+import { ApplicationError } from '../../../src/application/errors/application-error.js';
 import type { PlaybookCatalogApiService } from '../../../src/features/playbook-catalog/playbook-catalog-api.service.js';
 import type { ProjectApiService } from '../../../src/features/project/project-api.service.js';
 import { StartRunHandler } from '../../../src/features/run/commands/handlers/start-run.handler.js';
@@ -34,7 +35,7 @@ describe('run library error diagnostics', () => {
       }),
     );
 
-    await expect(result).rejects.toBeInstanceOf(HttpException);
+    await expect(result).rejects.toBeInstanceOf(ApplicationError);
     expect(logged).toHaveBeenCalledTimes(1);
     expect(logged.mock.calls[0]?.[0]).toMatchObject({
       operation: 'run.create',
@@ -65,7 +66,7 @@ describe('run library error diagnostics', () => {
           input: {},
         }),
       ),
-    ).rejects.toBeInstanceOf(HttpException);
+    ).rejects.toBeInstanceOf(ApplicationError);
     expect(logged).not.toHaveBeenCalled();
   });
 
@@ -107,13 +108,8 @@ describe('run library error diagnostics', () => {
       const result = input.execute(runs);
 
       await expect(result).rejects.toMatchObject({
-        response: {
-          statusCode: 503,
-          code: 'run_read_failed',
-          message: 'Run observation could not be read.',
-          path: null,
-          details: { runId: 'r_read', operation: input.libraryOperation },
-        },
+        code: 'run_read_failed',
+        details: { runId: 'r_read', operation: input.libraryOperation },
       });
       expect(logged).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({ operation: input.operation, runId: 'r_read' }),

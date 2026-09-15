@@ -7,8 +7,8 @@ import { ProjectModule } from '../../features/project/project.module.js';
 import { RunModule } from '../../features/run/run.module.js';
 import { SystemModule } from '../../features/system/system.module.js';
 import { WorkspaceModule } from '../../features/workspace/workspace.module.js';
+import { ApplicationHttpExceptionFilter } from './application-http-exception.filter.js';
 import { FileSystemController } from './file-system/file-system.controller.js';
-import { HttpBadRequestExceptionFilter } from './http-bad-request-exception.filter.js';
 import { CatalogRecordsController } from './playbook-catalog/catalog-records.controller.js';
 import { CatalogController } from './playbook-catalog/catalog.controller.js';
 import { AdrController } from './project/adr.controller.js';
@@ -44,6 +44,6 @@ import { WorkspaceController } from './workspace/workspace.controller.js';
     RunController,
     SystemController,
   ],
-  providers: [{ provide: APP_FILTER, useClass: HttpBadRequestExceptionFilter }],
+  providers: [{ provide: APP_FILTER, useClass: ApplicationHttpExceptionFilter }],
 })
 export class RestApiModule {}

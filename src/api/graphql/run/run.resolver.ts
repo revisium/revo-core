@@ -2,13 +2,13 @@ import { UseFilters } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { RunApiService } from '../../../features/run/run-api.service.js';
+import { ApplicationGraphqlExceptionFilter } from '../application-graphql-exception.filter.js';
 import { StartRunInput } from './input/start-run.input.js';
 import { RunModel } from './model/run.model.js';
 import { StartRunResultModel } from './model/start-run-result.model.js';
-import { RunGraphqlExceptionFilter } from './run-graphql-exception.filter.js';
 
 @Resolver(() => RunModel)
-@UseFilters(RunGraphqlExceptionFilter)
+@UseFilters(ApplicationGraphqlExceptionFilter)
 export class RunResolver {
   constructor(private readonly runs: RunApiService) {}
 

@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -24,8 +23,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ProjectError } from '../../../features/project/contracts/project.errors.js';
+import {
+  ProjectApplicationError,
+  ProjectErrorCode,
+} from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
+import { ProjectPublicMessage } from '../../errors/public-error-definitions.js';
 import { WorkPlanUpdateRequest } from './dto/work-plan-update.request.js';
 import { WorkPlanRequest } from './dto/work-plan.request.js';
 import { WorkPlanConnectionResponse } from './model/work-plan-connection.response.js';
@@ -42,7 +45,7 @@ export class WorkPlanController {
   @Post()
   @ApiOperation({ operationId: 'createWorkPlan', summary: 'Create a work plan' })
   @ApiCreatedResponse({ type: WorkPlanResponse })
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.notFound })
   createWorkPlan(@Param('projectId') projectId: string, @Body() data: WorkPlanRequest) {
     return this.projects.createWorkPlan(workPlanCreateBody(projectId, data));
   }
@@ -52,7 +55,7 @@ export class WorkPlanController {
   @ApiQuery({ name: 'first', type: Number, required: false })
   @ApiQuery({ name: 'after', type: String, required: false })
   @ApiOkResponse({ type: WorkPlanConnectionResponse })
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.notFound })
   listWorkPlans(
     @Param('projectId') projectId: string,
     @Query('first', new ParseIntPipe({ optional: true })) first?: number,
@@ -64,14 +67,14 @@ export class WorkPlanController {
   @Get(':workPlanId')
   @ApiOperation({ operationId: 'getWorkPlan', summary: 'Get a work plan' })
   @ApiOkResponse({ type: WorkPlanResponse })
-  @ApiNotFoundResponse({ description: ProjectError.recordNotFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.recordNotFound })
   async getWorkPlan(
     @Param('projectId') projectId: string,
     @Param('workPlanId') workPlanId: string,
   ) {
     const workPlan = await this.projects.getWorkPlan(projectId, workPlanId);
     if (workPlan === null) {
-      throw new NotFoundException(ProjectError.recordNotFound);
+      throw new ProjectApplicationError(ProjectErrorCode.recordNotFound);
     }
 
     return workPlan;
@@ -80,7 +83,7 @@ export class WorkPlanController {
   @Put(':workPlanId')
   @ApiOperation({ operationId: 'updateWorkPlan', summary: 'Replace a work plan' })
   @ApiOkResponse({ type: WorkPlanResponse })
-  @ApiNotFoundResponse({ description: ProjectError.recordNotFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.recordNotFound })
   updateWorkPlan(
     @Param('projectId') projectId: string,
     @Param('workPlanId') workPlanId: string,
@@ -93,7 +96,7 @@ export class WorkPlanController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ operationId: 'deleteWorkPlan', summary: 'Delete a work plan' })
   @ApiNoContentResponse()
-  @ApiNotFoundResponse({ description: ProjectError.recordNotFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.recordNotFound })
   async deleteWorkPlan(
     @Param('projectId') projectId: string,
     @Param('workPlanId') workPlanId: string,

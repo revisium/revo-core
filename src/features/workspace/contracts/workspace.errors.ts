@@ -1,12 +1,22 @@
-import { HttpException } from '@nestjs/common';
+import { ApplicationError } from '../../../application/errors/application-error.js';
 
-const errors = {
-  WORKSPACE_NOT_FOUND: [404, 'Workspace was not found in this Project.'],
-  WORKSPACE_PROJECT_NOT_FOUND: [404, 'Project was not found.'],
-  WORKSPACE_PROJECT_ARCHIVED: [409, 'Workspace changes require an active Project.'],
-  WORKSPACE_ARCHIVED: [409, 'Workspace is archived.'],
-  WORKSPACE_INVALID_INPUT: [400, 'Workspace input is invalid.'],
+export const WorkspaceErrorCode = {
+  notFound: 'WORKSPACE_NOT_FOUND',
+  projectNotFound: 'WORKSPACE_PROJECT_NOT_FOUND',
+  projectArchived: 'WORKSPACE_PROJECT_ARCHIVED',
+  archived: 'WORKSPACE_ARCHIVED',
+  invalidInput: 'WORKSPACE_INVALID_INPUT',
 } as const;
+
+export type WorkspaceErrorCode = (typeof WorkspaceErrorCode)[keyof typeof WorkspaceErrorCode];
+
+export type WorkspaceErrorDetails = {
+  WORKSPACE_NOT_FOUND: Record<string, never>;
+  WORKSPACE_PROJECT_NOT_FOUND: Record<string, never>;
+  WORKSPACE_PROJECT_ARCHIVED: Record<string, never>;
+  WORKSPACE_ARCHIVED: Record<string, never>;
+  WORKSPACE_INVALID_INPUT: { readonly field?: WorkspaceInputField };
+};
 
 export type WorkspaceInputField =
   | 'name'
@@ -15,12 +25,13 @@ export type WorkspaceInputField =
   | 'sourcePath'
   | 'includeArchived';
 
-export class WorkspaceError extends HttpException {
+export class WorkspaceError<
+  TCode extends WorkspaceErrorCode = WorkspaceErrorCode,
+> extends ApplicationError<TCode, WorkspaceErrorDetails[WorkspaceErrorCode]> {
   constructor(
-    readonly code: keyof typeof errors,
+    readonly code: TCode,
     readonly field?: WorkspaceInputField,
   ) {
-    const [statusCode, message] = errors[code];
-    super({ code, statusCode, message, ...(field === undefined ? {} : { field }) }, statusCode);
+    super(code, field === undefined ? {} : { field });
   }
 }

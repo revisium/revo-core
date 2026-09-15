@@ -343,6 +343,7 @@ describe('REST API', () => {
       statusCode: 409,
       code: 'project_has_active_runs',
       message: 'Project has active runs.',
+      description: 'Stop or finish the active runs before archiving the project.',
       path: '/projectId',
       details: { runIds: ['r_rest_archive_conflict'] },
     });

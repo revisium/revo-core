@@ -6,6 +6,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { ProjectStatus } from '../src/__generated__/client/enums.js';
 import { databaseConfig } from '../src/config/database.config.js';
+import { ProjectErrorCode } from '../src/features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../src/features/project/project-api.service.js';
 import { ProjectModule } from '../src/features/project/project.module.js';
 import { SYSTEM_PLAYBOOKS_PROJECT } from '../src/features/revisium-bootstrap/revisium-bootstrap.constants.js';
@@ -63,9 +64,9 @@ describe('RestoreUserProjectHandler', () => {
     const { projectId } = await started.projects.createUserProject({ name: 'Active' });
     createdProjectIds.push(projectId);
 
-    await expect(started.projects.restoreUserProject({ projectId })).rejects.toThrow(
-      'Project is not archived.',
-    );
+    await expect(started.projects.restoreUserProject({ projectId })).rejects.toMatchObject({
+      code: ProjectErrorCode.notArchived,
+    });
 
     await expect(readProject(started.prisma, projectId)).resolves.toMatchObject({
       status: ProjectStatus.ACTIVE,
@@ -79,9 +80,9 @@ describe('RestoreUserProjectHandler', () => {
     await setProjectStatus(started.prisma, projectId, ProjectStatus.CREATING);
     const applyMigrations = vi.spyOn(started.engine, 'applyMigrations');
 
-    await expect(started.projects.restoreUserProject({ projectId })).rejects.toThrow(
-      'Project was not found.',
-    );
+    await expect(started.projects.restoreUserProject({ projectId })).rejects.toMatchObject({
+      code: ProjectErrorCode.notFound,
+    });
     expect(applyMigrations).not.toHaveBeenCalled();
 
     await expect(readProject(started.prisma, projectId)).resolves.toMatchObject({
@@ -95,7 +96,7 @@ describe('RestoreUserProjectHandler', () => {
 
     await expect(
       started.projects.restoreUserProject({ projectId: 'missing-project' }),
-    ).rejects.toThrow('Project was not found.');
+    ).rejects.toMatchObject({ code: ProjectErrorCode.notFound });
     expect(applyMigrations).not.toHaveBeenCalled();
   });
 
@@ -106,7 +107,7 @@ describe('RestoreUserProjectHandler', () => {
 
     await expect(
       started.projects.restoreUserProject({ projectId: SYSTEM_PLAYBOOKS_PROJECT.id }),
-    ).rejects.toThrow('Project was not found.');
+    ).rejects.toMatchObject({ code: ProjectErrorCode.notFound });
     expect(applyMigrations).not.toHaveBeenCalled();
 
     await expect(readProject(started.prisma, SYSTEM_PLAYBOOKS_PROJECT.id)).resolves.toMatchObject({
@@ -126,9 +127,9 @@ describe('RestoreUserProjectHandler', () => {
       return [];
     });
 
-    await expect(started.projects.restoreUserProject({ projectId })).rejects.toThrow(
-      'Project is not archived.',
-    );
+    await expect(started.projects.restoreUserProject({ projectId })).rejects.toMatchObject({
+      code: ProjectErrorCode.notArchived,
+    });
 
     await expect(readProject(started.prisma, projectId)).resolves.toMatchObject({
       status: ProjectStatus.ACTIVE,

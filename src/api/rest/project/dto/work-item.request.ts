@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsString } from 'class-validator';
 
-import { ProjectError } from '../../../../features/project/contracts/project.errors.js';
+import { ProjectPublicMessage } from '../../../errors/public-error-definitions.js';
 
 export class WorkItemRequest {
   @ApiProperty()
-  @IsString({ message: ProjectError.recordIdRequired })
+  @IsString({ message: ProjectPublicMessage.recordIdRequired })
   id: string;
 
   @ApiProperty()

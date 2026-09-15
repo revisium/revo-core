@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -24,8 +23,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ProjectError } from '../../../features/project/contracts/project.errors.js';
+import {
+  ProjectApplicationError,
+  ProjectErrorCode,
+} from '../../../features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../../../features/project/project-api.service.js';
+import { ProjectPublicMessage } from '../../errors/public-error-definitions.js';
 import { WorkItemUpdateRequest } from './dto/work-item-update.request.js';
 import { WorkItemRequest } from './dto/work-item.request.js';
 import { WorkItemConnectionResponse } from './model/work-item-connection.response.js';
@@ -42,7 +45,7 @@ export class WorkItemController {
   @Post()
   @ApiOperation({ operationId: 'createWorkItem', summary: 'Create a work item' })
   @ApiCreatedResponse({ type: WorkItemResponse })
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.notFound })
   createWorkItem(@Param('projectId') projectId: string, @Body() data: WorkItemRequest) {
     return this.projects.createWorkItem(workItemCreateBody(projectId, data));
   }
@@ -52,7 +55,7 @@ export class WorkItemController {
   @ApiQuery({ name: 'first', type: Number, required: false })
   @ApiQuery({ name: 'after', type: String, required: false })
   @ApiOkResponse({ type: WorkItemConnectionResponse })
-  @ApiNotFoundResponse({ description: ProjectError.notFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.notFound })
   listWorkItems(
     @Param('projectId') projectId: string,
     @Query('first', new ParseIntPipe({ optional: true })) first?: number,
@@ -64,14 +67,14 @@ export class WorkItemController {
   @Get(':workItemId')
   @ApiOperation({ operationId: 'getWorkItem', summary: 'Get a work item' })
   @ApiOkResponse({ type: WorkItemResponse })
-  @ApiNotFoundResponse({ description: ProjectError.recordNotFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.recordNotFound })
   async getWorkItem(
     @Param('projectId') projectId: string,
     @Param('workItemId') workItemId: string,
   ) {
     const workItem = await this.projects.getWorkItem(projectId, workItemId);
     if (workItem === null) {
-      throw new NotFoundException(ProjectError.recordNotFound);
+      throw new ProjectApplicationError(ProjectErrorCode.recordNotFound);
     }
 
     return workItem;
@@ -80,7 +83,7 @@ export class WorkItemController {
   @Put(':workItemId')
   @ApiOperation({ operationId: 'updateWorkItem', summary: 'Replace a work item' })
   @ApiOkResponse({ type: WorkItemResponse })
-  @ApiNotFoundResponse({ description: ProjectError.recordNotFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.recordNotFound })
   updateWorkItem(
     @Param('projectId') projectId: string,
     @Param('workItemId') workItemId: string,
@@ -93,7 +96,7 @@ export class WorkItemController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ operationId: 'deleteWorkItem', summary: 'Delete a work item' })
   @ApiNoContentResponse()
-  @ApiNotFoundResponse({ description: ProjectError.recordNotFound })
+  @ApiNotFoundResponse({ description: ProjectPublicMessage.recordNotFound })
   async deleteWorkItem(
     @Param('projectId') projectId: string,
     @Param('workItemId') workItemId: string,

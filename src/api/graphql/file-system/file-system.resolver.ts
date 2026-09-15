@@ -2,7 +2,7 @@ import { UseFilters } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { FileSystemApiService } from '../../../features/file-system/file-system-api.service.js';
-import { FileSystemGraphqlExceptionFilter } from './file-system-graphql-exception.filter.js';
+import { ApplicationGraphqlExceptionFilter } from '../application-graphql-exception.filter.js';
 import { CreateFileSystemDirectoryInput } from './model/create-file-system-directory.input.js';
 import { FileSystemDirectoryInput } from './model/file-system-directory.input.js';
 import { FileSystemDirectoryModel } from './model/file-system-directory.model.js';
@@ -12,7 +12,7 @@ import { FileSystemPageInput } from './model/file-system-page.input.js';
 import { FileSystemRootConnectionModel } from './model/file-system-root-connection.model.js';
 
 @Resolver()
-@UseFilters(FileSystemGraphqlExceptionFilter)
+@UseFilters(ApplicationGraphqlExceptionFilter)
 export class FileSystemResolver {
   constructor(private readonly filesystem: FileSystemApiService) {}
 
