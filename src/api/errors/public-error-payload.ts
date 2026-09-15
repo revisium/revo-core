@@ -155,10 +155,6 @@ export function publicErrorPayload(failure: KnownApplicationFailure): PublicErro
       };
     case RunErrorCode.runSignalInvalid:
     case RunErrorCode.runSignalPayloadInvalid:
-      return {
-        path: failure.details.path,
-        details: { runId: failure.details.runId, waitId: failure.details.waitId },
-      };
     case RunErrorCode.runWaitAlreadyResolved:
     case RunErrorCode.runWaitNotFound:
       return {

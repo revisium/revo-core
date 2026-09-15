@@ -1,7 +1,7 @@
 import { RunErrorCode } from '../../features/run/contracts/run.errors.js';
 import type { KnownApplicationFailure } from './known-application-error.js';
 import { publicErrorDefinitions, type PublicErrorMetadata } from './public-error-definitions.js';
-import { publicErrorPayload } from './public-error-payload.js';
+import { publicErrorPayload, type PublicErrorPayload } from './public-error-payload.js';
 
 export type PublicErrorHttpResponse = Readonly<{
   statusCode: number;
@@ -29,26 +29,36 @@ export function publicErrorResponse(failure: KnownApplicationFailure): PublicErr
     ...(metadata.description === undefined ? {} : { description: metadata.description }),
     ...payload,
   };
-  const graphqlPayload =
-    metadata.graphql === 'plain'
-      ? undefined
-      : metadata.graphql === 'lean'
-        ? {
-            statusCode: metadata.status,
-            ...(metadata.publicCode === undefined ? {} : { code: metadata.publicCode }),
-            ...payload,
-          }
-        : {
-            statusCode: metadata.status,
-            ...(metadata.publicCode === undefined ? {} : { code: metadata.publicCode }),
-            message,
-            ...(metadata.description === undefined ? {} : { description: metadata.description }),
-            ...payload,
-          };
+
+  return { http, graphql: graphqlResponse(metadata, message, payload) };
+}
+
+function graphqlResponse(
+  metadata: PublicErrorMetadata,
+  message: string,
+  payload: PublicErrorPayload,
+): PublicErrorGraphqlResponse {
+  if (metadata.graphql === 'plain') {
+    return { message };
+  }
+
+  const extensions = {
+    statusCode: metadata.status,
+    ...(metadata.publicCode === undefined ? {} : { code: metadata.publicCode }),
+  };
+
+  if (metadata.graphql === 'lean') {
+    return { message, extensions: { ...extensions, ...payload } };
+  }
 
   return {
-    http,
-    graphql: { message, ...(graphqlPayload === undefined ? {} : { extensions: graphqlPayload }) },
+    message,
+    extensions: {
+      ...extensions,
+      message,
+      ...(metadata.description === undefined ? {} : { description: metadata.description }),
+      ...payload,
+    },
   };
 }
 
