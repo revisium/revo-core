@@ -1,4 +1,5 @@
 import { GetAdrHandler } from './handlers/get-adr.handler.js';
+import { GetProjectRunIdsHandler } from './handlers/get-project-run-ids.handler.js';
 import { GetProjectHandler } from './handlers/get-project.handler.js';
 import { GetRequirementHandler } from './handlers/get-requirement.handler.js';
 import { GetRunProjectIdHandler } from './handlers/get-run-project-id.handler.js';
@@ -17,6 +18,11 @@ export { GetAdrQuery } from './impl/get-adr.query.js';
 export type { GetAdrQueryData, GetAdrQueryReturnType } from './impl/get-adr.query.js';
 export { GetProjectQuery } from './impl/get-project.query.js';
 export type { GetProjectQueryData, GetProjectQueryReturnType } from './impl/get-project.query.js';
+export { GetProjectRunIdsQuery } from './impl/get-project-run-ids.query.js';
+export type {
+  GetProjectRunIdsQueryData,
+  GetProjectRunIdsQueryReturnType,
+} from './impl/get-project-run-ids.query.js';
 export { GetRequirementQuery } from './impl/get-requirement.query.js';
 export type {
   GetRequirementQueryData,
@@ -77,6 +83,7 @@ export type {
 
 export const PROJECT_QUERY_HANDLERS = [
   GetRunProjectIdHandler,
+  GetProjectRunIdsHandler,
   GetProjectHandler,
   GetUserProjectHandler,
   ListUserProjectsHandler,

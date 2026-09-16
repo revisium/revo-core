@@ -3866,6 +3866,57 @@
         },
         "summary": "Start a run",
         "tags": ["Runs"]
+      },
+      "get": {
+        "operationId": "listRuns",
+        "parameters": [
+          {
+            "name": "first",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "statuses",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List project runs",
+        "tags": ["Runs"]
       }
     },
     "/api/runs/{runId}/details": {
@@ -6355,6 +6406,36 @@
           "createdAt",
           "updatedAt"
         ]
+      },
+      "RunEdgeResponse": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "node": {
+            "$ref": "#/components/schemas/RunResponse"
+          }
+        },
+        "required": ["cursor", "node"]
+      },
+      "RunConnectionResponse": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RunEdgeResponse"
+            }
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfoResponse"
+          }
+        },
+        "required": ["edges", "totalCount", "pageInfo"]
       },
       "SystemInfoResponse": {
         "type": "object",

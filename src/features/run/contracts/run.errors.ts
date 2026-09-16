@@ -31,6 +31,16 @@ export class RunPublicError extends PublicHttpException {
     );
   }
 
+  static statusesInvalid(): RunPublicError {
+    return new RunPublicError(
+      400,
+      'run_statuses_invalid',
+      RunErrorText.statusesInvalid,
+      '/statuses',
+      { reason: 'invalid_values' },
+    );
+  }
+
   static projectReservation(
     code: 'project_unavailable' | 'project_archived',
     message: string,

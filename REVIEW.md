@@ -14,6 +14,7 @@
 - Do not use non-null assertions.
 - Every control-flow body uses braces.
 - Add dependencies only for current behavior.
+- Do not split named imports from the same module across multiple declarations (Sonar S3863). Combine type-only imports into one `import type`; when importing both values and types, use inline `type` specifiers in the same declaration.
 - Prefer public contract tests over tests of framework wiring or trivial delegation.
 - Put a blank line before `if`, `for`, `while`, `do`, `switch`, `try`, and `return` when they start a new statement. Oxlint has no `padding-line-between-statements` rule, so this is reviewed here.
 
