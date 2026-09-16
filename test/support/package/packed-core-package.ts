@@ -157,11 +157,16 @@ export class PackedCorePackage {
 const parsePackResult = (output: string): PackResult => {
   const jsonStart = output.lastIndexOf('\n[');
   const parsed: unknown = JSON.parse(output.slice(jsonStart < 0 ? 0 : jsonStart + 1));
-  if (!Array.isArray(parsed) || parsed.length !== 1) {
+  const results = Array.isArray(parsed)
+    ? parsed
+    : typeof parsed === 'object' && parsed !== null
+      ? Object.values(parsed)
+      : [];
+  if (results.length !== 1) {
     throw new Error('npm pack returned an unexpected result.');
   }
 
-  const result = parsed[0] as Partial<PackResult>;
+  const result = results[0] as Partial<PackResult>;
   if (
     typeof result.filename !== 'string' ||
     typeof result.size !== 'number' ||

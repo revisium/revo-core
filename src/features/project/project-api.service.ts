@@ -59,6 +59,8 @@ import {
   GetProjectQuery,
   type GetProjectQueryData,
   type GetProjectQueryReturnType,
+  GetProjectRunIdsQuery,
+  type GetProjectRunIdsQueryReturnType,
   GetRequirementQuery,
   GetRunProjectIdQuery,
   type GetRunProjectIdQueryData,
@@ -139,6 +141,12 @@ export class ProjectApiService {
   getRunProjectId(data: GetRunProjectIdQueryData): Promise<GetRunProjectIdQueryReturnType> {
     return this.queries.execute<GetRunProjectIdQuery, GetRunProjectIdQueryReturnType>(
       new GetRunProjectIdQuery(data),
+    );
+  }
+
+  getProjectRunIds(projectId: string): Promise<GetProjectRunIdsQueryReturnType> {
+    return this.queries.execute<GetProjectRunIdsQuery, GetProjectRunIdsQueryReturnType>(
+      new GetProjectRunIdsQuery({ projectId }),
     );
   }
 

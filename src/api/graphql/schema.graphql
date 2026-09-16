@@ -821,6 +821,7 @@ type Query {
   roleRefs(after: String, first: Int!, revisionId: ID, roleId: ID, scope: CatalogScope! = HEAD): RoleRefConnection!
   roles(after: String, first: Int!, playbookId: ID, revisionId: ID, scope: CatalogScope! = HEAD): RoleConnection!
   run(id: ID!): RunModel
+  runs(data: RunListInput!): RunConnection!
   sharedReference(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): SharedReferenceModel!
   sharedReferences(after: String, first: Int!, playbookId: ID, revisionId: ID, scope: CatalogScope! = HEAD): SharedReferenceConnection!
   stack(id: ID!, revisionId: ID, scope: CatalogScope! = HEAD): StackModel!
@@ -934,6 +935,24 @@ type RoleRefModel {
   isHead: Boolean!
   revisionId: ID!
   roleId: ID!
+}
+
+type RunConnection {
+  edges: [RunEdge!]!
+  pageInfo: PageInfoModel!
+  totalCount: Int!
+}
+
+type RunEdge {
+  cursor: String!
+  node: RunModel!
+}
+
+input RunListInput {
+  after: String
+  first: Int
+  projectId: ID!
+  statuses: [String!]
 }
 
 type RunModel {

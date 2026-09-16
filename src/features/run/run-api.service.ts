@@ -10,12 +10,15 @@ import {
   GetRunDetailsQuery,
   GetRunEventsQuery,
   GetRunQuery,
+  ListRunsQuery,
   type GetRunDetailsQueryData,
   type GetRunDetailsQueryReturnType,
   type GetRunEventsQueryData,
   type GetRunEventsQueryReturnType,
   type GetRunQueryData,
   type GetRunQueryReturnType,
+  type ListRunsQueryData,
+  type ListRunsQueryReturnType,
 } from './queries/index.js';
 
 @Injectable()
@@ -45,5 +48,9 @@ export class RunApiService {
     return this.queries.execute<GetRunEventsQuery, GetRunEventsQueryReturnType>(
       new GetRunEventsQuery(data),
     );
+  }
+
+  listRuns(data: ListRunsQueryData): Promise<ListRunsQueryReturnType> {
+    return this.queries.execute<ListRunsQuery, ListRunsQueryReturnType>(new ListRunsQuery(data));
   }
 }
