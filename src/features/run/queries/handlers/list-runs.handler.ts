@@ -1,8 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import type { IPaginatedType } from '@revisium/engine';
-import type { RunSnapshot } from '@revisium/revo-run';
-import type { RunStatus } from '@revisium/revo-run';
+import type { RunSnapshot, RunStatus } from '@revisium/revo-run';
 
 import { reportErrorDiagnostic } from '../../../../infrastructure/error-diagnostic.js';
 import { getOffsetPagination } from '../../../../infrastructure/pagination/get-offset-pagination.js';
