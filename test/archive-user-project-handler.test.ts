@@ -8,6 +8,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { ProjectKind, ProjectStatus } from '../src/__generated__/client/enums.js';
 import { databaseConfig } from '../src/config/database.config.js';
+import { ProjectHasActiveRunsError } from '../src/features/project/contracts/project.errors.js';
 import { ProjectApiService } from '../src/features/project/project-api.service.js';
 import { ProjectModule } from '../src/features/project/project.module.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
@@ -130,7 +131,7 @@ describe('ArchiveUserProjectHandler', () => {
     await started.prisma.projectRun.create({ data: { projectId, runId: 'r_unresolved' } });
 
     await expect(started.projects.archiveUserProject({ projectId })).rejects.toBeInstanceOf(
-      ConflictException,
+      ProjectHasActiveRunsError,
     );
     await expect(
       started.prisma.project.findUniqueOrThrow({ where: { id: projectId } }),

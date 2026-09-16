@@ -1,22 +1,24 @@
-import { HttpException } from '@nestjs/common';
+import { PublicHttpException } from '../../../infrastructure/errors/public-http-exception.js';
+import { FileSystemErrorText } from './errors.en.js';
 
-const errors = {
-  FILE_SYSTEM_NOT_FOUND: [404, 'Filesystem entry was not found.'],
-  FILE_SYSTEM_NOT_DIRECTORY: [400, 'Filesystem entry is not a directory.'],
-  FILE_SYSTEM_ACCESS_DENIED: [403, 'The operating system denied filesystem access.'],
-  FILE_SYSTEM_ALREADY_EXISTS: [409, 'Filesystem entry already exists.'],
-  FILE_SYSTEM_INVALID_PATH: [400, 'Filesystem path is invalid.'],
-  FILE_SYSTEM_INVALID_NAME: [400, 'Directory name is invalid.'],
-  FILE_SYSTEM_TOO_LARGE: [413, 'Filesystem text exceeds the supported size.'],
-  FILE_SYSTEM_IO_ERROR: [500, 'Filesystem operation failed.'],
+const statuses = {
+  FILE_SYSTEM_NOT_FOUND: 404,
+  FILE_SYSTEM_NOT_DIRECTORY: 400,
+  FILE_SYSTEM_ACCESS_DENIED: 403,
+  FILE_SYSTEM_ALREADY_EXISTS: 409,
+  FILE_SYSTEM_INVALID_PATH: 400,
+  FILE_SYSTEM_INVALID_NAME: 400,
+  FILE_SYSTEM_TOO_LARGE: 413,
+  FILE_SYSTEM_IO_ERROR: 500,
 } as const;
 
-export type FileSystemErrorCode = keyof typeof errors;
+export type FileSystemErrorCode = keyof typeof statuses;
 
-export class FileSystemError extends HttpException {
+export class FileSystemError extends PublicHttpException {
   constructor(readonly code: FileSystemErrorCode) {
-    const [statusCode, message] = errors[code];
-    super({ statusCode, code, message }, statusCode);
+    const statusCode = statuses[code];
+    const message = FileSystemErrorText[code];
+    super({ statusCode, code, message }, 'minimal');
   }
 }
 

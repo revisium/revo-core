@@ -1,6 +1,11 @@
 import { ArgumentsHost, BadRequestException, Catch, HttpException } from '@nestjs/common';
 import { BaseExceptionFilter, HttpAdapterHost } from '@nestjs/core';
 
+import {
+  isNativePublicException,
+  PublicHttpException,
+} from '../../infrastructure/errors/public-http-exception.js';
+
 type ErrorResponse = {
   readonly code?: unknown;
   readonly message?: unknown;
@@ -20,7 +25,14 @@ export class HttpBadRequestExceptionFilter extends BaseExceptionFilter {
     }
 
     if (!(exception instanceof BadRequestException) && !isJsonParserError(exception)) {
-      return super.catch(exception, host);
+      return super.catch(
+        !(exception instanceof HttpException) ||
+          exception instanceof PublicHttpException ||
+          isNativePublicException(exception)
+          ? exception
+          : new HttpException({ statusCode: 500, message: 'Internal server error' }, 500),
+        host,
+      );
     }
 
     const response = this.responseFor(exception);
@@ -32,6 +44,10 @@ export class HttpBadRequestExceptionFilter extends BaseExceptionFilter {
     }
 
     return undefined;
+  }
+
+  override isHttpError(_error: unknown): _error is { statusCode: number; message: string } {
+    return false;
   }
 
   private responseFor(exception: BadRequestException | SyntaxError): ErrorResponse {

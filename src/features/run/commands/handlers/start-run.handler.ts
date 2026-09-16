@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Logger, NotFoundException } from '@nestjs/common';
+import { ConflictException, Logger, NotFoundException } from '@nestjs/common';
 import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { RunManagerError, type PipelineSourcePackage, type RunProfile } from '@revisium/revo-run';
 import { nanoid } from 'nanoid';
@@ -8,6 +8,7 @@ import { RevoRunService } from '../../../../infrastructure/run-runtime/revo-run.
 import { isCatalogRecordId } from '../../../playbook-catalog/contracts/catalog-record-id.js';
 import { PlaybookCatalogApiService } from '../../../playbook-catalog/playbook-catalog-api.service.js';
 import { ProjectApiService } from '../../../project/project-api.service.js';
+import { RunPublicError } from '../../contracts/run.errors.js';
 import { isReportableRunError, rethrowPublicRunError } from '../../run-manager-error.mapper.js';
 import {
   StartRunCommand,
@@ -116,23 +117,11 @@ export class StartRunHandler implements ICommandHandler<
   }
 
   private invalidPipelineSelector(reason: string): never {
-    throw new BadRequestException({
-      statusCode: 400,
-      code: 'run_selector_invalid',
-      message: 'Exactly one pipeline selector is required.',
-      path: '/pipeline',
-      details: { reason },
-    });
+    throw RunPublicError.selector('pipeline', reason);
   }
 
   private invalidProfileSelector(reason: string): never {
-    throw new BadRequestException({
-      statusCode: 400,
-      code: 'run_selector_invalid',
-      message: 'Exactly one profile selector is required.',
-      path: '/profile',
-      details: { reason },
-    });
+    throw RunPublicError.selector('profile', reason);
   }
 
   private assertSelectors(data: StartRunCommandData): void {
@@ -160,13 +149,7 @@ export class StartRunHandler implements ICommandHandler<
 
   private assertProjectId(projectId: string): void {
     if (typeof projectId !== 'string' || projectId.trim().length === 0) {
-      throw new BadRequestException({
-        statusCode: 400,
-        code: 'project_id_invalid',
-        message: 'Project ID is required.',
-        path: '/projectId',
-        details: { reason: 'required' },
-      });
+      throw RunPublicError.projectIdRequired();
     }
   }
 
@@ -191,23 +174,11 @@ export class StartRunHandler implements ICommandHandler<
 
 function rethrowProjectReservationError(error: unknown): never {
   if (error instanceof NotFoundException) {
-    throw new NotFoundException({
-      statusCode: 404,
-      code: 'project_unavailable',
-      message: error.message,
-      path: '/projectId',
-      details: {},
-    });
+    throw RunPublicError.projectReservation('project_unavailable', error.message);
   }
 
   if (error instanceof ConflictException) {
-    throw new ConflictException({
-      statusCode: 409,
-      code: 'project_archived',
-      message: error.message,
-      path: '/projectId',
-      details: {},
-    });
+    throw RunPublicError.projectReservation('project_archived', error.message);
   }
 
   throw error;

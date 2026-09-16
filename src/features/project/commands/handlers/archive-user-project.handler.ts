@@ -7,7 +7,7 @@ import { ProjectKind, ProjectStatus } from '../../../../__generated__/client/enu
 import { TransactionPrismaService } from '../../../../infrastructure/database/transaction-prisma.service.js';
 import { reportErrorDiagnostic } from '../../../../infrastructure/error-diagnostic.js';
 import { RevoRunService } from '../../../../infrastructure/run-runtime/revo-run.service.js';
-import { ProjectError } from '../../contracts/project.errors.js';
+import { ProjectError, ProjectHasActiveRunsError } from '../../contracts/project.errors.js';
 import {
   ArchiveUserProjectCommand,
   type ArchiveUserProjectCommandReturnType,
@@ -58,13 +58,7 @@ export class ArchiveUserProjectHandler implements ICommandHandler<
     );
 
     if (blockingRunIds.length > 0) {
-      throw new ConflictException({
-        statusCode: 409,
-        code: 'project_has_active_runs',
-        message: ProjectError.hasActiveRuns,
-        path: '/projectId',
-        details: { runIds: blockingRunIds },
-      });
+      throw new ProjectHasActiveRunsError(blockingRunIds);
     }
 
     await this.transaction.project.update({

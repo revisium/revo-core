@@ -493,6 +493,16 @@ describe('CRI public run contract', () => {
     await catalog.commitCatalog('CRI malformed Catalog storage');
 
     try {
+      const standalone = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: 'query($id: ID!) { pipeline(id: $id) { id } }',
+          variables: { id: corruptPipelineId },
+        })
+        .expect(200);
+      expect(standalone.body.errors[0].message).toBe('Catalog definition is corrupt.');
+      expect(standalone.body.errors[0].extensions).toBeUndefined();
+
       await expectPublicError(
         app,
         { pipelineId: corruptPipelineId, profile: taskProfile(), input: {} },

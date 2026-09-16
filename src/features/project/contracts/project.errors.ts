@@ -1,12 +1,19 @@
-export const ProjectError = {
-  notFound: 'Project was not found.',
-  notActive: 'Project is not active.',
-  hasActiveRuns: 'Project has active runs.',
-  updateBodyInvalid: 'Project update body is required and must be a JSON object.',
-  nameRequired: 'Name is required.',
-  descriptionInvalid: 'Description must be a string.',
-  notArchived: 'Project is not archived.',
-  initCommitMissing: 'Project creation did not publish the initial revision.',
-  recordNotFound: 'Record was not found.',
-  recordIdRequired: 'Record id is required.',
-} as const;
+import { PublicHttpException } from '../../../infrastructure/errors/public-http-exception.js';
+import { ProjectError } from './errors.en.js';
+
+export { ProjectError } from './errors.en.js';
+
+export class ProjectHasActiveRunsError extends PublicHttpException {
+  constructor(runIds: readonly string[]) {
+    super(
+      {
+        statusCode: 409,
+        code: 'project_has_active_runs',
+        message: ProjectError.hasActiveRuns,
+        path: '/projectId',
+        details: { runIds: [...runIds] },
+      },
+      'response',
+    );
+  }
+}
