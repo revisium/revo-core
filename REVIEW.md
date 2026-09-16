@@ -48,3 +48,11 @@ List reads use cursor pagination. Do not invent a second paging model.
 
 Promote repeated objective review findings to Oxlint, Oxfmt, or focused contract tests.
 Keep contextual design guidance here instead of building custom static analyzers.
+
+## Public application errors
+
+Feature contracts construct `PublicHttpException` subclasses with explicit public fields and texts from `contracts/errors.en.ts`. Preserve status, code, absent versus null fields and the feature's `response` or `minimal` GraphQL projection. Copy caller-owned nested payloads once at the owning boundary. Run library JSON diagnostics remain public according to the installed library contract, excluding root `path`.
+
+Use the shared resolver filter; do not add feature filters or registries. Keep ordinary native Project client exceptions where Run reservation consumers depend on their classes. Native Nest client exception constructors signify intentional public messages; generic HttpException and technical failures are masked. Domain code must not import Nest or API code.
+
+See [public error architecture](docs/architecture/public-errors.md) for the two projections and masking policy.

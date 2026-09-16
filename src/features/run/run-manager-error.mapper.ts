@@ -1,5 +1,8 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
 import { RunManagerError, type RunManagerErrorCode, type JsonObject } from '@revisium/revo-run';
+
+import { RunErrorText } from './contracts/errors.en.js';
+import { RunPublicError } from './contracts/run.errors.js';
 
 type RunErrorMapping = Readonly<{
   status: number;
@@ -32,7 +35,7 @@ const RUN_MANAGER_ERROR_MAPPING = {
   run_id_conflict: {
     status: HttpStatus.SERVICE_UNAVAILABLE,
     code: 'RUN_ID_ALLOCATION_CONFLICT',
-    message: 'A run ID could not be allocated.',
+    message: RunErrorText.runIdAllocationConflict,
     sanitizeDetails: true,
     report: true,
   },
@@ -83,7 +86,13 @@ export function rethrowPublicRunError(error: unknown): never {
     details,
   };
 
-  throw new HttpException(response, mapping.status);
+  throw new RunPublicError(
+    response.statusCode,
+    response.code,
+    response.message,
+    response.path,
+    response.details,
+  );
 }
 
 function withoutPath(details: JsonObject): JsonObject {

@@ -1,11 +1,12 @@
-import { HttpException } from '@nestjs/common';
+import { PublicHttpException } from '../../../infrastructure/errors/public-http-exception.js';
+import { WorkspaceErrorText } from './errors.en.js';
 
-const errors = {
-  WORKSPACE_NOT_FOUND: [404, 'Workspace was not found in this Project.'],
-  WORKSPACE_PROJECT_NOT_FOUND: [404, 'Project was not found.'],
-  WORKSPACE_PROJECT_ARCHIVED: [409, 'Workspace changes require an active Project.'],
-  WORKSPACE_ARCHIVED: [409, 'Workspace is archived.'],
-  WORKSPACE_INVALID_INPUT: [400, 'Workspace input is invalid.'],
+const statuses = {
+  WORKSPACE_NOT_FOUND: 404,
+  WORKSPACE_PROJECT_NOT_FOUND: 404,
+  WORKSPACE_PROJECT_ARCHIVED: 409,
+  WORKSPACE_ARCHIVED: 409,
+  WORKSPACE_INVALID_INPUT: 400,
 } as const;
 
 export type WorkspaceInputField =
@@ -15,12 +16,13 @@ export type WorkspaceInputField =
   | 'sourcePath'
   | 'includeArchived';
 
-export class WorkspaceError extends HttpException {
+export class WorkspaceError extends PublicHttpException {
   constructor(
-    readonly code: keyof typeof errors,
+    readonly code: keyof typeof statuses,
     readonly field?: WorkspaceInputField,
   ) {
-    const [statusCode, message] = errors[code];
-    super({ code, statusCode, message, ...(field === undefined ? {} : { field }) }, statusCode);
+    const statusCode = statuses[code];
+    const message = WorkspaceErrorText[code];
+    super({ code, statusCode, message, ...(field === undefined ? {} : { field }) }, 'minimal');
   }
 }

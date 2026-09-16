@@ -35,7 +35,13 @@ catch-all locations.
 Transport adapters and other features depend on an imported feature module, its exported API
 service, and explicitly public contracts. The API facade dispatches only its own commands and
 queries. Handlers own use cases and may depend on domain policy and honest integration or storage
-adapters. Domain code depends only on domain code and public contracts.
+adapters. Domain code depends only on domain code and framework-independent public contracts.
+
+Public application error contracts are an explicit Nest integration exception: feature-owned
+constructors may extend `PublicHttpException` and define HTTP status and public payload fields.
+Their messages live in `contracts/errors.en.ts`. They must not import API adapters, and domain
+code must not import these Nest-dependent error contracts. The shared GraphQL filter serializes
+the already prepared response without feature knowledge.
 
 Dependencies between features must remain acyclic. A handler may synchronously call another
 feature's exported API when it needs that result and accepts its consistency and error semantics.
