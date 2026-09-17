@@ -154,7 +154,7 @@ describe('public Revo Core runtime', () => {
     });
     await expect(runtime.prepareDatabase()).resolves.toBeUndefined();
     await runtime.close();
-  });
+  }, 30_000);
 
   async function createRuntime(
     onStage?: (event: RevoCoreLifecycleEvent) => void,

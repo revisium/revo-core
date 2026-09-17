@@ -44,6 +44,7 @@ export interface DialogueHistoryPage {
 }
 
 export interface CreateDialogueOptions {
+  readonly systemContext?: string;
   readonly title?: string;
   readonly agentId?: string;
   readonly agentVersion?: string;

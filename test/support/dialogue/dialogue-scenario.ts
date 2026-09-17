@@ -196,6 +196,7 @@ export class DialogueScenarioClient {
       {
         input: {
           title: options.title ?? 'Test dialogue',
+          ...(options.systemContext === undefined ? {} : { systemContext: options.systemContext }),
           agentId: options.agentId ?? 'test-acp',
           agentVersion: options.agentVersion ?? '1.0.0',
           agentInstallationId: options.agentInstallationId ?? 'test-installation',

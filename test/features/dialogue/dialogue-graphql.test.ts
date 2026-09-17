@@ -33,6 +33,35 @@ describe('Persistent dialogues over GraphQL', () => {
     expect(dialogue).toMatchObject({ status: 'READY', unreadCount: 0 });
   });
 
+  test('delivers system context through runtime instructions and keeps later messages separate', async () => {
+    const instructions = 'Always include marker dialogue-context-marker.';
+
+    const dialogue = await scenario.client.createDialogue({ systemContext: instructions });
+    const first = await scenario.client.send(dialogue.id, 'First message');
+    const execution = await scenario.agent.expectTurn(first);
+    expect(execution.prompt).toMatch(/^<<<REVO_INSTRUCTIONS>>>\n/);
+    expect(execution.prompt).toContain(instructions);
+    expect(execution.prompt.split(instructions)).toHaveLength(2);
+    expect(execution.prompt).toContain('First message');
+    await execution.text('First response');
+    await execution.complete();
+    await expect
+      .poll(() => scenario.client.dialogue(dialogue.id))
+      .toMatchObject({ status: 'READY' });
+    const second = await scenario.client.send(dialogue.id, 'Second message');
+    const secondExecution = await scenario.agent.expectTurn(second);
+    expect(secondExecution.prompt).toBe('Second message');
+    await secondExecution.text('Second response');
+    await secondExecution.complete();
+    await expect
+      .poll(() => scenario.client.dialogue(dialogue.id))
+      .toMatchObject({ status: 'READY' });
+    const userMessages = (await scenario.client.history(dialogue.id)).filter(
+      ({ source, kind }) => source === 'USER' && kind === 'MESSAGE',
+    );
+    expect(userMessages.map(({ text }) => text)).toEqual(['First message', 'Second message']);
+  });
+
   test('rejects malformed agent configuration input at the GraphQL boundary', async () => {
     await expect(
       scenario.client.createDialogue({
@@ -622,7 +651,11 @@ describe('Persistent dialogues over GraphQL', () => {
   });
 
   test('seeds a completed fork prefix into a new runtime session', async () => {
-    const origin = await scenario.client.createDialogue({ title: 'Fork origin' });
+    const instructions = 'Preserve fork instruction marker.';
+    const origin = await scenario.client.createDialogue({
+      title: 'Fork origin',
+      systemContext: instructions,
+    });
     const originTurn = await scenario.client.send(origin.id, 'Original marker');
     const originExecution = await scenario.agent.expectTurn(originTurn);
     await originExecution.text('Original answer marker');
@@ -637,6 +670,7 @@ describe('Persistent dialogues over GraphQL', () => {
     });
     const forkTurn = await scenario.client.send(fork.id, 'Continue independently');
     const forkExecution = await scenario.agent.expectTurn(forkTurn);
+    expect(forkExecution.prompt.split(instructions)).toHaveLength(2);
     expect(forkExecution.prompt).toContain('User: Original marker');
     expect(forkExecution.prompt).toContain('Assistant: Original answer marker');
     expect(forkExecution.prompt).toContain('User: Continue independently');

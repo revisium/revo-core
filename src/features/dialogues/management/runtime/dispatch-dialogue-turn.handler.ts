@@ -101,6 +101,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
             dialogue.agentVersion,
             dialogue.agentInstallationId,
             agentConfiguration,
+            dialogue.systemContext,
           ),
       );
     } else {
@@ -360,27 +361,9 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     turnId: string,
     prompt: string,
   ): Promise<string> {
-    const dialogue = await this.getDialogue(dialogueId);
     const messages = await this.getPriorMessages(dialogueId, turnId);
 
-    if (dialogue.systemContext.length === 0 && messages.length === 0) {
-      return prompt;
-    }
-    const sections: string[] = [];
-
-    if (dialogue.systemContext.length > 0) {
-      sections.push(`System context:\n${dialogue.systemContext}`);
-    }
-
-    if (messages.length > 0) {
-      const transcript = messages
-        .map(({ source, text }) => `${source === 'USER' ? 'User' : 'Assistant'}: ${text}`)
-        .join('\n');
-      sections.push(`Conversation history:\n${transcript}`);
-    }
-    sections.push(`User: ${prompt}`);
-
-    return sections.join('\n\n');
+    return conversationPrompt(messages, prompt);
   }
 
   private getPriorMessages(dialogueId: string, turnId: string) {
@@ -403,6 +386,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
     agentVersion: string,
     agentInstallationId: string,
     agentConfiguration: AgentConfigurationSelection,
+    instructions: string,
   ): Promise<void> {
     await this.manager.sessions.open(
       {
@@ -413,6 +397,7 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
         parameters: {},
         permissions: {},
         configuration: agentConfiguration,
+        ...(instructions.length === 0 ? {} : { instructions }),
       },
       this.launchContext,
     );
@@ -431,6 +416,22 @@ export class DispatchDialogueTurnHandler implements IEventHandler<DialogueTurnSa
 
     return session.send({ turnId, prompt });
   }
+}
+
+function conversationPrompt(
+  messages: readonly Prisma.DialogueHistoryItemGetPayload<{
+    select: { source: true; text: true };
+  }>[],
+  prompt: string,
+): string {
+  if (messages.length === 0) {
+    return prompt;
+  }
+  const transcript = messages
+    .map(({ source, text }) => `${source === 'USER' ? 'User' : 'Assistant'}: ${text}`)
+    .join('\n');
+
+  return `Conversation history:\n${transcript}\n\nUser: ${prompt}`;
 }
 
 function dialogueRuntimeOperationError(
