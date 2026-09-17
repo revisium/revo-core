@@ -123,7 +123,7 @@ export class PackedCorePackage {
         '--save-dev',
         '@types/node@24.13.3',
       ],
-      { cwd: this.consumerDirectory },
+      { cwd: this.consumerDirectory, timeout: 60_000 },
     );
   }
 

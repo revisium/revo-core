@@ -104,6 +104,10 @@ it with `REVO_AGENT_WORKSPACE_ROOT` in `.env` when needed. See
 [runtime configuration](docs/architecture/agent-runtime.md) for execution and
 recovery behavior.
 
+Dialogue-wide instructions belong in `createDialogue.systemContext`. Core passes
+them separately from each `sendDialogueMessage.prompt`; they remain part of the
+dialogue context when continuing or forking its history.
+
 ## API and verification
 
 The committed GraphQL schema and OpenAPI document define the API contracts.

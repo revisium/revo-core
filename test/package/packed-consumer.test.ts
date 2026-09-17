@@ -39,14 +39,19 @@ describe('packed public package', () => {
     expect(packed.unpackedSize).toBeGreaterThan(packed.packedSize);
   });
 
-  test('typechecks and starts through public exports outside the checkout', async () => {
-    await packed.install();
-    await packed.typecheck(repositoryRoot);
-    await packed.run(database.url);
+  describe('isolated consumer', () => {
+    beforeAll(async () => {
+      await packed.install();
+    }, 90_000);
 
-    await expect(database.relations()).resolves.toEqual({
-      prismaMigrations: '_prisma_migrations',
-      dbosWorkflowStatus: 'dbos.workflow_status',
-    });
-  }, 30_000);
+    test('typechecks and starts through public exports outside the checkout', async () => {
+      await packed.typecheck(repositoryRoot);
+      await packed.run(database.url);
+
+      await expect(database.relations()).resolves.toEqual({
+        prismaMigrations: '_prisma_migrations',
+        dbosWorkflowStatus: 'dbos.workflow_status',
+      });
+    }, 30_000);
+  });
 });

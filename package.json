@@ -78,7 +78,7 @@
     "@prisma/adapter-pg": "7.9.1",
     "@prisma/client": "7.9.1",
     "@revisium/engine": "0.7.0",
-    "@revisium/revo-agent-runtime": "0.3.0-alpha.6",
+    "@revisium/revo-agent-runtime": "0.3.0-alpha.7",
     "@revisium/revo-run": "0.2.0-alpha.6",
     "@types/express": "5.0.6",
     "class-transformer": "0.5.1",
