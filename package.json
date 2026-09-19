@@ -79,7 +79,7 @@
     "@prisma/client": "7.9.1",
     "@revisium/engine": "0.7.0",
     "@revisium/revo-agent-runtime": "0.3.0-alpha.7",
-    "@revisium/revo-run": "0.2.0-alpha.6",
+    "@revisium/revo-run": "0.2.0-alpha.7",
     "@types/express": "5.0.6",
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
@@ -114,5 +114,5 @@
   "engines": {
     "node": ">=24.15.0 <25"
   },
-  "packageManager": "pnpm@11.13.0"
+  "packageManager": "pnpm@11.13.1"
 }
