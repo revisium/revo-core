@@ -85,7 +85,7 @@ export class PackedCorePackage {
       ),
       writeFile(
         join(consumerDirectory, 'package.json'),
-        `${JSON.stringify({ private: true, type: 'module', packageManager: 'pnpm@11.13.0' })}\n`,
+        `${JSON.stringify({ private: true, type: 'module', packageManager: 'pnpm@11.13.1' })}\n`,
       ),
       writeFile(
         join(consumerDirectory, 'tsconfig.json'),

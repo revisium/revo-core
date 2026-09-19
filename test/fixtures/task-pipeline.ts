@@ -102,7 +102,7 @@ export const singleAgentProfile = (): RunProfile => ({
   bindings: {
     agents: {
       'reviewer-binding': {
-        definition: { id: 'reviewer', version: '1' },
+        definition: { id: 'reviewer', version: '1', installationId: 'test-installation' },
         parameters: {},
         permissions: {},
         workspaceRef: 'unavailable-workspace',

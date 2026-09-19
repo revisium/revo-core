@@ -6,11 +6,13 @@ import {
   type OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { AgentManager, AgentDefinitionInput } from '@revisium/revo-agent-runtime';
+import type {
+  AgentDefinitionInput,
+  AgentManager,
+  AgentStartContext,
+} from '@revisium/revo-agent-runtime';
 import {
   createRunManager,
-  createAgentAttemptExecutionAdapter,
-  type AgentAttemptExecutionAdapter,
   type CreateRunInput,
   type CreateRunResult,
   type RunDetails,
@@ -21,8 +23,16 @@ import {
 } from '@revisium/revo-run';
 
 import { AgentRuntimeLifecycle } from '../agent-runtime/agent-runtime-lifecycle.js';
-import { AGENT_MANAGER, AGENT_DEFINITIONS } from '../agent-runtime/agent-runtime.tokens.js';
+import {
+  AGENT_DEFINITIONS,
+  AGENT_LAUNCH_CONTEXT,
+  AGENT_MANAGER,
+} from '../agent-runtime/agent-runtime.tokens.js';
 import { reportErrorDiagnostic } from '../error-diagnostic.js';
+import {
+  createAgentAttemptExecutionAdapter,
+  type AgentAttemptExecutionAdapter,
+} from './agent-runtime-adapter/revo-agent-runtime-port.js';
 import { RunWorkingDirectoryCoordinator } from './working-directory/run-working-directory-coordinator.js';
 import { TemporaryRunDirectoryHost } from './working-directory/temporary-run-directory-host.js';
 
@@ -39,6 +49,7 @@ export class RevoRunService implements OnModuleInit, BeforeApplicationShutdown {
     private readonly workingDirectoryHost: TemporaryRunDirectoryHost,
     @Inject(AGENT_MANAGER) private readonly agents: AgentManager,
     @Inject(AGENT_DEFINITIONS) private readonly definitions: readonly AgentDefinitionInput[],
+    @Inject(AGENT_LAUNCH_CONTEXT) private readonly launchContext: AgentStartContext,
     private readonly runtimeLifecycle: AgentRuntimeLifecycle,
   ) {}
 
@@ -47,6 +58,7 @@ export class RevoRunService implements OnModuleInit, BeforeApplicationShutdown {
       manager: this.agents,
       definitions: this.definitions,
       host: this.workingDirectoryHost,
+      launchContext: this.launchContext,
     });
     this.manager = createRunManager({
       database: { url: this.config.getOrThrow<string>('database.url') },
