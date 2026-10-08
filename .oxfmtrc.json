@@ -9,7 +9,8 @@
     "dist/**",
     "node_modules/**",
     "src/__generated__/**",
-    "src/api/graphql/schema.graphql"
+    "src/api/graphql/schema.graphql",
+    "src/api/rest/openapi.json"
   ],
   "printWidth": 100,
   "singleQuote": true,
