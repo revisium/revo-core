@@ -1,6 +1,6 @@
 {
   "name": "@revisium/revo-core",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha.0",
   "private": false,
   "description": "Embeddable backend runtime for Revo.",
   "homepage": "https://github.com/revisium/revo-core#readme",
