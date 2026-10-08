@@ -3,6 +3,7 @@
 .env.sonar
 .idea/
 .packages/
+.revisium-actions/
 .sonar/
 coverage/
 dist/
