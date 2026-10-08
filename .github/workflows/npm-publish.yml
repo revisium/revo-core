@@ -22,7 +22,5 @@ jobs:
       install_command: corepack enable && pnpm install --frozen-lockfile
       pre_publish_commands: pnpm db:test:up && { pnpm db:test:migrate && pnpm verify; status=$?; pnpm db:test:down; exit $status; }
       npm_access: public
-      publish_auth: token
+      publish_auth: oidc
       create_github_release: false
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
