@@ -42,6 +42,7 @@ jobs:
     with:
       action: ${{ inputs.action }}
       dry_run: ${{ inputs.dry_run }}
+      version_files: src/api/rest/openapi.json
       base_branch: master
       node_version: 24.18.0
       package_manager: pnpm
