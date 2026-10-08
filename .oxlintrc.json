@@ -8,6 +8,7 @@
   "ignorePatterns": [
     ".codegraph/**",
     ".idea/**",
+    ".revisium-actions/**",
     ".sonar/**",
     "coverage/**",
     "dist/**",
